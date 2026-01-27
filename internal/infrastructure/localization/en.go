@@ -87,6 +87,7 @@ var English = map[string]interface{}{
 		"alreadyDraft":           "This {0} has been already drafted.",
 	},
 	"successMessage": map[string]interface{}{
+		"test": 					  "meow",
 		"userRegister":               "Registration Successful! Please check your messages to verify your account and complete the registration process.",
 		"phoneVerification":          "Your phone has been successfully verified.",
 		"login":                      "Logged in successfully.",

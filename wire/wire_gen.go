@@ -24,6 +24,7 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/repository/redis"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/address"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/test"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/user"
 	"github.com/Mahoura-shop/Backend/internal/presentation/middleware"
 	"github.com/google/wire"
@@ -69,9 +70,12 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	addressRepository := postgres.NewAddressRepository()
 	addressService := service.NewAddressService(constants, addressRepository, postgresDatabase)
 	generalAddressController := address.NewGeneralAddressController(constants, addressService)
+	testService := service.NewTestService(constants, postgresDatabase)
+	generalTestController := test.NewGeneralTestController(constants, testService)
 	generalControllers := &GeneralControllers{
 		UserController:    generalUserController,
 		AddressController: generalAddressController,
+		TestController:    generalTestController,
 	}
 	customerUserController := user.NewCustomerUserController(constants, userService)
 	customerAddressController := address.NewCustomerAddressController(constants, addressService)
@@ -121,11 +125,11 @@ var DatabaseProviderSet = wire.NewSet(database.NewPostgresDatabase, database.New
 
 var RepositoryProviderSet = wire.NewSet(postgres.NewUserRepository, postgres.NewAddressRepository, redis.NewUserCacheRepository, wire.Bind(new(postgres2.UserRepository), new(*postgres.UserRepository)), wire.Bind(new(postgres2.AddressRepository), new(*postgres.AddressRepository)), wire.Bind(new(redis2.UserCacheRepository), new(*redis.UserCacheRepository)))
 
-var ServiceProviderSet = wire.NewSet(wire.Struct(new(service.UserServiceDeps), "*"), service.NewUserService, service.NewOTPService, sms.NewSMSService, email.NewEmailService, service.NewJWTService, service.NewAddressService, wire.Bind(new(usecase.UserService), new(*service.UserService)), wire.Bind(new(usecase.OTPService), new(*service.OTPService)), wire.Bind(new(communication.SMSService), new(*sms.SMSService)), wire.Bind(new(communication.EmailService), new(*email.EmailService)), wire.Bind(new(usecase.JWTService), new(*service.JWTService)), wire.Bind(new(usecase.AddressService), new(*service.AddressService)))
+var ServiceProviderSet = wire.NewSet(wire.Struct(new(service.UserServiceDeps), "*"), service.NewUserService, service.NewOTPService, sms.NewSMSService, email.NewEmailService, service.NewJWTService, service.NewAddressService, service.NewTestService, wire.Bind(new(usecase.UserService), new(*service.UserService)), wire.Bind(new(usecase.OTPService), new(*service.OTPService)), wire.Bind(new(communication.SMSService), new(*sms.SMSService)), wire.Bind(new(communication.EmailService), new(*email.EmailService)), wire.Bind(new(usecase.JWTService), new(*service.JWTService)), wire.Bind(new(usecase.AddressService), new(*service.AddressService)), wire.Bind(new(usecase.TestService), new(*service.TestService)))
 
 var AdapterProviderSet = wire.NewSet(localization.NewTranslationService, logger.NewLogger, jwt.NewJWTKeyManager, wire.Bind(new(logger2.Logger), new(*logger.Logger)))
 
-var GeneralControllerProviderSet = wire.NewSet(user.NewGeneralUserController, address.NewGeneralAddressController, wire.Struct(new(GeneralControllers), "*"))
+var GeneralControllerProviderSet = wire.NewSet(user.NewGeneralUserController, address.NewGeneralAddressController, test.NewGeneralTestController, wire.Struct(new(GeneralControllers), "*"))
 
 var CustomerControllerProviderSet = wire.NewSet(user.NewCustomerUserController, address.NewCustomerAddressController, wire.Struct(new(CustomerControllers), "*"))
 
@@ -225,6 +229,7 @@ type Database struct {
 type GeneralControllers struct {
 	UserController    *user.GeneralUserController
 	AddressController *address.GeneralAddressController
+	TestController    *test.GeneralTestController
 }
 
 type CustomerControllers struct {

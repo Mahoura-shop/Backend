@@ -22,6 +22,7 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/address"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/user"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/test"
 	"github.com/Mahoura-shop/Backend/internal/presentation/middleware"
 	"github.com/google/wire"
 )
@@ -51,12 +52,14 @@ var ServiceProviderSet = wire.NewSet(
 	email.NewEmailService,
 	service.NewJWTService,
 	service.NewAddressService,
+	service.NewTestService,
 	wire.Bind(new(usecase.UserService), new(*service.UserService)),
 	wire.Bind(new(usecase.OTPService), new(*service.OTPService)),
 	wire.Bind(new(communication.SMSService), new(*sms.SMSService)),
 	wire.Bind(new(communication.EmailService), new(*email.EmailService)),
 	wire.Bind(new(usecase.JWTService), new(*service.JWTService)),
 	wire.Bind(new(usecase.AddressService), new(*service.AddressService)),
+	wire.Bind(new(usecase.TestService), new(*service.TestService)),
 )
 
 var AdapterProviderSet = wire.NewSet(
@@ -69,6 +72,7 @@ var AdapterProviderSet = wire.NewSet(
 var GeneralControllerProviderSet = wire.NewSet(
 	user.NewGeneralUserController,
 	address.NewGeneralAddressController,
+	test.NewGeneralTestController,
 	wire.Struct(new(GeneralControllers), "*"),
 )
 
@@ -188,6 +192,7 @@ type Database struct {
 type GeneralControllers struct {
 	UserController    *user.GeneralUserController
 	AddressController *address.GeneralAddressController
+	TestController	  *test.GeneralTestController
 }
 
 type CustomerControllers struct {
