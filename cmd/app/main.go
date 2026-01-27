@@ -17,13 +17,13 @@ func main() {
 
 	config := bootstrap.Run()
 
-	hub := websocket.NewHub()
-	go hub.Run()
-
-	app, err := wire.InitializeApplication(config, hub)
+	app, err := wire.InitializeApplication(config)
 	if err != nil {
 		panic(err)
 	}
+	
+	hub := websocket.NewHub()
+	go hub.Run()
 
 	app.Database.DB.GetDB().AutoMigrate(
 		&entity.Address{},
@@ -40,7 +40,6 @@ func main() {
 	app.Seeds.AddressSeeder.SeedProvincesAndCities()
 	app.Seeds.NotificationTypeSeeder.SeedNotificationTypes()
 	app.Seeds.RoleSeeder.SeedRoles()
-	app.Seeds.ContactType.SeedContactTypes()
 
 	if err := app.Consumers.Register.Start(); err != nil {
 		panic(err)

@@ -183,6 +183,10 @@ func ProvideRabbitMQConstants(container *bootstrap.Config) *bootstrap.RabbitMQCo
 	return &container.Constants.RabbitMQ
 }
 
+func ProvideWebSocketHub(container *bootstrap.Config) *websocket.Hub {
+    return websocket.NewHub()
+}
+
 var ProviderSet = wire.NewSet(
 	DatabaseProviderSet,
 	RepositoryProviderSet,
@@ -194,6 +198,7 @@ var ProviderSet = wire.NewSet(
 	MiddlewareProviderSet,
 	SeederProviderSet,
 	ConsumerProviderSet,
+	ProvideWebSocketHub,
 	ProvideConstants,
 	ProvideLoggerConfig,
 	ProvideRateLimitConfig,
@@ -282,11 +287,10 @@ func NewApplication(
 	}
 }
 
-func InitializeApplication(container *bootstrap.Config, hub *websocket.Hub) (*Application, error) {
+func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	wire.Build(
 		ProviderSet,
 		NewApplication,
-		wire.Value(hub),
 	)
 	return &Application{}, nil
 }
