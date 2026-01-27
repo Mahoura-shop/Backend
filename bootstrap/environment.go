@@ -20,7 +20,6 @@ type Env struct {
 	WebsocketSetting   WebsocketSetting
 	EmailSenderAccount EmailAccount
 	SuperAdmin         AdminCredentials
-	RabbitMQ           RabbitMQ
 }
 
 type Server struct {
@@ -103,16 +102,6 @@ type AdminCredentials struct {
 	NationalCode string
 }
 
-type RabbitMQ struct {
-	User          string
-	Password      string
-	Host          string
-	Port          string
-	VHost         string
-	MaxRetryCount int
-	RetryDelay    time.Duration
-}
-
 func NewEnvironments() *Env {
 	// godotenv.Load("../../.env")
 	godotenv.Load(".env")
@@ -175,15 +164,6 @@ func NewEnvironments() *Env {
 			Password:     os.Getenv("SUPER_ADMIN_PASSWORD"),
 			Email:        os.Getenv("SUPER_ADMIN_EMAIL"),
 			NationalCode: os.Getenv("SUPER_ADMIN_NATIONAL_CODE"),
-		},
-		RabbitMQ: RabbitMQ{
-			User:          os.Getenv("AMQP_USER"),
-			Password:      os.Getenv("AMQP_PASSWORD"),
-			Host:          os.Getenv("AMQP_HOST"),
-			Port:          os.Getenv("AMQP_PORT"),
-			VHost:         os.Getenv("AMQP_VHOST"),
-			MaxRetryCount: getEnvInt("AMQP_MAX_RETRY", 3),
-			RetryDelay:    getEnvDuration("AMQP_RETRY_DELAY", 5*time.Second),
 		},
 	}
 }

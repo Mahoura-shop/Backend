@@ -12,20 +12,17 @@ import (
 type RoleSeeder struct {
 	superAdmin             *bootstrap.AdminCredentials
 	userRepository         repository.UserRepository
-	notificationRepository repository.NotificationRepository
 	db                     database.Database
 }
 
 func NewRoleSeeder(
 	superAdmin *bootstrap.AdminCredentials,
 	userRepository repository.UserRepository,
-	notificationRepository repository.NotificationRepository,
 	db database.Database,
 ) *RoleSeeder {
 	return &RoleSeeder{
 		superAdmin:             superAdmin,
 		userRepository:         userRepository,
-		notificationRepository: notificationRepository,
 		db:                     db,
 	}
 }
@@ -147,30 +144,6 @@ func (roleSeeder *RoleSeeder) getOrCreateAdmin(adminCred *bootstrap.AdminCredent
 			Status:        enum.UserStatusActive,
 		}
 		err = roleSeeder.userRepository.CreateUser(roleSeeder.db, admin)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	notificationTypes, err := roleSeeder.notificationRepository.GetNotificationTypes(roleSeeder.db)
-	if err != nil {
-		panic(err)
-	}
-	for _, notificationType := range notificationTypes {
-		setting, err := roleSeeder.notificationRepository.GetNotificationSettingByUserAndType(roleSeeder.db, admin.ID, notificationType.ID)
-		if err != nil {
-			panic(err)
-		}
-		if setting != nil {
-			continue
-		}
-		setting = &entity.NotificationSetting{
-			UserID:         admin.ID,
-			TypeID:         notificationType.ID,
-			IsEmailEnabled: notificationType.SupportsEmail,
-			IsPushEnabled:  notificationType.SupportsPush,
-		}
-		err = roleSeeder.notificationRepository.CreateNotificationSetting(roleSeeder.db, setting)
 		if err != nil {
 			panic(err)
 		}

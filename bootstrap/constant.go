@@ -12,12 +12,6 @@ type Constants struct {
 	EmailTemplates      EmailTemplates
 	JWTKeysPath         JWTKeysPath
 	Metrics             Metrics
-	AddressOwners       AddressOwners
-	TicketOwners        TicketOwners
-	TicketCommentOwners TicketCommentOwners
-	ReportObjectTypes   ReportObjectTypes
-	ReportOwners        ReportOwners
-	RabbitMQ            RabbitMQConstants
 }
 
 type Context struct {
@@ -60,9 +54,6 @@ type ErrorField struct {
 	Page                string
 	ContactType         string
 	Room                string
-	NotificationType    string
-	Notification        string
-	NotificationSetting string
 	Panel               string
 	MaintenanceRequest  string
 	MaintenanceRecord   string
@@ -141,48 +132,6 @@ type Options struct {
 	Help string
 }
 
-type AddressOwners struct {
-	User                string
-	Corporation         string
-	InstallationRequest string
-	Panel               string
-	MaintenanceRequest  string
-}
-
-type TicketOwners struct {
-	User        string
-	Corporation string
-}
-
-type TicketCommentOwners struct {
-	User        string
-	Corporation string
-	Admin       string
-}
-
-type ReportObjectTypes struct {
-	Maintenance string
-	Panel       string
-}
-
-type ReportOwners struct {
-	User string
-}
-
-type RabbitMQConstants struct {
-	Exchange Exchanges
-	Queue    Queues
-	Headers  Headers
-	Events   Events
-}
-
-type Exchanges struct {
-	Notifications string
-	DLX           string
-	TypeTopic     string
-	TypeFanout    string
-}
-
 type Queues struct {
 	DLQ string
 }
@@ -191,13 +140,6 @@ type Headers struct {
 	RetryCount string
 	LastError  string
 	DeadLetter string
-}
-
-type Events struct {
-	NotificationsEmail string
-	NotificationsPush  string
-	UserRegistered     string
-	SendNotification   string
 }
 
 func NewConstants() *Constants {
@@ -234,8 +176,6 @@ func NewConstants() *Constants {
 			Page:                "page",
 			ContactType:         "contactType",
 			Room:                "room",
-			NotificationType:    "notificationType",
-			Notification:        "notification",
 			Panel:               "panel",
 			MaintenanceRequest:  "maintenanceRequest",
 			MaintenanceRecord:   "maintenanceRecord",
@@ -245,7 +185,6 @@ func NewConstants() *Constants {
 			TicketComment:       "ticketComment",
 			Report:              "report",
 			ContactInformation:  "contactInformation",
-			NotificationSetting: "notificationSetting",
 			PaymentTerm:         "paymentTerm",
 			Guarantee:           "guarantee",
 			GuaranteeViolation:  "guaranteeViolation",
@@ -308,51 +247,6 @@ func NewConstants() *Constants {
 			HTTPRequestDuration: Options{
 				Name: "http_request_duration_seconds",
 				Help: "HTTP request duration in seconds",
-			},
-		},
-		AddressOwners: AddressOwners{
-			User:                "users",
-			Corporation:         "corporations",
-			InstallationRequest: "installation_requests",
-			Panel:               "panels",
-		},
-		TicketOwners: TicketOwners{
-			User:        "users",
-			Corporation: "corporations",
-		},
-		TicketCommentOwners: TicketCommentOwners{
-			User:        "users",
-			Corporation: "corporations",
-			Admin:       "admins",
-		},
-
-		ReportObjectTypes: ReportObjectTypes{
-			Maintenance: "maintenance",
-			Panel:       "panel",
-		},
-		ReportOwners: ReportOwners{
-			User: "users",
-		},
-		RabbitMQ: RabbitMQConstants{
-			Exchange: Exchanges{
-				Notifications: "notifications",
-				DLX:           "dlx_notifications",
-				TypeTopic:     "topic",
-				TypeFanout:    "fanout",
-			},
-			Queue: Queues{
-				DLQ: "dlq_notifications",
-			},
-			Headers: Headers{
-				RetryCount: "x-retry-count",
-				LastError:  "x-last-error",
-				DeadLetter: "x-dead-letter-exchange",
-			},
-			Events: Events{
-				NotificationsEmail: "Notifications.Email",
-				NotificationsPush:  "Notifications.Push",
-				UserRegistered:     "Users.Register",
-				SendNotification:   "Notifications.Send",
 			},
 		},
 	}

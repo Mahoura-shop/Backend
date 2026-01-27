@@ -9,7 +9,6 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/application/usecase"
 	"github.com/Mahoura-shop/Backend/internal/domain/communication"
 	domainLogger "github.com/Mahoura-shop/Backend/internal/domain/logger"
-	"github.com/Mahoura-shop/Backend/internal/domain/message"
 	domainPostgres "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
 	domainRedis "github.com/Mahoura-shop/Backend/internal/domain/repository/redis"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/communication/email"
@@ -18,12 +17,9 @@ import (
 	infraJWT "github.com/Mahoura-shop/Backend/internal/infrastructure/jwt"
 	infraLocalization "github.com/Mahoura-shop/Backend/internal/infrastructure/localization"
 	infraLogger "github.com/Mahoura-shop/Backend/internal/infrastructure/logger"
-	infraRabbitMQ "github.com/Mahoura-shop/Backend/internal/infrastructure/rabbitmq"
-	"github.com/Mahoura-shop/Backend/internal/infrastructure/rabbitmq/consumer"
 	infraPostgres "github.com/Mahoura-shop/Backend/internal/infrastructure/repository/postgres"
 	infraRedis "github.com/Mahoura-shop/Backend/internal/infrastructure/repository/redis"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
-	"github.com/Mahoura-shop/Backend/internal/infrastructure/websocket"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/address"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/user"
 	"github.com/Mahoura-shop/Backend/internal/presentation/middleware"
@@ -42,11 +38,9 @@ var RepositoryProviderSet = wire.NewSet(
 	infraPostgres.NewUserRepository,
 	infraPostgres.NewAddressRepository,
 	infraRedis.NewUserCacheRepository,
-	infraPostgres.NewNotificationRepository,
 	wire.Bind(new(domainPostgres.UserRepository), new(*infraPostgres.UserRepository)),
 	wire.Bind(new(domainPostgres.AddressRepository), new(*infraPostgres.AddressRepository)),
 	wire.Bind(new(domainRedis.UserCacheRepository), new(*infraRedis.UserCacheRepository)),
-	wire.Bind(new(domainPostgres.NotificationRepository), new(*infraPostgres.NotificationRepository)),
 )
 
 var ServiceProviderSet = wire.NewSet(
@@ -69,9 +63,7 @@ var AdapterProviderSet = wire.NewSet(
 	infraLocalization.NewTranslationService,
 	infraLogger.NewLogger,
 	infraJWT.NewJWTKeyManager,
-	infraRabbitMQ.NewRabbitMQ,
 	wire.Bind(new(domainLogger.Logger), new(*infraLogger.Logger)),
-	wire.Bind(new(message.Broker), new(*infraRabbitMQ.RabbitMQ)),
 )
 
 var GeneralControllerProviderSet = wire.NewSet(
@@ -102,17 +94,8 @@ var MiddlewareProviderSet = wire.NewSet(
 
 var SeederProviderSet = wire.NewSet(
 	seed.NewAddressSeeder,
-	seed.NewNotificationTypeSeeder,
 	seed.NewRoleSeeder,
 	wire.Struct(new(Seeds), "*"),
-)
-
-var ConsumerProviderSet = wire.NewSet(
-	consumer.NewRegisterConsumer,
-	consumer.NewPushConsumer,
-	consumer.NewEmailConsumer,
-	consumer.NewSendNotificationConsumer,
-	wire.Struct(new(Consumers), "*"),
 )
 
 func ProvideConstants(container *bootstrap.Config) *bootstrap.Constants {
@@ -171,18 +154,6 @@ func ProvideSuperAdminCredential(container *bootstrap.Config) *bootstrap.AdminCr
 	return &container.Env.SuperAdmin
 }
 
-func ProvideRabbitMQConfig(container *bootstrap.Config) *bootstrap.RabbitMQ {
-	return &container.Env.RabbitMQ
-}
-
-func ProvideRabbitMQConstants(container *bootstrap.Config) *bootstrap.RabbitMQConstants {
-	return &container.Constants.RabbitMQ
-}
-
-func ProvideWebSocketHub(container *bootstrap.Config) *websocket.Hub {
-    return websocket.NewHub()
-}
-
 var ProviderSet = wire.NewSet(
 	DatabaseProviderSet,
 	RepositoryProviderSet,
@@ -193,8 +164,6 @@ var ProviderSet = wire.NewSet(
 	ControllersProviderSet,
 	MiddlewareProviderSet,
 	SeederProviderSet,
-	ConsumerProviderSet,
-	ProvideWebSocketHub,
 	ProvideConstants,
 	ProvideLoggerConfig,
 	ProvideRateLimitConfig,
@@ -209,8 +178,6 @@ var ProviderSet = wire.NewSet(
 	ProvideWebsocketSetting,
 	ProvideEmailSenderAccount,
 	ProvideSuperAdminCredential,
-	ProvideRabbitMQConfig,
-	ProvideRabbitMQConstants,
 )
 
 type Database struct {
@@ -244,15 +211,7 @@ type Middlewares struct {
 
 type Seeds struct {
 	AddressSeeder          *seed.AddressSeeder
-	NotificationTypeSeeder *seed.NotificationTypeSeeder
 	RoleSeeder             *seed.RoleSeeder
-}
-
-type Consumers struct {
-	Register     *consumer.RegisterConsumer
-	Push         *consumer.PushConsumer
-	Email        *consumer.EmailConsumer
-	Notification *consumer.SendNotificationConsumer
 }
 
 type Application struct {
@@ -260,8 +219,6 @@ type Application struct {
 	Controllers *Controllers
 	Middlewares *Middlewares
 	Seeds       *Seeds
-	Consumers   *Consumers
-	Hub         *websocket.Hub
 }
 
 func NewApplication(
@@ -269,16 +226,12 @@ func NewApplication(
 	controllers *Controllers,
 	middlewares *Middlewares,
 	seeds *Seeds,
-	consumers *Consumers,
-	hub *websocket.Hub,
 ) *Application {
 	return &Application{
 		Database:    database,
 		Controllers: controllers,
 		Middlewares: middlewares,
 		Seeds:       seeds,
-		Consumers:   consumers,
-		Hub:         hub,
 	}
 }
 

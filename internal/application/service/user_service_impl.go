@@ -12,7 +12,6 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
 	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 	"github.com/Mahoura-shop/Backend/internal/domain/exception"
-	"github.com/Mahoura-shop/Backend/internal/domain/message"
 	"github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
 	"github.com/Mahoura-shop/Backend/internal/domain/repository/redis"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
@@ -25,7 +24,6 @@ type UserService struct {
 	jwtService          usecase.JWTService
 	smsService          communication.SMSService
 	emailService        communication.EmailService
-	rabbitMQ            message.Broker
 	userRepository      postgres.UserRepository
 	userCacheRepository redis.UserCacheRepository
 	db                  database.Database
@@ -37,7 +35,6 @@ type UserServiceDeps struct {
 	JWTService          usecase.JWTService
 	SMSService          communication.SMSService
 	EmailService        communication.EmailService
-	RabbitMQ            message.Broker
 	UserRepository      postgres.UserRepository
 	UserCacheRepository redis.UserCacheRepository
 	DB                  database.Database
@@ -50,7 +47,6 @@ func NewUserService(deps UserServiceDeps) *UserService {
 		jwtService:          deps.JWTService,
 		smsService:          deps.SMSService,
 		emailService:        deps.EmailService,
-		rabbitMQ:            deps.RabbitMQ,
 		userRepository:      deps.UserRepository,
 		userCacheRepository: deps.UserCacheRepository,
 		db:                  deps.DB,
@@ -336,14 +332,6 @@ func (userService *UserService) Register(registerInfo userdto.BasicRegisterReque
 			return err
 		}
 
-		msg := struct {
-			UserID uint `json:"userID"`
-		}{
-			UserID: user.ID,
-		}
-		if err = userService.rabbitMQ.PublishMessage(userService.constants.RabbitMQ.Events.UserRegistered, msg); err != nil {
-			return err
-		}
 		// userService.smsService.SendOTP(registerInfo.Phone, otp)
 		return nil
 	})

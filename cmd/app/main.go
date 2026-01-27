@@ -5,7 +5,6 @@ import (
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
-	"github.com/Mahoura-shop/Backend/internal/infrastructure/websocket"
 	"github.com/Mahoura-shop/Backend/internal/presentation/routes"
 	"github.com/Mahoura-shop/Backend/wire"
 	"github.com/gin-gonic/gin"
@@ -21,16 +20,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
-	hub := websocket.NewHub()
-	go hub.Run()
 
 	app.Database.DB.GetDB().AutoMigrate(
 		&entity.Address{},
 		&entity.City{},
-		&entity.NotificationSetting{},
-		&entity.NotificationType{},
-		&entity.Notification{},
 		&entity.Permission{},
 		&entity.Province{},
 		&entity.Role{},
@@ -38,21 +31,7 @@ func main() {
 	)
 
 	app.Seeds.AddressSeeder.SeedProvincesAndCities()
-	app.Seeds.NotificationTypeSeeder.SeedNotificationTypes()
 	app.Seeds.RoleSeeder.SeedRoles()
-
-	if err := app.Consumers.Register.Start(); err != nil {
-		panic(err)
-	}
-	if err := app.Consumers.Push.Start(); err != nil {
-		panic(err)
-	}
-	if err := app.Consumers.Email.Start(); err != nil {
-		panic(err)
-	}
-	if err := app.Consumers.Notification.Start(); err != nil {
-		panic(err)
-	}
 
 	routes.Run(ginEngine, app)
 

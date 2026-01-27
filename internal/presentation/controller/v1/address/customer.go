@@ -43,7 +43,6 @@ func (addressController *CustomerAddressController) CreateUserAddress(ctx *gin.C
 		HouseNumber:   params.HouseNumber,
 		Unit:          params.Unit,
 		OwnerID:       ownerID.(uint),
-		OwnerType:     addressController.constants.AddressOwners.User,
 	}
 	createdAddress, err := addressController.addressService.CreateAddress(addressRequestInfo)
 	if err != nil {
@@ -59,7 +58,6 @@ func (addressController *CustomerAddressController) GetCustomerAddresses(ctx *gi
 	ownerID, _ := ctx.Get(addressController.constants.Context.ID)
 	ownerInfo := addressdto.GetOwnerAddressesRequest{
 		OwnerID:   ownerID.(uint),
-		OwnerType: addressController.constants.AddressOwners.User,
 	}
 	addresses, err := addressController.addressService.GetAddresses(ownerInfo)
 	if err != nil {
