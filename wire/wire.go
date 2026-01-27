@@ -159,10 +159,6 @@ func ProvidePaginationConfig(container *bootstrap.Config) *bootstrap.Pagination 
 	return &container.Env.Pagination
 }
 
-func ProvideStorageConfig(container *bootstrap.Config) *bootstrap.S3 {
-	return &container.Env.Storage
-}
-
 func ProvideWebsocketSetting(container *bootstrap.Config) *bootstrap.WebsocketSetting {
 	return &container.Env.WebsocketSetting
 }
@@ -210,7 +206,6 @@ var ProviderSet = wire.NewSet(
 	ProvideEmailTemplates,
 	ProvideJWTKeysPath,
 	ProvidePaginationConfig,
-	ProvideStorageConfig,
 	ProvideWebsocketSetting,
 	ProvideEmailSenderAccount,
 	ProvideSuperAdminCredential,

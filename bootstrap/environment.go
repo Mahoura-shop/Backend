@@ -14,7 +14,6 @@ type Env struct {
 	RateLimit          RateLimit
 	PrimaryDB          Database
 	PrimaryRedis       Redis
-	Storage            S3
 	OTP                OTP
 	SMSGateway         SMSGateway
 	Pagination         Pagination
@@ -53,14 +52,6 @@ type Redis struct {
 	Address   string
 	Password  string
 	RDBNumber string
-}
-
-type S3 struct {
-	Buckets   BucketName
-	Region    string
-	AccessKey string
-	SecretKey string
-	Endpoint  string
 }
 
 type BucketName struct {
@@ -151,21 +142,6 @@ func NewEnvironments() *Env {
 			Address:   os.Getenv("RDB_ADDRESS"),
 			Password:  os.Getenv("RDB_PASSWORD"),
 			RDBNumber: os.Getenv("RDB_NUMBER"),
-		},
-		Storage: S3{
-			Buckets: BucketName{
-				VATTaxpayerCertificate: os.Getenv("TAXPAYER_CERTIFICATE_BUCKET_NAME"),
-				OfficialNewspaperAD:    os.Getenv("OFFICIAL_NEWSPAPER_AD_BUCKET_NAME"),
-				ProfilePic:             os.Getenv("PROFILE_PIC_BUCKET_NAME"),
-				TicketImage:            os.Getenv("TICKET_IMAGE_BUCKET_NAME"),
-				LogoPic:                os.Getenv("LOGO_PIC_BUCKET_NAME"),
-				NewsMedia:              os.Getenv("NEWS_MEDIA_BUCKET_NAME"),
-				BlogMedia:              os.Getenv("BLOG_MEDIA_BUCKET_NAME"),
-			},
-			Region:    os.Getenv("BUCKET_REGION"),
-			AccessKey: os.Getenv("BUCKET_ACCESS_key"),
-			SecretKey: os.Getenv("BUCKET_SECRET_key"),
-			Endpoint:  os.Getenv("BUCKET_ENDPOINT"),
 		},
 		OTP: OTP{
 			Length:       getEnvInt("OTP_LENGTH", 6),
