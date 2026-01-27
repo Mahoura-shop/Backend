@@ -1,0 +1,10 @@
+.env
+app.exe
+.vscode/
+db-data
+*.pem
+.DS_Store
+db_data
+.air.toml
+tmp
+coverage.out
