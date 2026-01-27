@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	addressdto "github.com/CosmeticsShiraz/Backend/internal/application/dto/address"
+	addressdto "github.com/Mahoura-shop/Backend/internal/application/dto/address"
 )
 
 type AddressService interface {

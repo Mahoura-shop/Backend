@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/exception"
-	domainJWT "github.com/CosmeticsShiraz/Backend/internal/domain/jwt"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/domain/exception"
+	domainJWT "github.com/Mahoura-shop/Backend/internal/domain/jwt"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -23,10 +23,10 @@ func NewJWTService(
 		keyManager: keyManager,
 		keysPath:   keysPath,
 	}
-	err := keyManager.LoadKeys(keysPath.PrivateKey, keysPath.PublicKey)
-	if err != nil {
-		panic(err)
-	}
+	// err := keyManager.LoadKeys(keysPath.PrivateKey, keysPath.PublicKey)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	return service
 }

@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/database"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 )
 
 type Address struct {

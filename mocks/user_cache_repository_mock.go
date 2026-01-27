@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	userdto "github.com/CosmeticsShiraz/Backend/internal/application/dto/user"
+	userdto "github.com/Mahoura-shop/Backend/internal/application/dto/user"
 	"github.com/stretchr/testify/mock"
 )
 

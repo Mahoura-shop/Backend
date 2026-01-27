@@ -3,7 +3,7 @@ package middleware
 import (
 	"time"
 
-	"github.com/CosmeticsShiraz/Backend/internal/domain/logger"
+	"github.com/Mahoura-shop/Backend/internal/domain/logger"
 	"github.com/gin-gonic/gin"
 )
 

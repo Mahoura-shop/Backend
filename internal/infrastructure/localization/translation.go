@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/CosmeticsShiraz/Backend/internal/domain/localization"
+	"github.com/Mahoura-shop/Backend/internal/domain/localization"
 	"github.com/go-playground/locales/en_US"
 	"github.com/go-playground/locales/fa_IR"
 	ut "github.com/go-playground/universal-translator"

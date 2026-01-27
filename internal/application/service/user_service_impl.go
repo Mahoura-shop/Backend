@@ -5,18 +5,16 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	userdto "github.com/CosmeticsShiraz/Backend/internal/application/dto/user"
-	"github.com/CosmeticsShiraz/Backend/internal/application/usecase"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/communication"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/entity"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/enum"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/exception"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/message"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/repository/postgres"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/repository/redis"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/s3"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/database"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	userdto "github.com/Mahoura-shop/Backend/internal/application/dto/user"
+	"github.com/Mahoura-shop/Backend/internal/application/usecase"
+	"github.com/Mahoura-shop/Backend/internal/domain/communication"
+	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	"github.com/Mahoura-shop/Backend/internal/domain/enum"
+	"github.com/Mahoura-shop/Backend/internal/domain/exception"
+	"github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
+	"github.com/Mahoura-shop/Backend/internal/domain/repository/redis"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -26,8 +24,6 @@ type UserService struct {
 	jwtService          usecase.JWTService
 	smsService          communication.SMSService
 	emailService        communication.EmailService
-	rabbitMQ            message.Broker
-	s3Storage           s3.S3Storage
 	userRepository      postgres.UserRepository
 	userCacheRepository redis.UserCacheRepository
 	db                  database.Database
@@ -39,8 +35,6 @@ type UserServiceDeps struct {
 	JWTService          usecase.JWTService
 	SMSService          communication.SMSService
 	EmailService        communication.EmailService
-	RabbitMQ            message.Broker
-	S3Storage           s3.S3Storage
 	UserRepository      postgres.UserRepository
 	UserCacheRepository redis.UserCacheRepository
 	DB                  database.Database
@@ -53,8 +47,6 @@ func NewUserService(deps UserServiceDeps) *UserService {
 		jwtService:          deps.JWTService,
 		smsService:          deps.SMSService,
 		emailService:        deps.EmailService,
-		rabbitMQ:            deps.RabbitMQ,
-		s3Storage:           deps.S3Storage,
 		userRepository:      deps.UserRepository,
 		userCacheRepository: deps.UserCacheRepository,
 		db:                  deps.DB,
@@ -217,13 +209,6 @@ func (userService *UserService) GetUserCredential(userID uint) (userdto.Credenti
 		return userdto.CredentialResponse{}, err
 	}
 
-	profilePic := ""
-	if user.ProfilePicPath != "" {
-		profilePic, err = userService.s3Storage.GetPresignedURL(enum.ProfilePic, user.ProfilePicPath, 8*time.Hour)
-		if err != nil {
-			return userdto.CredentialResponse{}, err
-		}
-	}
 	return userdto.CredentialResponse{
 		ID:         user.ID,
 		FirstName:  user.FirstName,
@@ -231,7 +216,6 @@ func (userService *UserService) GetUserCredential(userID uint) (userdto.Credenti
 		Phone:      user.Phone,
 		Email:      user.Email,
 		NationalID: user.NationalCode,
-		ProfilePic: profilePic,
 		Status:     user.Status.String(),
 	}, nil
 }
@@ -251,13 +235,6 @@ func (userService *UserService) GetUsersByStatus(request userdto.GetUsersListReq
 	}
 	usersResponse := make([]userdto.CredentialResponse, len(users))
 	for i, user := range users {
-		profilePic := ""
-		if user.ProfilePicPath != "" {
-			profilePic, err = userService.s3Storage.GetPresignedURL(enum.ProfilePic, user.ProfilePicPath, 8*time.Hour)
-			if err != nil {
-				return nil, err
-			}
-		}
 		usersResponse[i] = userdto.CredentialResponse{
 			ID:         user.ID,
 			FirstName:  user.FirstName,
@@ -265,7 +242,6 @@ func (userService *UserService) GetUsersByStatus(request userdto.GetUsersListReq
 			Phone:      user.Phone,
 			Email:      user.Email,
 			NationalID: user.NationalCode,
-			ProfilePic: profilePic,
 			Status:     user.Status.String(),
 		}
 	}
@@ -356,14 +332,6 @@ func (userService *UserService) Register(registerInfo userdto.BasicRegisterReque
 			return err
 		}
 
-		msg := struct {
-			UserID uint `json:"userID"`
-		}{
-			UserID: user.ID,
-		}
-		if err = userService.rabbitMQ.PublishMessage(userService.constants.RabbitMQ.Events.UserRegistered, msg); err != nil {
-			return err
-		}
 		// userService.smsService.SendOTP(registerInfo.Phone, otp)
 		return nil
 	})
@@ -511,11 +479,6 @@ func (userService *UserService) CompleteRegister(completeRegisterInfo userdto.Co
 	user.NationalCode = completeRegisterInfo.NationalCode
 
 	err = userService.db.WithTransaction(func(tx database.Database) error {
-		if completeRegisterInfo.ProfilePic != nil {
-			profilePicPath := userService.constants.S3BucketPath.GetUserProfilePath(completeRegisterInfo.UserID, completeRegisterInfo.ProfilePic.Filename)
-			userService.s3Storage.UploadObject(enum.ProfilePic, profilePicPath, completeRegisterInfo.ProfilePic)
-			user.ProfilePicPath = profilePicPath
-		}
 		err = userService.userRepository.UpdateUser(tx, user)
 		if err != nil {
 			return err
@@ -607,23 +570,11 @@ func (userService *UserService) UpdateProfile(profileInfo userdto.UpdateProfileR
 		user.NationalCode = *profileInfo.NationalCode
 	}
 
-	oldProfilePicPath := ""
-	if profileInfo.ProfilePic != nil {
-		profilePicPath := userService.constants.S3BucketPath.GetUserProfilePath(profileInfo.UserID, profileInfo.ProfilePic.Filename)
-		userService.s3Storage.UploadObject(enum.ProfilePic, profilePicPath, profileInfo.ProfilePic)
-		oldProfilePicPath = user.ProfilePicPath
-		user.ProfilePicPath = profilePicPath
-	}
 	err = userService.db.WithTransaction(func(tx database.Database) error {
 		if err := userService.userRepository.UpdateUser(tx, user); err != nil {
 			return err
 		}
 
-		if oldProfilePicPath != "" {
-			if err = userService.s3Storage.DeleteObject(enum.ProfilePic, oldProfilePicPath); err != nil {
-				return err
-			}
-		}
 
 		return nil
 	})
@@ -780,13 +731,6 @@ func (userService *UserService) GetRoleOwners(roleID uint) ([]userdto.Credential
 
 	userCreds := make([]userdto.CredentialResponse, len(users))
 	for i, user := range users {
-		profilePic := ""
-		if user.ProfilePicPath != "" {
-			profilePic, err = userService.s3Storage.GetPresignedURL(enum.ProfilePic, user.ProfilePicPath, 8*time.Hour)
-			if err != nil {
-				return nil, err
-			}
-		}
 		userCreds[i] = userdto.CredentialResponse{
 			ID:         user.ID,
 			FirstName:  user.FirstName,
@@ -794,7 +738,6 @@ func (userService *UserService) GetRoleOwners(roleID uint) ([]userdto.Credential
 			Phone:      user.Phone,
 			Email:      user.Email,
 			NationalID: user.NationalCode,
-			ProfilePic: profilePic,
 			Status:     user.Status.String(),
 		}
 	}

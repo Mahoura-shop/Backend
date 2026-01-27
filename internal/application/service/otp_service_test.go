@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	userdto "github.com/CosmeticsShiraz/Backend/internal/application/dto/user"
-	mocks "github.com/CosmeticsShiraz/Backend/mocks"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	userdto "github.com/Mahoura-shop/Backend/internal/application/dto/user"
+	mocks "github.com/Mahoura-shop/Backend/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )

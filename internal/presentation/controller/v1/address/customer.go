@@ -1,10 +1,10 @@
 package address
 
 import (
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	addressdto "github.com/CosmeticsShiraz/Backend/internal/application/dto/address"
-	"github.com/CosmeticsShiraz/Backend/internal/application/usecase"
-	"github.com/CosmeticsShiraz/Backend/internal/presentation/controller"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	addressdto "github.com/Mahoura-shop/Backend/internal/application/dto/address"
+	"github.com/Mahoura-shop/Backend/internal/application/usecase"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,7 +43,6 @@ func (addressController *CustomerAddressController) CreateUserAddress(ctx *gin.C
 		HouseNumber:   params.HouseNumber,
 		Unit:          params.Unit,
 		OwnerID:       ownerID.(uint),
-		OwnerType:     addressController.constants.AddressOwners.User,
 	}
 	createdAddress, err := addressController.addressService.CreateAddress(addressRequestInfo)
 	if err != nil {
@@ -59,7 +58,6 @@ func (addressController *CustomerAddressController) GetCustomerAddresses(ctx *gi
 	ownerID, _ := ctx.Get(addressController.constants.Context.ID)
 	ownerInfo := addressdto.GetOwnerAddressesRequest{
 		OwnerID:   ownerID.(uint),
-		OwnerType: addressController.constants.AddressOwners.User,
 	}
 	addresses, err := addressController.addressService.GetAddresses(ownerInfo)
 	if err != nil {

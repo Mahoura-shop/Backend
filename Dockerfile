@@ -3,7 +3,7 @@
 FROM golang:1.23.4-alpine AS builder
 
 # 1. Install necessary build tools
-# RUN apk add --no-cache gcc musl-dev
+RUN apk add --no-cache gcc musl-dev
 
 WORKDIR /app
 

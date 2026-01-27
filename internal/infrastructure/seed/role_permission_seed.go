@@ -1,31 +1,28 @@
 package seed
 
 import (
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/entity"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/enum"
-	repository "github.com/CosmeticsShiraz/Backend/internal/domain/repository/postgres"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/database"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	"github.com/Mahoura-shop/Backend/internal/domain/enum"
+	repository "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type RoleSeeder struct {
 	superAdmin             *bootstrap.AdminCredentials
 	userRepository         repository.UserRepository
-	notificationRepository repository.NotificationRepository
 	db                     database.Database
 }
 
 func NewRoleSeeder(
 	superAdmin *bootstrap.AdminCredentials,
 	userRepository repository.UserRepository,
-	notificationRepository repository.NotificationRepository,
 	db database.Database,
 ) *RoleSeeder {
 	return &RoleSeeder{
 		superAdmin:             superAdmin,
 		userRepository:         userRepository,
-		notificationRepository: notificationRepository,
 		db:                     db,
 	}
 }
@@ -147,30 +144,6 @@ func (roleSeeder *RoleSeeder) getOrCreateAdmin(adminCred *bootstrap.AdminCredent
 			Status:        enum.UserStatusActive,
 		}
 		err = roleSeeder.userRepository.CreateUser(roleSeeder.db, admin)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	notificationTypes, err := roleSeeder.notificationRepository.GetNotificationTypes(roleSeeder.db)
-	if err != nil {
-		panic(err)
-	}
-	for _, notificationType := range notificationTypes {
-		setting, err := roleSeeder.notificationRepository.GetNotificationSettingByUserAndType(roleSeeder.db, admin.ID, notificationType.ID)
-		if err != nil {
-			panic(err)
-		}
-		if setting != nil {
-			continue
-		}
-		setting = &entity.NotificationSetting{
-			UserID:         admin.ID,
-			TypeID:         notificationType.ID,
-			IsEmailEnabled: notificationType.SupportsEmail,
-			IsPushEnabled:  notificationType.SupportsPush,
-		}
-		err = roleSeeder.notificationRepository.CreateNotificationSetting(roleSeeder.db, setting)
 		if err != nil {
 			panic(err)
 		}

@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/localization"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/domain/localization"
 	"github.com/gin-gonic/gin"
 )
 

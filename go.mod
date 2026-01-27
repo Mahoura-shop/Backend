@@ -1,4 +1,4 @@
-module github.com/CosmeticsShiraz/Backend
+module github.com/Mahoura-shop/Backend
 
 go 1.23.0
 
@@ -13,7 +13,6 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
 	github.com/kavenegar/kavenegar-go v0.0.0-20240205151018-77039f51467d
-	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0

@@ -4,7 +4,7 @@ import (
 	"mime/multipart"
 	"time"
 
-	"github.com/CosmeticsShiraz/Backend/internal/domain/enum"
+	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 )
 
 type S3Storage interface {

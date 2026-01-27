@@ -3,9 +3,9 @@ package seed
 import (
 	"fmt"
 
-	"github.com/CosmeticsShiraz/Backend/internal/domain/entity"
-	repository "github.com/CosmeticsShiraz/Backend/internal/domain/repository/postgres"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/database"
+	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	repository "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 )
 
 var provinceWithCities = map[string][]string{

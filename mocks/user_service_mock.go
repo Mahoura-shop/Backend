@@ -1,9 +1,9 @@
 package mocks
 
 import (
-	userdto "github.com/CosmeticsShiraz/Backend/internal/application/dto/user"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/entity"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/enum"
+	userdto "github.com/Mahoura-shop/Backend/internal/application/dto/user"
+	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 	"github.com/stretchr/testify/mock"
 )
 

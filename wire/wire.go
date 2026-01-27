@@ -4,29 +4,26 @@
 package wire
 
 import (
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/application/service"
-	"github.com/CosmeticsShiraz/Backend/internal/application/usecase"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/communication"
-	domainLogger "github.com/CosmeticsShiraz/Backend/internal/domain/logger"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/message"
-	domainPostgres "github.com/CosmeticsShiraz/Backend/internal/domain/repository/postgres"
-	domainRedis "github.com/CosmeticsShiraz/Backend/internal/domain/repository/redis"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/communication/email"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/communication/sms"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/database"
-	infraJWT "github.com/CosmeticsShiraz/Backend/internal/infrastructure/jwt"
-	infraLocalization "github.com/CosmeticsShiraz/Backend/internal/infrastructure/localization"
-	infraLogger "github.com/CosmeticsShiraz/Backend/internal/infrastructure/logger"
-	infraRabbitMQ "github.com/CosmeticsShiraz/Backend/internal/infrastructure/rabbitmq"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/rabbitmq/consumer"
-	infraPostgres "github.com/CosmeticsShiraz/Backend/internal/infrastructure/repository/postgres"
-	infraRedis "github.com/CosmeticsShiraz/Backend/internal/infrastructure/repository/redis"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/seed"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/websocket"
-	"github.com/CosmeticsShiraz/Backend/internal/presentation/controller/v1/address"
-	"github.com/CosmeticsShiraz/Backend/internal/presentation/controller/v1/user"
-	"github.com/CosmeticsShiraz/Backend/internal/presentation/middleware"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/application/service"
+	"github.com/Mahoura-shop/Backend/internal/application/usecase"
+	"github.com/Mahoura-shop/Backend/internal/domain/communication"
+	domainLogger "github.com/Mahoura-shop/Backend/internal/domain/logger"
+	domainPostgres "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
+	domainRedis "github.com/Mahoura-shop/Backend/internal/domain/repository/redis"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/communication/email"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/communication/sms"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
+	infraJWT "github.com/Mahoura-shop/Backend/internal/infrastructure/jwt"
+	infraLocalization "github.com/Mahoura-shop/Backend/internal/infrastructure/localization"
+	infraLogger "github.com/Mahoura-shop/Backend/internal/infrastructure/logger"
+	infraPostgres "github.com/Mahoura-shop/Backend/internal/infrastructure/repository/postgres"
+	infraRedis "github.com/Mahoura-shop/Backend/internal/infrastructure/repository/redis"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/address"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/user"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/test"
+	"github.com/Mahoura-shop/Backend/internal/presentation/middleware"
 	"github.com/google/wire"
 )
 
@@ -42,11 +39,9 @@ var RepositoryProviderSet = wire.NewSet(
 	infraPostgres.NewUserRepository,
 	infraPostgres.NewAddressRepository,
 	infraRedis.NewUserCacheRepository,
-	infraPostgres.NewNotificationRepository,
 	wire.Bind(new(domainPostgres.UserRepository), new(*infraPostgres.UserRepository)),
 	wire.Bind(new(domainPostgres.AddressRepository), new(*infraPostgres.AddressRepository)),
 	wire.Bind(new(domainRedis.UserCacheRepository), new(*infraRedis.UserCacheRepository)),
-	wire.Bind(new(domainPostgres.NotificationRepository), new(*infraPostgres.NotificationRepository)),
 )
 
 var ServiceProviderSet = wire.NewSet(
@@ -57,26 +52,27 @@ var ServiceProviderSet = wire.NewSet(
 	email.NewEmailService,
 	service.NewJWTService,
 	service.NewAddressService,
+	service.NewTestService,
 	wire.Bind(new(usecase.UserService), new(*service.UserService)),
 	wire.Bind(new(usecase.OTPService), new(*service.OTPService)),
 	wire.Bind(new(communication.SMSService), new(*sms.SMSService)),
 	wire.Bind(new(communication.EmailService), new(*email.EmailService)),
 	wire.Bind(new(usecase.JWTService), new(*service.JWTService)),
 	wire.Bind(new(usecase.AddressService), new(*service.AddressService)),
+	wire.Bind(new(usecase.TestService), new(*service.TestService)),
 )
 
 var AdapterProviderSet = wire.NewSet(
 	infraLocalization.NewTranslationService,
 	infraLogger.NewLogger,
 	infraJWT.NewJWTKeyManager,
-	infraRabbitMQ.NewRabbitMQ,
 	wire.Bind(new(domainLogger.Logger), new(*infraLogger.Logger)),
-	wire.Bind(new(message.Broker), new(*infraRabbitMQ.RabbitMQ)),
 )
 
 var GeneralControllerProviderSet = wire.NewSet(
 	user.NewGeneralUserController,
 	address.NewGeneralAddressController,
+	test.NewGeneralTestController,
 	wire.Struct(new(GeneralControllers), "*"),
 )
 
@@ -102,17 +98,8 @@ var MiddlewareProviderSet = wire.NewSet(
 
 var SeederProviderSet = wire.NewSet(
 	seed.NewAddressSeeder,
-	seed.NewNotificationTypeSeeder,
 	seed.NewRoleSeeder,
 	wire.Struct(new(Seeds), "*"),
-)
-
-var ConsumerProviderSet = wire.NewSet(
-	consumer.NewRegisterConsumer,
-	consumer.NewPushConsumer,
-	consumer.NewEmailConsumer,
-	consumer.NewSendNotificationConsumer,
-	wire.Struct(new(Consumers), "*"),
 )
 
 func ProvideConstants(container *bootstrap.Config) *bootstrap.Constants {
@@ -159,10 +146,6 @@ func ProvidePaginationConfig(container *bootstrap.Config) *bootstrap.Pagination 
 	return &container.Env.Pagination
 }
 
-func ProvideStorageConfig(container *bootstrap.Config) *bootstrap.S3 {
-	return &container.Env.Storage
-}
-
 func ProvideWebsocketSetting(container *bootstrap.Config) *bootstrap.WebsocketSetting {
 	return &container.Env.WebsocketSetting
 }
@@ -175,14 +158,6 @@ func ProvideSuperAdminCredential(container *bootstrap.Config) *bootstrap.AdminCr
 	return &container.Env.SuperAdmin
 }
 
-func ProvideRabbitMQConfig(container *bootstrap.Config) *bootstrap.RabbitMQ {
-	return &container.Env.RabbitMQ
-}
-
-func ProvideRabbitMQConstants(container *bootstrap.Config) *bootstrap.RabbitMQConstants {
-	return &container.Constants.RabbitMQ
-}
-
 var ProviderSet = wire.NewSet(
 	DatabaseProviderSet,
 	RepositoryProviderSet,
@@ -193,7 +168,6 @@ var ProviderSet = wire.NewSet(
 	ControllersProviderSet,
 	MiddlewareProviderSet,
 	SeederProviderSet,
-	ConsumerProviderSet,
 	ProvideConstants,
 	ProvideLoggerConfig,
 	ProvideRateLimitConfig,
@@ -205,12 +179,9 @@ var ProviderSet = wire.NewSet(
 	ProvideEmailTemplates,
 	ProvideJWTKeysPath,
 	ProvidePaginationConfig,
-	ProvideStorageConfig,
 	ProvideWebsocketSetting,
 	ProvideEmailSenderAccount,
 	ProvideSuperAdminCredential,
-	ProvideRabbitMQConfig,
-	ProvideRabbitMQConstants,
 )
 
 type Database struct {
@@ -219,13 +190,14 @@ type Database struct {
 }
 
 type GeneralControllers struct {
-	UserController         *user.GeneralUserController
-	AddressController      *address.GeneralAddressController
+	UserController    *user.GeneralUserController
+	AddressController *address.GeneralAddressController
+	TestController	  *test.GeneralTestController
 }
 
 type CustomerControllers struct {
-	UserController         *user.CustomerUserController
-	AddressController      *address.CustomerAddressController
+	UserController    *user.CustomerUserController
+	AddressController *address.CustomerAddressController
 }
 
 type Controllers struct {
@@ -244,15 +216,7 @@ type Middlewares struct {
 
 type Seeds struct {
 	AddressSeeder          *seed.AddressSeeder
-	NotificationTypeSeeder *seed.NotificationTypeSeeder
 	RoleSeeder             *seed.RoleSeeder
-}
-
-type Consumers struct {
-	Register     *consumer.RegisterConsumer
-	Push         *consumer.PushConsumer
-	Email        *consumer.EmailConsumer
-	Notification *consumer.SendNotificationConsumer
 }
 
 type Application struct {
@@ -260,8 +224,6 @@ type Application struct {
 	Controllers *Controllers
 	Middlewares *Middlewares
 	Seeds       *Seeds
-	Consumers   *Consumers
-	Hub         *websocket.Hub
 }
 
 func NewApplication(
@@ -269,25 +231,19 @@ func NewApplication(
 	controllers *Controllers,
 	middlewares *Middlewares,
 	seeds *Seeds,
-	consumers *Consumers,
-	hub *websocket.Hub,
 ) *Application {
 	return &Application{
 		Database:    database,
 		Controllers: controllers,
 		Middlewares: middlewares,
 		Seeds:       seeds,
-		Consumers:   consumers,
-		Hub:         hub,
-
 	}
 }
 
-func InitializeApplication(container *bootstrap.Config, hub *websocket.Hub) (*Application, error) {
+func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	wire.Build(
 		ProviderSet,
 		NewApplication,
-		wire.Value(hub),
 	)
 	return &Application{}, nil
 }
