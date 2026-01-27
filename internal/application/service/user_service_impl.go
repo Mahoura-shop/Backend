@@ -220,34 +220,6 @@ func (userService *UserService) GetUserCredential(userID uint) (userdto.Credenti
 	}, nil
 }
 
-func (userService *UserService) GetUsersByPermission(permissionTypes []enum.PermissionType) ([]*entity.User, error) {
-	return userService.userRepository.FindUsersByPermission(userService.db, permissionTypes)
-}
-
-func (userService *UserService) GetUsersByStatus(request userdto.GetUsersListRequest) ([]userdto.CredentialResponse, error) {
-	statuses := make([]enum.UserStatus, len(request.Statuses))
-	for i, status := range request.Statuses {
-		statuses[i] = enum.UserStatus(status)
-	}
-	users, err := userService.userRepository.FindUserByStatus(userService.db, statuses)
-	if err != nil {
-		return nil, err
-	}
-	usersResponse := make([]userdto.CredentialResponse, len(users))
-	for i, user := range users {
-		usersResponse[i] = userdto.CredentialResponse{
-			ID:         user.ID,
-			FirstName:  user.FirstName,
-			LastName:   user.LastName,
-			Phone:      user.Phone,
-			Email:      user.Email,
-			NationalID: user.NationalCode,
-			Status:     user.Status.String(),
-		}
-	}
-	return usersResponse, nil
-}
-
 func (userService *UserService) BanUser(userID uint) error {
 	user, err := userService.GetUserByID(userID)
 	if err != nil {
@@ -362,21 +334,6 @@ func (userService *UserService) VerifyPhone(verifyInfo userdto.VerifyPhoneReques
 	return nil
 }
 
-func (userService *UserService) FindUserPermissions(user *entity.User) ([]userdto.PermissionResponse, error) {
-	var permissions []userdto.PermissionResponse
-	if err := userService.userRepository.FindUserRoles(userService.db, user); err != nil {
-		return nil, err
-	}
-	for _, role := range user.Roles {
-		rolePermissions, err := userService.getRolePermissions(&role)
-		if err != nil {
-			return nil, err
-		}
-		permissions = append(permissions, rolePermissions...)
-	}
-	return permissions, nil
-}
-
 func (userService *UserService) Login(loginInfo userdto.LoginRequest) (userdto.UserInfoResponse, error) {
 	user, err := userService.FindActiveUserByPhone(loginInfo.Phone)
 	if err != nil {
@@ -392,16 +349,11 @@ func (userService *UserService) Login(loginInfo userdto.LoginRequest) (userdto.U
 	if err != nil {
 		return userdto.UserInfoResponse{}, err
 	}
-	permissions, err := userService.FindUserPermissions(user)
-	if err != nil {
-		return userdto.UserInfoResponse{}, err
-	}
 	return userdto.UserInfoResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
-		Permissions:  permissions,
 	}, nil
 }
 
@@ -452,16 +404,11 @@ func (userService *UserService) VerifyOTP(verifyInfo userdto.VerifyPhoneRequest)
 	if err != nil {
 		return userdto.UserInfoResponse{}, err
 	}
-	permissions, err := userService.FindUserPermissions(user)
-	if err != nil {
-		return userdto.UserInfoResponse{}, err
-	}
 	return userdto.UserInfoResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
-		Permissions:  permissions,
 	}, nil
 }
 
@@ -580,271 +527,4 @@ func (userService *UserService) UpdateProfile(profileInfo userdto.UpdateProfileR
 	})
 
 	return err
-}
-
-func (userService *UserService) GetAllPermissions() ([]userdto.PermissionResponse, error) {
-	permissions, err := userService.userRepository.FindAllPermissions(userService.db)
-	if err != nil {
-		return nil, err
-	}
-	permissionsResponse := make([]userdto.PermissionResponse, len(permissions))
-	for i, permission := range permissions {
-		permissionsResponse[i] = userdto.PermissionResponse{
-			ID:          permission.ID,
-			Name:        permission.Type.String(),
-			Description: permission.Type.Description(),
-			Category:    permission.Category.String(),
-		}
-	}
-	return permissionsResponse, nil
-}
-
-func (userService *UserService) getRolePermissions(role *entity.Role) ([]userdto.PermissionResponse, error) {
-	if err := userService.userRepository.FindRolePermissions(userService.db, role); err != nil {
-		return nil, err
-	}
-	permissions := make([]userdto.PermissionResponse, len(role.Permissions))
-	for i, permission := range role.Permissions {
-		permissions[i] = userdto.PermissionResponse{
-			ID:          permission.ID,
-			Name:        permission.Type.String(),
-			Description: permission.Type.Description(),
-			Category:    permission.Category.String(),
-		}
-	}
-	return permissions, nil
-}
-
-func (userService *UserService) GetAllRoles() ([]userdto.RoleResponse, error) {
-	roles, err := userService.userRepository.FindAllRoles(userService.db)
-	if err != nil {
-		return nil, err
-	}
-	rolesResponse := make([]userdto.RoleResponse, len(roles))
-	for i, role := range roles {
-		permissions, err := userService.getRolePermissions(role)
-		if err != nil {
-			return nil, err
-		}
-		rolesResponse[i] = userdto.RoleResponse{
-			ID:          role.ID,
-			Name:        role.Name,
-			Permissions: permissions,
-		}
-	}
-	return rolesResponse, nil
-}
-
-func (userService *UserService) getPermission(permissionID uint) (*entity.Permission, error) {
-	permission, err := userService.userRepository.FindPermissionByID(userService.db, permissionID)
-	if err != nil {
-		return nil, err
-	}
-	if permission == nil {
-		notFoundError := exception.NotFoundError{Item: userService.constants.Field.Permission}
-		return nil, notFoundError
-	}
-	return permission, nil
-}
-
-func (userService *UserService) getRole(roleID uint) (*entity.Role, error) {
-	role, err := userService.userRepository.FindRoleByID(userService.db, roleID)
-	if err != nil {
-		return nil, err
-	}
-	if role == nil {
-		notFoundError := exception.NotFoundError{Item: userService.constants.Field.Role}
-		return nil, notFoundError
-	}
-	return role, nil
-}
-
-func (userService *UserService) CreateRole(newRoleRequest userdto.NewRoleRequest) error {
-	existingRole, err := userService.userRepository.FindRoleByName(userService.db, newRoleRequest.Name)
-	if err != nil {
-		return err
-	}
-	if existingRole != nil {
-		var conflictErrors exception.ConflictErrors
-		conflictErrors.Add(userService.constants.Field.Role, userService.constants.Tag.AlreadyExist)
-		return conflictErrors
-	}
-	err = userService.db.WithTransaction(func(tx database.Database) error {
-		role := &entity.Role{
-			Name: newRoleRequest.Name,
-		}
-		err = userService.userRepository.CreateRole(tx, role)
-		if err != nil {
-			return err
-		}
-
-		existingPermissions := make(map[uint]bool)
-		for _, permissionID := range newRoleRequest.PermissionIDs {
-			if existingPermissions[permissionID] {
-				continue
-			}
-
-			permission, err := userService.getPermission(permissionID)
-			if err != nil {
-				return err
-			}
-
-			if err := userService.userRepository.AssignPermissionToRole(tx, role, permission); err != nil {
-				return err
-			}
-			existingPermissions[permissionID] = true
-		}
-
-		return nil
-	})
-	return nil
-}
-
-func (userService *UserService) GetRoleDetails(roleID uint) (userdto.RoleResponse, error) {
-	role, err := userService.getRole(roleID)
-	if err != nil {
-		return userdto.RoleResponse{}, err
-	}
-
-	permissions, err := userService.getRolePermissions(role)
-	if err != nil {
-		return userdto.RoleResponse{}, err
-	}
-
-	return userdto.RoleResponse{
-		ID:          role.ID,
-		Name:        role.Name,
-		Permissions: permissions,
-	}, nil
-}
-
-func (userService *UserService) GetRoleOwners(roleID uint) ([]userdto.CredentialResponse, error) {
-	_, err := userService.getRole(roleID)
-	if err != nil {
-		return nil, err
-	}
-
-	users, err := userService.userRepository.FindUsersByRoleID(userService.db, roleID)
-	if err != nil {
-		return nil, err
-	}
-
-	userCreds := make([]userdto.CredentialResponse, len(users))
-	for i, user := range users {
-		userCreds[i] = userdto.CredentialResponse{
-			ID:         user.ID,
-			FirstName:  user.FirstName,
-			LastName:   user.LastName,
-			Phone:      user.Phone,
-			Email:      user.Email,
-			NationalID: user.NationalCode,
-			Status:     user.Status.String(),
-		}
-	}
-	return userCreds, nil
-}
-
-func (userService *UserService) GetUserRoles(userID uint) ([]userdto.RoleResponse, error) {
-	user, err := userService.GetUserByID(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := userService.userRepository.FindUserRoles(userService.db, user); err != nil {
-		return nil, err
-	}
-	roles := make([]userdto.RoleResponse, len(user.Roles))
-	for i, role := range user.Roles {
-		permissions, err := userService.getRolePermissions(&role)
-		if err != nil {
-			return nil, err
-		}
-		roles[i] = userdto.RoleResponse{
-			ID:          role.ID,
-			Name:        role.Name,
-			Permissions: permissions,
-		}
-	}
-	return roles, nil
-}
-
-func (userService *UserService) DeleteRole(roleID uint) error {
-	_, err := userService.getRole(roleID)
-	if err != nil {
-		return err
-	}
-
-	if err := userService.userRepository.DeleteRole(userService.db, roleID); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (userService *UserService) UpdateRole(newRoleRequest userdto.UpdateRoleRequest) error {
-	role, err := userService.getRole(newRoleRequest.RoleID)
-	if err != nil {
-		return err
-	}
-
-	existingPermissions := make(map[uint]bool)
-	var permissions []entity.Permission
-	for _, permissionID := range newRoleRequest.PermissionIDs {
-		if existingPermissions[permissionID] {
-			continue
-		}
-
-		permission, err := userService.getPermission(permissionID)
-		if err != nil {
-			return err
-		}
-
-		permissions = append(permissions, *permission)
-		existingPermissions[permissionID] = true
-	}
-
-	err = userService.db.WithTransaction(func(tx database.Database) error {
-		if newRoleRequest.Name != nil {
-			role.Name = *newRoleRequest.Name
-			if err := userService.userRepository.UpdateRole(tx, role); err != nil {
-				return err
-			}
-		}
-
-		if err := userService.userRepository.ReplaceRolePermissions(tx, role, permissions); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	return err
-}
-
-func (userService *UserService) UpdateUserRoles(userRolesRequest userdto.UpdateUserRolesRequest) error {
-	user, err := userService.GetUserByID(userRolesRequest.UserID)
-	if err != nil {
-		return err
-	}
-
-	existingRoles := make(map[uint]bool)
-	var roles []entity.Role
-	for _, roleID := range userRolesRequest.RoleIDs {
-		if existingRoles[roleID] {
-			continue
-		}
-
-		role, err := userService.getRole(roleID)
-		if err != nil {
-			return err
-		}
-
-		roles = append(roles, *role)
-		existingRoles[roleID] = true
-	}
-
-	if err := userService.userRepository.ReplaceUserRoles(userService.db, user, roles); err != nil {
-		return err
-	}
-
-	return nil
 }

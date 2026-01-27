@@ -4,6 +4,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -19,7 +20,7 @@ type Env struct {
 	Pagination         Pagination
 	WebsocketSetting   WebsocketSetting
 	EmailSenderAccount EmailAccount
-	SuperAdmin         AdminCredentials
+	Admins	           AdminCredentials
 }
 
 type Server struct {
@@ -94,12 +95,12 @@ type EmailAccount struct {
 }
 
 type AdminCredentials struct {
-	FirstName    string
-	LastName     string
-	Phone        string
-	Password     string
-	Email        string
-	NationalCode string
+	Admins []AdminAccount
+}
+
+type AdminAccount struct {
+	Phone    string
+	Password string
 }
 
 func NewEnvironments() *Env {
@@ -157,13 +158,8 @@ func NewEnvironments() *Env {
 			SMTPHost:      os.Getenv("SMTP_HOST"),
 			SMTPPort:      os.Getenv("SMTP_PORT"),
 		},
-		SuperAdmin: AdminCredentials{
-			FirstName:    os.Getenv("SUPER_ADMIN_FIRST_NAME"),
-			LastName:     os.Getenv("SUPER_ADMIN_LAST_NAME"),
-			Phone:        os.Getenv("SUPER_ADMIN_PHONE"),
-			Password:     os.Getenv("SUPER_ADMIN_PASSWORD"),
-			Email:        os.Getenv("SUPER_ADMIN_EMAIL"),
-			NationalCode: os.Getenv("SUPER_ADMIN_NATIONAL_CODE"),
+		Admins: AdminCredentials{
+			Admins: getEnvAdmins("ADMINS"),
 		},
 	}
 }
@@ -184,4 +180,27 @@ func getEnvInt(key string, defaultVal int) int {
 		}
 	}
 	return defaultVal
+}
+
+func getEnvAdmins(key string) []AdminAccount {
+	val := os.Getenv(key)
+	if val == "" {
+		return nil
+	}
+
+	items := strings.Split(val, ",")
+	admins := make([]AdminAccount, 0)
+
+	for _, item := range items {
+		parts := strings.Split(item, ":")
+		if len(parts) != 2 {
+			continue
+		}
+		admins = append(admins, AdminAccount{
+			Phone:    strings.TrimSpace(parts[0]),
+			Password: strings.TrimSpace(parts[1]),
+		})
+	}
+
+	return admins
 }
