@@ -15,15 +15,8 @@ func Run(ginEngine *gin.Engine, app *wire.Application) {
 
 	v1 := ginEngine.Group("/v1")
 	registerGeneralRoutes(v1, app)
-	registerCustomerRoutes(v1, app)
 }
 
 func registerGeneralRoutes(v1 *gin.RouterGroup, app *wire.Application) {
 	httpv1.SetupGeneralRoutes(v1, app)
-}
-
-func registerCustomerRoutes(v1 *gin.RouterGroup, app *wire.Application) {
-	user := v1.Group("/user")
-	user.Use(app.Middlewares.Authentication.AuthRequired)
-	httpv1.SetupCustomerRoutes(user, app)
 }

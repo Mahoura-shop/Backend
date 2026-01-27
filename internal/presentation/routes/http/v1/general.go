@@ -6,26 +6,11 @@ import (
 )
 
 func SetupGeneralRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
-	const status string = "/status"
-
-	auth := routerGroup.Group("/auth")
-	{
-		auth.POST("/register/basic", app.Controllers.General.UserController.BasicRegister)
-		auth.POST("/verify/phone", app.Controllers.General.UserController.VerifyPhone)
-		auth.POST("/login", app.Controllers.General.UserController.Login)
-		auth.POST("/forgot-password", app.Controllers.General.UserController.ForgotPassword)
-		auth.POST("/confirm-otp", app.Controllers.General.UserController.ConfirmOTP)
-		auth.POST("/refresh", app.Controllers.General.UserController.RefreshToken)
-	}
-
-	addresses := routerGroup.Group("/address")
-	{
-		addresses.GET("/province", app.Controllers.General.AddressController.GetProvince)
-		addresses.GET("/province/:provinceID/city", app.Controllers.General.AddressController.GetProvinceCities)
-	}
-
 	test := routerGroup.Group("/test")
 	{
-		test.GET("/", app.Controllers.General.TestController.Test)
+		test.POST("/", app.Controllers.General.TestController.Test)
+		// test.POST("/", func(c *gin.Context) {
+		// 	c.JSON(200, gin.H{"ok": true})
+		// })
 	}
 }
