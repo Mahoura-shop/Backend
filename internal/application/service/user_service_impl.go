@@ -528,3 +528,31 @@ func (userService *UserService) UpdateProfile(profileInfo userdto.UpdateProfileR
 
 	return err
 }
+
+
+func (userService *UserService) AdminLogin(adminInfo userdto.AdminLoginRequest) (userdto.AdminInfoResponse, error) {
+	user, err := userService.FindActiveUserByPhone(adminInfo.Phone)
+	if err != nil {
+		return userdto.AdminInfoResponse{}, err
+	}
+	
+	if !user.IsAdmin {
+		return userdto.AdminInfoResponse{},
+			exception.NewAccessDeniedError("user is not admin", nil)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(adminInfo.Password))
+	if err != nil {
+		authError := exception.NewInvalidCredentialsError("phone and password not matched", nil)
+		return userdto.AdminInfoResponse{}, authError
+	}
+
+	accessToken, refreshToken, err := userService.jwtService.GenerateToken(user.ID)
+	if err != nil {
+		return userdto.AdminInfoResponse{}, err
+	}
+	return userdto.AdminInfoResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}

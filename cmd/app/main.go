@@ -29,6 +29,7 @@ func main() {
 	)
 
 	app.Seeds.AddressSeeder.SeedProvincesAndCities()
+	app.Seeds.AdminSeeder.SeedAdmins()
 
 	routes.Run(ginEngine, app)
 

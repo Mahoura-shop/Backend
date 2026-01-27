@@ -109,8 +109,11 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		Logger:         loggerMiddleware,
 	}
 	addressSeeder := seed.NewAddressSeeder(addressRepository, postgresDatabase)
+	adminCredentials := ProvideSuperAdminCredential(container)
+	adminSeeder := seed.NewAdminSeeder(adminCredentials, userRepository, postgresDatabase)
 	seeds := &Seeds{
 		AddressSeeder: addressSeeder,
+		AdminSeeder:   adminSeeder,
 	}
 	application := NewApplication(wireDatabase, controllers, middlewares, seeds)
 	return application, nil
@@ -134,7 +137,7 @@ var ControllersProviderSet = wire.NewSet(wire.Struct(new(Controllers), "*"))
 
 var MiddlewareProviderSet = wire.NewSet(middleware.NewAuthMiddleware, middleware.NewCorsMiddleware, middleware.NewRecovery, middleware.NewLocalization, middleware.NewRateLimit, middleware.NewLoggerMiddleware, wire.Struct(new(Middlewares), "*"))
 
-var SeederProviderSet = wire.NewSet(seed.NewAddressSeeder, wire.Struct(new(Seeds), "*"))
+var SeederProviderSet = wire.NewSet(seed.NewAddressSeeder, seed.NewAdminSeeder, wire.Struct(new(Seeds), "*"))
 
 func ProvideConstants(container *bootstrap.Config) *bootstrap.Constants {
 	return container.Constants
@@ -250,6 +253,7 @@ type Middlewares struct {
 
 type Seeds struct {
 	AddressSeeder *seed.AddressSeeder
+	AdminSeeder   *seed.AdminSeeder
 }
 
 type Application struct {

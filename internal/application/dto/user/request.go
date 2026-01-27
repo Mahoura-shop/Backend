@@ -59,3 +59,8 @@ type GetUsersListRequest struct {
 	Offset   int
 	Limit    int
 }
+
+type AdminLoginRequest struct {
+	Phone    string
+	Password string
+}

@@ -21,4 +21,5 @@ type UserService interface {
 	ResetPassword(resetPassInfo userdto.ResetPasswordRequest) error
 	FindActiveUserByPhone(phone string) (*entity.User, error)
 	UpdateProfile(profileInfo userdto.UpdateProfileRequest) error
+	AdminLogin(adminInfo userdto.AdminLoginRequest) (userdto.AdminInfoResponse, error)
 }

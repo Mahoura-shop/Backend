@@ -26,3 +26,8 @@ type CredentialResponse struct {
 type UserResponse struct {
 	ID uint `json:"id"`
 }
+
+type AdminInfoResponse struct {
+	AccessToken  string               `json:"accessToken"`
+	RefreshToken string               `json:"refreshToken"`
+}
