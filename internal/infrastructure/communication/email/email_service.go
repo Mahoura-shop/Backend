@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"net/smtp"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/bootstrap"
 )
 
 type EmailService struct {

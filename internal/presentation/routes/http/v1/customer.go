@@ -1,7 +1,7 @@
 package httpv1
 
 import (
-	"github.com/CosmeticsShiraz/Backend/wire"
+	"github.com/Mahoura-shop/Backend/wire"
 	"github.com/gin-gonic/gin"
 )
 

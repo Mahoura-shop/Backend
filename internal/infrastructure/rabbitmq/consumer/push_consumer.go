@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/rabbitmq"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/websocket"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/rabbitmq"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/websocket"
 )
 
 type PushConsumer struct {

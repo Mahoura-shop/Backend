@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/bootstrap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

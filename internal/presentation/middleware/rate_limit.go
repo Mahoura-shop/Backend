@@ -3,8 +3,8 @@ package middleware
 import (
 	"strconv"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/exception"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/domain/exception"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
 )

@@ -1,8 +1,8 @@
 package postgres
 
 import (
-	"github.com/CosmeticsShiraz/Backend/internal/domain/entity"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/database"
+	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 )
 
 type AddressRepository interface {

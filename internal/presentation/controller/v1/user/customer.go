@@ -3,10 +3,10 @@ package user
 import (
 	"mime/multipart"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	userdto "github.com/CosmeticsShiraz/Backend/internal/application/dto/user"
-	"github.com/CosmeticsShiraz/Backend/internal/application/usecase"
-	"github.com/CosmeticsShiraz/Backend/internal/presentation/controller"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	userdto "github.com/Mahoura-shop/Backend/internal/application/dto/user"
+	"github.com/Mahoura-shop/Backend/internal/application/usecase"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller"
 	"github.com/gin-gonic/gin"
 )
 

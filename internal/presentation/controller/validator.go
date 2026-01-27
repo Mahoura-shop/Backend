@@ -3,7 +3,7 @@ package controller
 import (
 	"reflect"
 
-	"github.com/CosmeticsShiraz/Backend/internal/domain/exception"
+	"github.com/Mahoura-shop/Backend/internal/domain/exception"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )

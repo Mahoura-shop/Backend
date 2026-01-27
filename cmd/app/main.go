@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/entity"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/websocket"
-	"github.com/CosmeticsShiraz/Backend/internal/presentation/routes"
-	"github.com/CosmeticsShiraz/Backend/wire"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/websocket"
+	"github.com/Mahoura-shop/Backend/internal/presentation/routes"
+	"github.com/Mahoura-shop/Backend/wire"
 	"github.com/gin-gonic/gin"
 )
 

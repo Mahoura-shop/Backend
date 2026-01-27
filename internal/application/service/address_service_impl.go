@@ -1,12 +1,12 @@
 package service
 
 import (
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	addressdto "github.com/CosmeticsShiraz/Backend/internal/application/dto/address"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/entity"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/exception"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/repository/postgres"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/database"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	addressdto "github.com/Mahoura-shop/Backend/internal/application/dto/address"
+	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	"github.com/Mahoura-shop/Backend/internal/domain/exception"
+	"github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 )
 
 type AddressService struct {

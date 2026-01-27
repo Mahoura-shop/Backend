@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/bootstrap"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 

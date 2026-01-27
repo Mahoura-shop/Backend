@@ -6,7 +6,7 @@ import (
 	"os"
 	"sync"
 
-	domainJWT "github.com/CosmeticsShiraz/Backend/internal/domain/jwt"
+	domainJWT "github.com/Mahoura-shop/Backend/internal/domain/jwt"
 	"github.com/golang-jwt/jwt/v5"
 )
 

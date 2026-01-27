@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
-	userdto "github.com/CosmeticsShiraz/Backend/internal/application/dto/user"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/database"
+	userdto "github.com/Mahoura-shop/Backend/internal/application/dto/user"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 	"github.com/redis/go-redis/v9"
 )
 

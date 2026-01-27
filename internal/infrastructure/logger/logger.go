@@ -6,8 +6,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/logger"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/domain/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

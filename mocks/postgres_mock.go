@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/database"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
 )

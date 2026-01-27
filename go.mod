@@ -1,4 +1,4 @@
-module github.com/CosmeticsShiraz/Backend
+module github.com/Mahoura-shop/Backend
 
 go 1.23.0
 

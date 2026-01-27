@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/exception"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/logger"
-	loggerImpl "github.com/CosmeticsShiraz/Backend/internal/infrastructure/logger"
-	"github.com/CosmeticsShiraz/Backend/internal/presentation/controller"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/domain/exception"
+	"github.com/Mahoura-shop/Backend/internal/domain/logger"
+	loggerImpl "github.com/Mahoura-shop/Backend/internal/infrastructure/logger"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller"
 	"github.com/gin-gonic/gin"
 )
 

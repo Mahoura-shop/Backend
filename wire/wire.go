@@ -4,29 +4,29 @@
 package wire
 
 import (
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/application/service"
-	"github.com/CosmeticsShiraz/Backend/internal/application/usecase"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/communication"
-	domainLogger "github.com/CosmeticsShiraz/Backend/internal/domain/logger"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/message"
-	domainPostgres "github.com/CosmeticsShiraz/Backend/internal/domain/repository/postgres"
-	domainRedis "github.com/CosmeticsShiraz/Backend/internal/domain/repository/redis"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/communication/email"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/communication/sms"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/database"
-	infraJWT "github.com/CosmeticsShiraz/Backend/internal/infrastructure/jwt"
-	infraLocalization "github.com/CosmeticsShiraz/Backend/internal/infrastructure/localization"
-	infraLogger "github.com/CosmeticsShiraz/Backend/internal/infrastructure/logger"
-	infraRabbitMQ "github.com/CosmeticsShiraz/Backend/internal/infrastructure/rabbitmq"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/rabbitmq/consumer"
-	infraPostgres "github.com/CosmeticsShiraz/Backend/internal/infrastructure/repository/postgres"
-	infraRedis "github.com/CosmeticsShiraz/Backend/internal/infrastructure/repository/redis"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/seed"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/websocket"
-	"github.com/CosmeticsShiraz/Backend/internal/presentation/controller/v1/address"
-	"github.com/CosmeticsShiraz/Backend/internal/presentation/controller/v1/user"
-	"github.com/CosmeticsShiraz/Backend/internal/presentation/middleware"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/application/service"
+	"github.com/Mahoura-shop/Backend/internal/application/usecase"
+	"github.com/Mahoura-shop/Backend/internal/domain/communication"
+	domainLogger "github.com/Mahoura-shop/Backend/internal/domain/logger"
+	"github.com/Mahoura-shop/Backend/internal/domain/message"
+	domainPostgres "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
+	domainRedis "github.com/Mahoura-shop/Backend/internal/domain/repository/redis"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/communication/email"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/communication/sms"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
+	infraJWT "github.com/Mahoura-shop/Backend/internal/infrastructure/jwt"
+	infraLocalization "github.com/Mahoura-shop/Backend/internal/infrastructure/localization"
+	infraLogger "github.com/Mahoura-shop/Backend/internal/infrastructure/logger"
+	infraRabbitMQ "github.com/Mahoura-shop/Backend/internal/infrastructure/rabbitmq"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/rabbitmq/consumer"
+	infraPostgres "github.com/Mahoura-shop/Backend/internal/infrastructure/repository/postgres"
+	infraRedis "github.com/Mahoura-shop/Backend/internal/infrastructure/repository/redis"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/websocket"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/address"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/user"
+	"github.com/Mahoura-shop/Backend/internal/presentation/middleware"
 	"github.com/google/wire"
 )
 
@@ -219,13 +219,13 @@ type Database struct {
 }
 
 type GeneralControllers struct {
-	UserController         *user.GeneralUserController
-	AddressController      *address.GeneralAddressController
+	UserController    *user.GeneralUserController
+	AddressController *address.GeneralAddressController
 }
 
 type CustomerControllers struct {
-	UserController         *user.CustomerUserController
-	AddressController      *address.CustomerAddressController
+	UserController    *user.CustomerUserController
+	AddressController *address.CustomerAddressController
 }
 
 type Controllers struct {
@@ -279,7 +279,6 @@ func NewApplication(
 		Seeds:       seeds,
 		Consumers:   consumers,
 		Hub:         hub,
-
 	}
 }
 

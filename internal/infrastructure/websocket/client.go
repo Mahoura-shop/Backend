@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/application/usecase"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/application/usecase"
 	"github.com/gorilla/websocket"
 )
 

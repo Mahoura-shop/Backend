@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	"github.com/CosmeticsShiraz/Backend/internal/domain/communication"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/rabbitmq"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/internal/domain/communication"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/rabbitmq"
 )
 
 type EmailConsumer struct {

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
+	"github.com/Mahoura-shop/Backend/bootstrap"
 	"github.com/redis/go-redis/v9"
 )
 

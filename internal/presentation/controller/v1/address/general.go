@@ -1,10 +1,10 @@
 package address
 
 import (
-	"github.com/CosmeticsShiraz/Backend/bootstrap"
-	addressdto "github.com/CosmeticsShiraz/Backend/internal/application/dto/address"
-	"github.com/CosmeticsShiraz/Backend/internal/application/usecase"
-	"github.com/CosmeticsShiraz/Backend/internal/presentation/controller"
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	addressdto "github.com/Mahoura-shop/Backend/internal/application/dto/address"
+	"github.com/Mahoura-shop/Backend/internal/application/usecase"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller"
 	"github.com/gin-gonic/gin"
 )
 

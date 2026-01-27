@@ -1,8 +1,8 @@
 package entity
 
 import (
-	"github.com/CosmeticsShiraz/Backend/internal/domain/enum"
-	"github.com/CosmeticsShiraz/Backend/internal/infrastructure/database"
+	"github.com/Mahoura-shop/Backend/internal/domain/enum"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 )
 
 type NotificationType struct {
