@@ -1,5 +1,8 @@
 package categorydto
 
-type CreateCategoryResponse struct {
-	Test string
+type CategoryCredentialResponse struct {
+	Name        string
+	Slug        string
+	Description *string
+	IsActive    bool
 }

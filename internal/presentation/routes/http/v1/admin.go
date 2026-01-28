@@ -8,8 +8,8 @@ import (
 func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	category := routerGroup.Group("/category")
 	{
-		// category.GET("/", app.Controllers.Admin.CategoryController.)
-		category.POST("/", app.Controllers.Admin.CategoryController.CreateCategory)
+		category.GET("", app.Controllers.Admin.CategoryController.GetCategories)
+		category.POST("", app.Controllers.Admin.CategoryController.CreateCategory)
 		// category.PUT("/", app.Controllers.Admin.TestController.Test)
 		// category.DELETE("/", app.Controllers.Admin.TestController.Test)
 	}

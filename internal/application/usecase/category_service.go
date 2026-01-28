@@ -4,4 +4,5 @@ import categorydto "github.com/Mahoura-shop/Backend/internal/application/dto/cat
 
 type CategoryService interface {
 	CreateCategory(categoryInfoInfo categorydto.CreateCategoryRequest) error
+	GetCategories() ([]categorydto.CategoryCredentialResponse, error)
 }

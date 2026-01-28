@@ -90,3 +90,26 @@ func (categoryService *CategoryService) CreateCategory(categoryInfo categorydto.
 
 	return err
 }
+
+func (categoryService *CategoryService) GetCategories() ([]categorydto.CategoryCredentialResponse, error) {
+	categories, err := categoryService.categoryRepository.GetCategories(categoryService.db)
+	if err != nil {
+		return nil, err
+	}
+	var responses []categorydto.CategoryCredentialResponse
+	for _, category := range categories {
+		response := categorydto.CategoryCredentialResponse{
+			Name:        category.Name,
+			Slug:        category.Slug,
+			IsActive:    category.IsActive,
+		}
+		
+		if category.Description != "" {
+			description := category.Description
+			response.Description = &description
+		}
+		
+		responses = append(responses, response)
+	}
+	return responses, nil
+}

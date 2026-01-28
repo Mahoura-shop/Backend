@@ -54,3 +54,11 @@ func (categoryController *AdminCategoryController) CreateCategory(ctx *gin.Conte
 	message, _ := trans.Translate("successMessage.createCategory")
 	controller.Response(ctx, 200, message, nil)
 }
+
+func (categoryController *AdminCategoryController) GetCategories(ctx *gin.Context) {
+	categories, err := categoryController.categoryService.GetCategories(); 
+	if (err != nil) {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", categories)
+}

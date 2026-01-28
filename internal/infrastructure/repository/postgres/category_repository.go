@@ -27,3 +27,14 @@ func (repo *CategoryRepository) FindCategoryBySlug(db database.Database, slug st
 func (repo *CategoryRepository) CreateCategory(db database.Database, category *entity.Category) error {
 	return db.GetDB().Create(&category).Error
 }
+
+func (repo *CategoryRepository) GetCategories(db database.Database) ([]*entity.Category, error) {
+	var categories []*entity.Category
+	result := db.GetDB().Find(&categories)
+	
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	
+	return categories, nil
+}
