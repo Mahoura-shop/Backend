@@ -70,6 +70,7 @@ type ErrorField struct {
 	Post                string
 	Like                string
 	CorporationReview   string
+	Category            string
 }
 
 type ErrorTag struct {

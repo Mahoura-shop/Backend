@@ -25,7 +25,7 @@ func NewGeneralTestController(
 
 func (testController *GeneralTestController) Test(ctx *gin.Context) {
 	type registerParams struct {
-		Test 	        string `json:"test" validate:"required"`
+		Test string `json:"test" validate:"required"`
 	}
 	params := controller.Validated[registerParams](ctx)
 	testInfo := testdto.BasicTestRequest{
