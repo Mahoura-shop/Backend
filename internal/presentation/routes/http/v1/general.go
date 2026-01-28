@@ -8,11 +8,6 @@ import (
 func SetupGeneralRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	test := routerGroup.Group("/test")
 	{
-		test.POST("/", app.Controllers.General.TestController.Test)
-	}
-
-	admin := routerGroup.Group("/admin")
-	{
-		admin.POST("/login", app.Controllers.General.UserController.AdminLogin)
+		test.POST("", app.Controllers.General.TestController.Test)
 	}
 }

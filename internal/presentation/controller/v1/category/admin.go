@@ -1,0 +1,56 @@
+package category
+
+import (
+	"github.com/Mahoura-shop/Backend/bootstrap"
+	categorydto "github.com/Mahoura-shop/Backend/internal/application/dto/category"
+	"github.com/Mahoura-shop/Backend/internal/application/usecase"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller"
+	"github.com/gin-gonic/gin"
+)
+
+type AdminCategoryController struct {
+	constants       *bootstrap.Constants
+	pagination      *bootstrap.Pagination
+	categoryService usecase.CategoryService
+}
+
+func NewAdminCategoryController(
+	constants *bootstrap.Constants,
+	pagination *bootstrap.Pagination,
+	categoryService usecase.CategoryService,
+) *AdminCategoryController {
+	return &AdminCategoryController{
+		constants:   constants,
+		pagination:  pagination,
+		categoryService: categoryService,
+	}
+}
+
+func (categoryController *AdminCategoryController) CreateCategory(ctx *gin.Context) {
+	type createCategoryParams struct {
+		Name        string  `json:"name" validate:"required"`
+		Slug        string  `json:"slug" validate:"required"`
+		Description *string `json:"description" validate:"omitempty"`
+		IsActive    *bool   `json:"isActive" validate:"omitempty"`
+	}
+	params := controller.Validated[createCategoryParams](ctx)
+
+	categoryInfo := categorydto.CreateCategoryRequest{
+		Name:        params.Name,
+		Slug:        params.Slug,
+		Description: params.Description,
+		IsActive:    func() bool {
+			if params.IsActive != nil {
+				return *params.IsActive
+			}
+			return true
+		}(),
+	}
+	if err := categoryController.categoryService.CreateCategory(categoryInfo); err != nil {
+		panic(err)
+	}
+	
+	trans := controller.GetTranslator(ctx, categoryController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.createCategory")
+	controller.Response(ctx, 200, message, nil)
+}

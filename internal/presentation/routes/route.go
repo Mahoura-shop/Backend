@@ -15,8 +15,13 @@ func Run(ginEngine *gin.Engine, app *wire.Application) {
 
 	v1 := ginEngine.Group("/v1")
 	registerGeneralRoutes(v1, app)
+	registerAdminRoutes(v1, app)
 }
 
 func registerGeneralRoutes(v1 *gin.RouterGroup, app *wire.Application) {
 	httpv1.SetupGeneralRoutes(v1, app)
+}
+
+func registerAdminRoutes(v1 *gin.RouterGroup, app *wire.Application) {
+	httpv1.SetupAdminRoutes(v1, app)
 }
