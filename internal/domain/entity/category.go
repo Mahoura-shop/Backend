@@ -6,8 +6,8 @@ import (
 
 type Category struct {
 	database.Model
-	Name           string          `gorm:"type:varchar(50);not null"`
-	Slug           string          `gorm:"type:varchar(50);uniqueIndex"`
-	Description    string          `gorm:"type:text"`
-	IsActive       bool            `gorm:"default:true"`
+	Name        string `gorm:"type:varchar(50);not null"`
+	Slug        string `gorm:"type:varchar(50);uniqueIndex"`
+	Description string `gorm:"type:text"`
+	IsActive    bool   `gorm:"default:true"`
 }

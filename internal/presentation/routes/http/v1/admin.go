@@ -10,8 +10,11 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	{
 		category.GET("", app.Controllers.Admin.CategoryController.GetCategories)
 		category.POST("", app.Controllers.Admin.CategoryController.CreateCategory)
-		// category.PUT("", app.Controllers.Admin.TestController.Test)
-		category.DELETE("", app.Controllers.Admin.CategoryController.DeleteCategory)
+		categorySubGroup := category.Group("/:categoryID") 
+		{
+			categorySubGroup.PUT("", app.Controllers.Admin.CategoryController.UpdateCategory)
+			categorySubGroup.DELETE("", app.Controllers.Admin.CategoryController.DeleteCategory)
+		}
 	}
 
 	admin := routerGroup.Group("/admin")

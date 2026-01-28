@@ -99,9 +99,10 @@ func (categoryService *CategoryService) GetCategories() ([]categorydto.CategoryC
 	var responses []categorydto.CategoryCredentialResponse
 	for _, category := range categories {
 		response := categorydto.CategoryCredentialResponse{
-			Name:        category.Name,
-			Slug:        category.Slug,
-			IsActive:    category.IsActive,
+			ID:       category.ID,
+			Name:     category.Name,
+			Slug:     category.Slug,
+			IsActive: category.IsActive,
 		}
 		
 		if category.Description != "" {
@@ -127,5 +128,49 @@ func (categoryService *CategoryService) DeleteCategory(categoryID uint) error {
 		return err
 	}
 	return nil
+}
 
+func (categoryService *CategoryService) applyCategoryUpdates(category *entity.Category, name *string, slug *string, description *string, isActive *bool) {
+	if name != nil {
+		category.Name = *name
+	}
+
+	if slug != nil {
+		category.Slug = *slug
+	}
+
+	if description != nil {
+		category.Description = *description
+	}
+	
+	if isActive != nil {
+		category.IsActive = *isActive
+	}
+}
+
+func (categoryService *CategoryService) UpdateCategory(categoryInfo categorydto.UpdateCategoryRequest) error {
+	category, err := categoryService.categoryRepository.FindCategoryByID(categoryService.db, categoryInfo.ID)
+	if err != nil {
+		return err
+	}
+	if category == nil {
+		return exception.NotFoundError{Item: categoryService.constants.Field.Category}
+	}
+
+	categoryService.applyCategoryUpdates(category, categoryInfo.Name, categoryInfo.Slug, categoryInfo.Description, categoryInfo.IsActive)
+
+	if (categoryInfo.Slug != nil) {
+		err := categoryService.validateDuplicateCategory(category.Slug)
+		if err != nil {
+			return err
+		}
+	}
+	err = categoryService.db.WithTransaction(func(tx database.Database) error {
+		if err := categoryService.categoryRepository.UpdateCategory(tx, category); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	return err
 }

@@ -1,8 +1,9 @@
 package categorydto
 
 type CategoryCredentialResponse struct {
-	Name        string
-	Slug        string
-	Description *string
-	IsActive    bool
+	ID          uint    `json:"id"`
+	Name        string  `json:"name"`
+	Slug        string  `json:"slug"`
+	Description *string `json:"description"`
+	IsActive    bool    `json:"isActive"`
 }

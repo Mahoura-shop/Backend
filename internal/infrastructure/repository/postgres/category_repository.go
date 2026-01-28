@@ -36,10 +36,6 @@ func (repo *CategoryRepository) FindCategoryBySlug(db database.Database, slug st
 	return &category, nil
 }
 
-func (repo *CategoryRepository) CreateCategory(db database.Database, category *entity.Category) error {
-	return db.GetDB().Create(&category).Error
-}
-
 func (repo *CategoryRepository) GetCategories(db database.Database) ([]*entity.Category, error) {
 	var categories []*entity.Category
 	result := db.GetDB().Find(&categories)
@@ -49,6 +45,14 @@ func (repo *CategoryRepository) GetCategories(db database.Database) ([]*entity.C
 	}
 	
 	return categories, nil
+}
+
+func (repo *CategoryRepository) CreateCategory(db database.Database, category *entity.Category) error {
+	return db.GetDB().Create(&category).Error
+}
+
+func (repo *CategoryRepository) UpdateCategory(db database.Database, category *entity.Category) error {
+	return db.GetDB().Save(&category).Error
 }
 
 func (repo *CategoryRepository) DeleteCategoryByID(db database.Database, categoryID uint) error {

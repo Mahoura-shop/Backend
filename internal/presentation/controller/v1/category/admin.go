@@ -77,3 +77,31 @@ func (categoryController *AdminCategoryController) DeleteCategory(ctx *gin.Conte
 	message, _ := trans.Translate("successMessage.deleteCategory")
 	controller.Response(ctx, 200, message, nil)
 }
+
+func (categoryController *AdminCategoryController) UpdateCategory(ctx *gin.Context) {
+	type updateCategoryParams struct {
+		ID          uint    `uri:"categoryID" validate:"required"`
+		Name        *string `json:"name"`
+		Slug        *string `json:"slug"`
+		Description *string `json:"description"`
+		IsActive    *bool   `json:"isActive"`
+	}
+	params := controller.Validated[updateCategoryParams](ctx)
+	
+	categoryInfo := categorydto.UpdateCategoryRequest{
+		ID:          params.ID,
+		Name:        params.Name,
+		Slug:        params.Slug,
+		Description: params.Description,
+		IsActive:    params.IsActive,
+	}
+
+	if err := categoryController.categoryService.UpdateCategory(categoryInfo); err != nil {
+		panic(err)
+	}
+	
+	trans := controller.GetTranslator(ctx, categoryController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.updateCategory")
+	controller.Response(ctx, 200, message, nil)
+
+}

@@ -161,6 +161,7 @@ var English = map[string]interface{}{
 		"updatePanel":                "The panel has been updated.",
 		"createCategory":             "Category has been created successfully.",
 		"deleteCategory":             "Category has been deleted successfully.",
+		"updateCategory":             "Category has been updated successfully.",
 	},
 	"emailSubject": map[string]interface{}{
 		"emailConfirmation": "Verify Your Email Address",

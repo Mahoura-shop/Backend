@@ -6,4 +6,5 @@ type CategoryService interface {
 	CreateCategory(categoryInfoInfo categorydto.CreateCategoryRequest) error
 	GetCategories() ([]categorydto.CategoryCredentialResponse, error)
 	DeleteCategory(categoryID uint) error
+	UpdateCategory(categoryInfoInfo categorydto.UpdateCategoryRequest) error
 }
