@@ -22,6 +22,7 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/address"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/category"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/product"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/test"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/user"
 	"github.com/Mahoura-shop/Backend/internal/presentation/middleware"
@@ -40,16 +41,19 @@ var RepositoryProviderSet = wire.NewSet(
 	infraPostgres.NewUserRepository,
 	infraPostgres.NewAddressRepository,
 	infraPostgres.NewCategoryRepository,
+	infraPostgres.NewProductRepository,
 	infraRedis.NewUserCacheRepository,
 	wire.Bind(new(domainPostgres.UserRepository), new(*infraPostgres.UserRepository)),
 	wire.Bind(new(domainPostgres.AddressRepository), new(*infraPostgres.AddressRepository)),
 	wire.Bind(new(domainRedis.UserCacheRepository), new(*infraRedis.UserCacheRepository)),
 	wire.Bind(new(domainPostgres.CategoryRepository), new(*infraPostgres.CategoryRepository)),
+	wire.Bind(new(domainPostgres.ProductRepository), new(*infraPostgres.ProductRepository)),
 )
 
 var ServiceProviderSet = wire.NewSet(
 	wire.Struct(new(service.UserServiceDeps), "*"),
 	wire.Struct(new(service.CategoryServiceDeps), "*"),
+	wire.Struct(new(service.ProductServiceDeps), "*"),
 	service.NewUserService,
 	service.NewOTPService,
 	sms.NewSMSService,
@@ -58,6 +62,7 @@ var ServiceProviderSet = wire.NewSet(
 	service.NewAddressService,
 	service.NewTestService,
 	service.NewCategoryService,
+	service.NewProductService,
 	wire.Bind(new(usecase.UserService), new(*service.UserService)),
 	wire.Bind(new(usecase.OTPService), new(*service.OTPService)),
 	wire.Bind(new(communication.SMSService), new(*sms.SMSService)),
@@ -66,6 +71,7 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Bind(new(usecase.AddressService), new(*service.AddressService)),
 	wire.Bind(new(usecase.TestService), new(*service.TestService)),
 	wire.Bind(new(usecase.CategoryService), new(*service.CategoryService)),
+	wire.Bind(new(usecase.ProductService), new(*service.ProductService)),
 )
 
 var AdapterProviderSet = wire.NewSet(
@@ -90,6 +96,7 @@ var CustomerControllerProviderSet = wire.NewSet(
 
 var AdminControllerProviderSet = wire.NewSet(
 	category.NewAdminCategoryController,
+	product.NewAdminProductController,
 	wire.Struct(new(AdminControllers), "*"),
 )
 
@@ -216,6 +223,7 @@ type CustomerControllers struct {
 
 type AdminControllers struct {
 	CategoryController *category.AdminCategoryController
+	ProductController  *product.AdminProductController
 }
 
 type Controllers struct {

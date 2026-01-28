@@ -1,0 +1,60 @@
+package postgres
+
+import (
+	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
+	"gorm.io/gorm"
+)
+
+type ProductRepository struct{}
+
+func NewProductRepository() *ProductRepository {
+	return &ProductRepository{}
+}
+
+func (repo *ProductRepository) FindProductByID(db database.Database, productID uint) (*entity.Product, error) {
+	var product entity.Product
+	result := db.GetDB().Where("id = ?", productID).First(&product)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+	return &product, nil
+}
+
+func (repo *ProductRepository) FindProductBySlug(db database.Database, slug string) (*entity.Product, error) {
+	var product entity.Product
+	result := db.GetDB().Where("slug = ?", slug).First(&product)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+	return &product, nil
+}
+
+func (repo *ProductRepository) GetProducts(db database.Database) ([]*entity.Product, error) {
+	var products []*entity.Product
+	result := db.GetDB().Find(&products)
+	
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	
+	return products, nil
+}
+
+func (repo *ProductRepository) CreateProduct(db database.Database, product *entity.Product) error {
+	return db.GetDB().Create(&product).Error
+}
+
+func (repo *ProductRepository) UpdateProduct(db database.Database, product *entity.Product) error {
+	return db.GetDB().Save(&product).Error
+}
+
+func (repo *ProductRepository) DeleteProductByID(db database.Database, productID uint) error {
+	return db.GetDB().Where("id = ?", productID).Delete(&entity.Product{}).Error
+}

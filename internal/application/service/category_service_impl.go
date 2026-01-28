@@ -55,7 +55,7 @@ func (categoryService *CategoryService) validateDuplicateCategory(slug string) e
 		return err
 	}
 	if category != nil {
-		conflictErrors.Add(categoryService.constants.Field.Category, categoryService.constants.Tag.AlreadyRegistered)
+		conflictErrors.Add(categoryService.constants.Field.Category, categoryService.constants.Tag.AlreadyExist)
 		return conflictErrors
 	}
 
@@ -91,14 +91,14 @@ func (categoryService *CategoryService) CreateCategory(categoryInfo categorydto.
 	return err
 }
 
-func (categoryService *CategoryService) GetCategories() ([]categorydto.CategoryCredentialResponse, error) {
+func (categoryService *CategoryService) GetCategories() ([]categorydto.CategoryCredential, error) {
 	categories, err := categoryService.categoryRepository.GetCategories(categoryService.db)
 	if err != nil {
 		return nil, err
 	}
-	var responses []categorydto.CategoryCredentialResponse
+	var responses []categorydto.CategoryCredential
 	for _, category := range categories {
-		response := categorydto.CategoryCredentialResponse{
+		response := categorydto.CategoryCredential{
 			ID:       category.ID,
 			Name:     category.Name,
 			Slug:     category.Slug,

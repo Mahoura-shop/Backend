@@ -162,6 +162,7 @@ var Persian = map[string]interface{}{
 		"createCategory":            "دسته‌بندی با موفقیت ساخته شد.",
 		"deleteCategory":            "دسته‌بندی با موفقیت حذف شد.",
 		"updateCategory":            "دسته‌بندی با موفقیت به‌روز‌رسانی شد.",
+		"createProduct":             "محصول با موقفیت ساخته شد.",
 	},
 	"emailSubject": map[string]interface{}{
 		"emailConfirmation": "تأیید آدرس ایمیل شما",

@@ -71,6 +71,7 @@ type ErrorField struct {
 	Like                string
 	CorporationReview   string
 	Category            string
+	Product             string
 }
 
 type ErrorTag struct {
@@ -191,6 +192,7 @@ func NewConstants() *Constants {
 			Post:                "post",
 			Like:                "like",
 			CorporationReview:   "corporationReview",
+			Product:             "product",
 		},
 		Tag: ErrorTag{
 			AlreadyRegistered:      "alreadyRegistered",

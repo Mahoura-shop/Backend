@@ -1,5 +1,5 @@
 package usecase
 
 type TestService interface {
-	Test(test string) (string, error)
+	Test(string) (string, error)
 }
