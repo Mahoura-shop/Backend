@@ -75,3 +75,19 @@ func (productController *AdminProductController) GetProducts(ctx *gin.Context) {
 	
 	controller.Response(ctx, 200, "", products)
 }
+
+func (productController *AdminProductController) DeleteProduct(ctx *gin.Context) {
+	type deleteProductParams struct {
+		ProductID uint `uri:"productID" validate:"required"`
+	}
+	params := controller.Validated[deleteProductParams](ctx)
+
+	if err := productController.productService.DeleteProduct(params.ProductID); err != nil {
+		panic(err)
+	}
+	
+	trans := controller.GetTranslator(ctx, productController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.deleteProduct")
+	controller.Response(ctx, 200, message, nil)
+}
+

@@ -23,12 +23,12 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		products.GET("", app.Controllers.Admin.ProductController.GetProducts)
 		// products.POST("/buy", app.Controllers.Admin.CategoryController.GetCategGetCategorieories)
 		// products.POST("/sell", app.Controllers.Admin.CategoryController.GetCategorie)
-		// productsSubGroup := categories.Group("/:productID") 
-		// {
-		// 	productsSubGroup.DELETE("", app.Controllers.Admin.CategoryController.GetCategorie)
-		// 	productsSubGroup.PUT("", app.Controllers.Admin.CategoryController.GetCategorie)
-		// 	productsSubGroup.GET("", app.Controllers.Admin.CategoryController.GetCategorie)
-		// }
+		productsSubGroup := products.Group("/:productID") 
+		{
+			productsSubGroup.DELETE("", app.Controllers.Admin.ProductController.DeleteProduct)
+			// productsSubGroup.PUT("", app.Controllers.Admin.CategoryController.GetCategorie)
+			// productsSubGroup.GET("", app.Controllers.Admin.CategoryController.GetCategorie)
+		}
 	}
 
 	admin := routerGroup.Group("/admin")

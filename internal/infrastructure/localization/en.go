@@ -163,6 +163,7 @@ var English = map[string]interface{}{
 		"deleteCategory":             "Category has been deleted successfully.",
 		"updateCategory":             "Category has been updated successfully.",
 		"createProduct":              "Product has been created successfully.",
+		"deleteProduct":              "Product has been deleted successfully.",
 	},
 	"emailSubject": map[string]interface{}{
 		"emailConfirmation": "Verify Your Email Address",

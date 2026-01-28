@@ -163,6 +163,7 @@ var Persian = map[string]interface{}{
 		"deleteCategory":            "دسته‌بندی با موفقیت حذف شد.",
 		"updateCategory":            "دسته‌بندی با موفقیت به‌روز‌رسانی شد.",
 		"createProduct":             "محصول با موقفیت ساخته شد.",
+		"deleteProduct":             "محصول با موفقیت حذف شد.",
 	},
 	"emailSubject": map[string]interface{}{
 		"emailConfirmation": "تأیید آدرس ایمیل شما",

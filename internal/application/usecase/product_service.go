@@ -5,4 +5,5 @@ import productdto "github.com/Mahoura-shop/Backend/internal/application/dto/prod
 type ProductService interface {
 	CreateProduct(productdto.CreateProductRequest) error
 	GetProducts() ([]productdto.ProductCredential, error)
+	DeleteProduct(uint) error
 }

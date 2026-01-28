@@ -177,24 +177,24 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 		}
 		responses = append(responses, response)
 	}
-	
+
 	return responses, nil
 }
 
-// func (productService *ProductService) DeleteProduct(productID uint) error {
-// 	product, err := productService.productRepository.FindProductByID(productService.db, productID)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if product == nil {
-// 		return exception.NotFoundError{Item: productService.constants.Field.Product}
-// 	}
+func (productService *ProductService) DeleteProduct(productID uint) error {
+	product, err := productService.productRepository.FindProductByID(productService.db, productID)
+	if err != nil {
+		return err
+	}
+	if product == nil {
+		return exception.NotFoundError{Item: productService.constants.Field.Product}
+	}
 
-// 	if err := productService.productRepository.DeleteProductByID(productService.db, productID); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
+	if err := productService.productRepository.DeleteProductByID(productService.db, productID); err != nil {
+		return err
+	}
+	return nil
+}
 
 // func (productService *ProductService) applyProductUpdates(product *entity.Product, name *string, slug *string, description *string, isActive *bool) {
 // 	if name != nil {
