@@ -7,9 +7,9 @@ import (
 
 type ProductRepository interface {
 	CreateProduct(database.Database, *entity.Product) error
-	FindProductByID(db database.Database, productID uint) (*entity.Product, error)
-	FindProductBySlug(db database.Database, slug string) (*entity.Product, error)
-	GetProducts(db database.Database) ([]*entity.Product, error)
-	DeleteProductByID(db database.Database, productID uint) error
-	UpdateProduct(db database.Database, product *entity.Product) error
+	FindProductByID(database.Database, uint) (*entity.Product, error)
+	FindProductBySlug(database.Database, string) (*entity.Product, error)
+	GetProducts(database.Database) ([]*entity.Product, error)
+	DeleteProductByID(database.Database, uint) error
+	UpdateProduct(database.Database, *entity.Product) error
 }

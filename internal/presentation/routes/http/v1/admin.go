@@ -20,7 +20,7 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	products := routerGroup.Group("/product")
 	{
 		products.POST("", app.Controllers.Admin.ProductController.CreateProduct)
-		// products.GET("", app.Controllers.Admin.CategoryController.GetCategorie)
+		products.GET("", app.Controllers.Admin.ProductController.GetProducts)
 		// products.POST("/buy", app.Controllers.Admin.CategoryController.GetCategGetCategorieories)
 		// products.POST("/sell", app.Controllers.Admin.CategoryController.GetCategorie)
 		// productsSubGroup := categories.Group("/:productID") 

@@ -66,3 +66,12 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 	message, _ := trans.Translate("successMessage.createProduct")
 	controller.Response(ctx, 200, message, nil)
 }
+
+func (productController *AdminProductController) GetProducts(ctx *gin.Context) {
+	products, err := productController.productService.GetProducts();
+	if err != nil {
+		panic(err)
+	}
+	
+	controller.Response(ctx, 200, "", products)
+}

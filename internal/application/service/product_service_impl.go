@@ -152,29 +152,34 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 	return err
 }
 
-// func (productService *ProductService) GetProducts() ([]productdto.ProductCredentialResponse, error) {
-// 	products, err := productService.productRepository.GetProducts(productService.db)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	var responses []productdto.ProductCredentialResponse
-// 	for _, product := range products {
-// 		response := productdto.ProductCredentialResponse{
-// 			ID:       product.ID,
-// 			Name:     product.Name,
-// 			Slug:     product.Slug,
-// 			IsActive: product.IsActive,
-// 		}
-		
-// 		if product.Description != "" {
-// 			description := product.Description
-// 			response.Description = &description
-// 		}
-		
-// 		responses = append(responses, response)
-// 	}
-// 	return responses, nil
-// }
+func (productService *ProductService) GetProducts() ([]productdto.ProductCredential, error) {
+	products, err := productService.productRepository.GetProducts(productService.db)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []productdto.ProductCredential
+	for _, product := range products {
+		response := productdto.ProductCredential{
+			ID:           product.ID,
+			Name:         product.Name,
+			Slug:         product.Slug,
+			Price:        product.Price,
+			Description:  product.Description,
+			IsActive:     product.IsActive,
+			IsNew:        product.IsNew,
+			Priority:     product.Priority,
+			MinOrder:     product.MinOrder,
+			CategoryID:   product.CategoryID,
+			Quantity:     product.Quantity,
+			QuantityType: product.QuantityType,
+			CurrencyCode: product.CurrencyCode,
+		}
+		responses = append(responses, response)
+	}
+	
+	return responses, nil
+}
 
 // func (productService *ProductService) DeleteProduct(productID uint) error {
 // 	product, err := productService.productRepository.FindProductByID(productService.db, productID)
