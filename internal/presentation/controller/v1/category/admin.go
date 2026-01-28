@@ -62,3 +62,18 @@ func (categoryController *AdminCategoryController) GetCategories(ctx *gin.Contex
 	}
 	controller.Response(ctx, 200, "", categories)
 }
+
+func (categoryController *AdminCategoryController) DeleteCategory(ctx *gin.Context) {
+	type deleteCategoryParams struct {
+		CategoryID uint `uri:"categoryID" validate:"required"`
+	}
+	params := controller.Validated[deleteCategoryParams](ctx)
+	
+	if err := categoryController.categoryService.DeleteCategory(params.CategoryID); err != nil {
+		panic(err)
+	}
+	
+	trans := controller.GetTranslator(ctx, categoryController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.deleteCategory")
+	controller.Response(ctx, 200, message, nil)
+}

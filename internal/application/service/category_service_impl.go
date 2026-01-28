@@ -113,3 +113,19 @@ func (categoryService *CategoryService) GetCategories() ([]categorydto.CategoryC
 	}
 	return responses, nil
 }
+
+func (categoryService *CategoryService) DeleteCategory(categoryID uint) error {
+	category, err := categoryService.categoryRepository.FindCategoryByID(categoryService.db, categoryID)
+	if err != nil {
+		return err
+	}
+	if category == nil {
+		return exception.NotFoundError{Item: categoryService.constants.Field.Category}
+	}
+
+	if err := categoryService.categoryRepository.DeleteCategoryByID(categoryService.db, categoryID); err != nil {
+		return err
+	}
+	return nil
+
+}

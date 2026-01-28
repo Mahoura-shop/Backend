@@ -160,6 +160,7 @@ var Persian = map[string]interface{}{
 		"deleteInstallationRequest": "درخواست نصب با موفقیت حذف شد.",
 		"updatePanel":               "پنل مورد نظر با موفقیت به روزرسانی شد.",
 		"createCategory":            "دسته‌بندی با موفقیت ساخته شد.",
+		"deleteCategory":            "دسته‌بندی با موفقیت حذف شد.",
 	},
 	"emailSubject": map[string]interface{}{
 		"emailConfirmation": "تأیید آدرس ایمیل شما",

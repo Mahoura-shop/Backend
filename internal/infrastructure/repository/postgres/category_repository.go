@@ -12,6 +12,18 @@ func NewCategoryRepository() *CategoryRepository {
 	return &CategoryRepository{}
 }
 
+func (repo *CategoryRepository) FindCategoryByID(db database.Database, categoryID uint) (*entity.Category, error) {
+	var category entity.Category
+	result := db.GetDB().Where("id = ?", categoryID).First(&category)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+	return &category, nil
+}
+
 func (repo *CategoryRepository) FindCategoryBySlug(db database.Database, slug string) (*entity.Category, error) {
 	var category entity.Category
 	result := db.GetDB().Where("slug = ?", slug).First(&category)
@@ -37,4 +49,8 @@ func (repo *CategoryRepository) GetCategories(db database.Database) ([]*entity.C
 	}
 	
 	return categories, nil
+}
+
+func (repo *CategoryRepository) DeleteCategoryByID(db database.Database, categoryID uint) error {
+	return db.GetDB().Where("id = ?", categoryID).Delete(&entity.Category{}).Error
 }
