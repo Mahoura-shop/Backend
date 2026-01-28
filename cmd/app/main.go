@@ -24,14 +24,12 @@ func main() {
 	app.Database.DB.GetDB().AutoMigrate(
 		&entity.Address{},
 		&entity.City{},
-		&entity.Permission{},
 		&entity.Province{},
-		&entity.Role{},
 		&entity.User{},
 	)
 
 	app.Seeds.AddressSeeder.SeedProvincesAndCities()
-	app.Seeds.RoleSeeder.SeedRoles()
+	app.Seeds.AdminSeeder.SeedAdmins()
 
 	routes.Run(ginEngine, app)
 

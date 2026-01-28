@@ -147,3 +147,23 @@ func (userController *GeneralUserController) RefreshToken(ctx *gin.Context) {
 	message, _ := trans.Translate("successMessage.refreshToken")
 	controller.Response(ctx, 200, message, accessToken)
 }
+
+func (userController *GeneralUserController) AdminLogin(ctx *gin.Context) {
+	type AdminLoginParams struct {
+		Phone    string `json:"phone" validate:"required"`
+		Password string `json:"password" validate:"required"`
+	}
+	params := controller.Validated[AdminLoginParams](ctx)
+	adminLoginInfo := userdto.AdminLoginRequest{
+		Phone:    params.Phone,
+		Password: params.Password,
+	}
+	adminInfo, err := userController.userService.AdminLogin(adminLoginInfo)
+	if err != nil {
+		panic(err)
+	}
+
+	trans := controller.GetTranslator(ctx, userController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.login")
+	controller.Response(ctx, 200, message, adminInfo)
+}

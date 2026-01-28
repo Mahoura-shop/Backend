@@ -3,7 +3,6 @@ package mocks
 import (
 	userdto "github.com/Mahoura-shop/Backend/internal/application/dto/user"
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
-	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -31,16 +30,6 @@ func (s *UserServiceMock) GetUserByID(userID uint) (*entity.User, error) {
 func (s *UserServiceMock) GetUserCredential(userID uint) (userdto.CredentialResponse, error) {
 	args := s.Called(userID)
 	return args.Get(0).(userdto.CredentialResponse), args.Error(1)
-}
-
-func (s *UserServiceMock) GetUsersByPermission(permissionTypes []enum.PermissionType) ([]*entity.User, error) {
-	args := s.Called(permissionTypes)
-	return args.Get(0).([]*entity.User), args.Error(1)
-}
-
-func (s *UserServiceMock) GetUsersByStatus(request userdto.GetUsersListRequest) ([]userdto.CredentialResponse, error) {
-	args := s.Called(request)
-	return args.Get(0).([]userdto.CredentialResponse), args.Error(1)
 }
 
 func (s *UserServiceMock) BanUser(userID uint) error {
@@ -100,50 +89,5 @@ func (s *UserServiceMock) FindActiveUserByPhone(phone string) (*entity.User, err
 
 func (s *UserServiceMock) UpdateProfile(profileInfo userdto.UpdateProfileRequest) error {
 	args := s.Called(profileInfo)
-	return args.Error(0)
-}
-
-func (s *UserServiceMock) GetAllPermissions() ([]userdto.PermissionResponse, error) {
-	args := s.Called()
-	return args.Get(0).([]userdto.PermissionResponse), args.Error(1)
-}
-
-func (s *UserServiceMock) GetAllRoles() ([]userdto.RoleResponse, error) {
-	args := s.Called()
-	return args.Get(0).([]userdto.RoleResponse), args.Error(1)
-}
-
-func (s *UserServiceMock) CreateRole(newRoleRequest userdto.NewRoleRequest) error {
-	args := s.Called(newRoleRequest)
-	return args.Error(0)
-}
-
-func (s *UserServiceMock) GetRoleDetails(roleID uint) (userdto.RoleResponse, error) {
-	args := s.Called(roleID)
-	return args.Get(0).(userdto.RoleResponse), args.Error(1)
-}
-
-func (s *UserServiceMock) GetRoleOwners(roleID uint) ([]userdto.CredentialResponse, error) {
-	args := s.Called(roleID)
-	return args.Get(0).([]userdto.CredentialResponse), args.Error(1)
-}
-
-func (s *UserServiceMock) GetUserRoles(userID uint) ([]userdto.RoleResponse, error) {
-	args := s.Called(userID)
-	return args.Get(0).([]userdto.RoleResponse), args.Error(1)
-}
-
-func (s *UserServiceMock) DeleteRole(roleID uint) error {
-	args := s.Called(roleID)
-	return args.Error(0)
-}
-
-func (s *UserServiceMock) UpdateRole(newRoleRequest userdto.UpdateRoleRequest) error {
-	args := s.Called(newRoleRequest)
-	return args.Error(0)
-}
-
-func (s *UserServiceMock) UpdateUserRoles(userRolesRequest userdto.UpdateUserRolesRequest) error {
-	args := s.Called(userRolesRequest)
 	return args.Error(0)
 }

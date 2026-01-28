@@ -39,6 +39,8 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Copy static assets your app needs
 COPY --from=builder /app/internal/infrastructure/communication/email/templates/ /templates/
 
+COPY --from=builder /app/internal/infrastructure/jwt/ /app/internal/infrastructure/jwt/
+
 WORKDIR /app
 
 # Copy the compiled binary from the builder stage

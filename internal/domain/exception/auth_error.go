@@ -35,6 +35,17 @@ func NewInvalidCredentialsError(message string, originalErr error) *AuthError {
 	}
 }
 
+func NewAccessDeniedError(message string, originalErr error) *AuthError {
+	if message == "" {
+		message = "You do not have permission for this"
+	}
+	return &AuthError{
+		Type:        ErrorTypeInvalidCredentials,
+		Message:     message,
+		OriginalErr: originalErr,
+	}
+}
+
 func NewExpiredTokenError(originalErr error) *AuthError {
 	return &AuthError{
 		Type:        ErrorTypeExpiredToken,

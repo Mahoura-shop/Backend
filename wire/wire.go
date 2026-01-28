@@ -98,7 +98,7 @@ var MiddlewareProviderSet = wire.NewSet(
 
 var SeederProviderSet = wire.NewSet(
 	seed.NewAddressSeeder,
-	seed.NewRoleSeeder,
+	seed.NewAdminSeeder,
 	wire.Struct(new(Seeds), "*"),
 )
 
@@ -155,7 +155,7 @@ func ProvideEmailSenderAccount(container *bootstrap.Config) *bootstrap.EmailAcco
 }
 
 func ProvideSuperAdminCredential(container *bootstrap.Config) *bootstrap.AdminCredentials {
-	return &container.Env.SuperAdmin
+	return &container.Env.Admins
 }
 
 var ProviderSet = wire.NewSet(
@@ -215,8 +215,8 @@ type Middlewares struct {
 }
 
 type Seeds struct {
-	AddressSeeder          *seed.AddressSeeder
-	RoleSeeder             *seed.RoleSeeder
+	AddressSeeder *seed.AddressSeeder
+	AdminSeeder   *seed.AdminSeeder
 }
 
 type Application struct {

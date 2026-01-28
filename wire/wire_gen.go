@@ -110,10 +110,10 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	}
 	addressSeeder := seed.NewAddressSeeder(addressRepository, postgresDatabase)
 	adminCredentials := ProvideSuperAdminCredential(container)
-	roleSeeder := seed.NewRoleSeeder(adminCredentials, userRepository, postgresDatabase)
+	adminSeeder := seed.NewAdminSeeder(adminCredentials, userRepository, postgresDatabase)
 	seeds := &Seeds{
 		AddressSeeder: addressSeeder,
-		RoleSeeder:    roleSeeder,
+		AdminSeeder:   adminSeeder,
 	}
 	application := NewApplication(wireDatabase, controllers, middlewares, seeds)
 	return application, nil
@@ -137,7 +137,7 @@ var ControllersProviderSet = wire.NewSet(wire.Struct(new(Controllers), "*"))
 
 var MiddlewareProviderSet = wire.NewSet(middleware.NewAuthMiddleware, middleware.NewCorsMiddleware, middleware.NewRecovery, middleware.NewLocalization, middleware.NewRateLimit, middleware.NewLoggerMiddleware, wire.Struct(new(Middlewares), "*"))
 
-var SeederProviderSet = wire.NewSet(seed.NewAddressSeeder, seed.NewRoleSeeder, wire.Struct(new(Seeds), "*"))
+var SeederProviderSet = wire.NewSet(seed.NewAddressSeeder, seed.NewAdminSeeder, wire.Struct(new(Seeds), "*"))
 
 func ProvideConstants(container *bootstrap.Config) *bootstrap.Constants {
 	return container.Constants
@@ -192,7 +192,7 @@ func ProvideEmailSenderAccount(container *bootstrap.Config) *bootstrap.EmailAcco
 }
 
 func ProvideSuperAdminCredential(container *bootstrap.Config) *bootstrap.AdminCredentials {
-	return &container.Env.SuperAdmin
+	return &container.Env.Admins
 }
 
 var ProviderSet = wire.NewSet(
@@ -253,7 +253,7 @@ type Middlewares struct {
 
 type Seeds struct {
 	AddressSeeder *seed.AddressSeeder
-	RoleSeeder    *seed.RoleSeeder
+	AdminSeeder   *seed.AdminSeeder
 }
 
 type Application struct {

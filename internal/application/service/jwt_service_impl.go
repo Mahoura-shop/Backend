@@ -23,10 +23,10 @@ func NewJWTService(
 		keyManager: keyManager,
 		keysPath:   keysPath,
 	}
-	// err := keyManager.LoadKeys(keysPath.PrivateKey, keysPath.PublicKey)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	err := keyManager.LoadKeys(keysPath.PrivateKey, keysPath.PublicKey)
+	if err != nil {
+		panic(err)
+	}
 
 	return service
 }
