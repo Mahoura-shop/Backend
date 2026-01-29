@@ -10,6 +10,7 @@ const (
 	LogoPic
 	NewsMedia
 	BlogMedia
+	ProductPic
 )
 
 func (bt BucketType) String() string {
@@ -28,6 +29,8 @@ func (bt BucketType) String() string {
 		return "newsMedia"
 	case BlogMedia:
 		return "blogMedia"
+	case ProductPic:
+		return "productPic"
 	}
 	return ""
 }
@@ -41,5 +44,6 @@ func GetAllBucketTypes() []BucketType {
 		LogoPic,
 		NewsMedia,
 		BlogMedia,
+		ProductPic,
 	}
 }

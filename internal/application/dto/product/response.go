@@ -15,4 +15,5 @@ type ProductCredential struct {
 	Quantity     uint    `json:"quantity"`
 	QuantityType string  `json:"quantityType"`  
 	CurrencyCode string  `json:"currencyCode"`
+	ProductPic   string  `json:"productPic"`
 }

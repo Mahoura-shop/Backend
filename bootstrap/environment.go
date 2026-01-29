@@ -15,6 +15,7 @@ type Env struct {
 	RateLimit          RateLimit
 	PrimaryDB          Database
 	PrimaryRedis       Redis
+	Storage            S3
 	OTP                OTP
 	SMSGateway         SMSGateway
 	Pagination         Pagination
@@ -52,6 +53,14 @@ type Redis struct {
 	Address   string
 	Password  string
 	RDBNumber string
+}
+
+type S3 struct {
+	Buckets   BucketName
+	Region    string
+	AccessKey string
+	SecretKey string
+	Endpoint  string
 }
 
 type BucketName struct {

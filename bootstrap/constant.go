@@ -6,6 +6,7 @@ type Constants struct {
 	Context             Context
 	LogLevel            LogLevel
 	RedisKey            RedisKey
+	S3BucketPath        BucketPath
 	Field               ErrorField
 	Tag                 ErrorTag
 	SMSTemplates        SMSTemplates

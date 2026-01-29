@@ -21,4 +21,5 @@ type Product struct {
 	QuantityType string    `gorm:"default:'pieces';not null"`
 	Price        float64   `gorm:"type:decimal(10,2);not null"`
 	CurrencyCode string    `gorm:"type:varchar(5);default:'IRR';not null"`
+	ProductPic   string    `gorm:"type:varchar(255);default:null"`
 }

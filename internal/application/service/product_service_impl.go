@@ -3,11 +3,13 @@ package service
 import (
 	"errors"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	productdto "github.com/Mahoura-shop/Backend/internal/application/dto/product"
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 	"github.com/Mahoura-shop/Backend/internal/domain/exception"
 	"github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
@@ -19,6 +21,7 @@ type ProductService struct {
 	productRepository  postgres.ProductRepository
 	categoryRepository postgres.CategoryRepository
 	brandRepository    postgres.BrandRepository
+	s3Storage          s3.S3Storage
 	db                 database.Database
 }
 
@@ -27,6 +30,7 @@ type ProductServiceDeps struct {
 	ProductRepository  postgres.ProductRepository
 	CategoryRepository postgres.CategoryRepository
 	BrandRepository    postgres.BrandRepository
+	S3Storage          s3.S3Storage
 	DB                 database.Database
 }
 
@@ -36,6 +40,7 @@ func NewProductService(deps ProductServiceDeps) *ProductService {
 		productRepository:  deps.ProductRepository,
 	    categoryRepository: deps.CategoryRepository,
 		brandRepository:    deps.BrandRepository,
+		s3Storage:          deps.S3Storage,
 		db:                 deps.DB,
 	}
 }
@@ -112,6 +117,14 @@ func (productService *ProductService) GetProduct(productID uint) (*productdto.Pr
 		return nil, exception.NotFoundError{Item: productService.constants.Field.Product}
 	}
 
+	productPic := ""
+	if product.ProductPic != "" {
+		productPic, err = productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
+		if err != nil {
+			return &productdto.ProductCredential{}, err
+		}
+	}
+
 	response := &productdto.ProductCredential{
 		ID:           product.ID,
 		Name:         product.Name,
@@ -127,6 +140,7 @@ func (productService *ProductService) GetProduct(productID uint) (*productdto.Pr
 		Quantity:     product.Quantity,
 		QuantityType: product.QuantityType,
 		CurrencyCode: product.CurrencyCode,
+		ProductPic:   productPic,
 	}
 	return response, nil
 }
