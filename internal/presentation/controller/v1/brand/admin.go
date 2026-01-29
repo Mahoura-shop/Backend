@@ -26,13 +26,13 @@ func NewAdminBrandController(
 	}
 }
 
-// func (brandController *AdminBrandController) GetCategories(ctx *gin.Context) {
-// 	categories, err := brandController.brandService.GetCategories(); 
-// 	if (err != nil) {
-// 		panic(err)
-// 	}
-// 	controller.Response(ctx, 200, "", categories)
-// }
+func (brandController *AdminBrandController) GetBrands(ctx *gin.Context) {
+	brands, err := brandController.brandService.GetBrands(); 
+	if (err != nil) {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", brands)
+}
 
 func (brandController *AdminBrandController) CreateBrand(ctx *gin.Context) {
 	type createBrandParams struct {
@@ -63,44 +63,44 @@ func (brandController *AdminBrandController) CreateBrand(ctx *gin.Context) {
 	controller.Response(ctx, 200, message, nil)
 }
 
-// func (brandController *AdminBrandController) DeleteBrand(ctx *gin.Context) {
-// 	type deleteBrandParams struct {
-// 		BrandID uint `uri:"brandID" validate:"required"`
-// 	}
-// 	params := controller.Validated[deleteBrandParams](ctx)
+func (brandController *AdminBrandController) DeleteBrand(ctx *gin.Context) {
+	type deleteBrandParams struct {
+		BrandID uint `uri:"brandID" validate:"required"`
+	}
+	params := controller.Validated[deleteBrandParams](ctx)
 	
-// 	if err := brandController.brandService.DeleteBrand(params.BrandID); err != nil {
-// 		panic(err)
-// 	}
+	if err := brandController.brandService.DeleteBrand(params.BrandID); err != nil {
+		panic(err)
+	}
 	
-// 	trans := controller.GetTranslator(ctx, brandController.constants.Context.Translator)
-// 	message, _ := trans.Translate("successMessage.deleteBrand")
-// 	controller.Response(ctx, 200, message, nil)
-// }
+	trans := controller.GetTranslator(ctx, brandController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.deleteBrand")
+	controller.Response(ctx, 200, message, nil)
+}
 
-// func (brandController *AdminBrandController) UpdateBrand(ctx *gin.Context) {
-// 	type updateBrandParams struct {
-// 		ID          uint    `uri:"brandID" validate:"required"`
-// 		Name        *string `json:"name"`
-// 		Slug        *string `json:"slug"`
-// 		Description *string `json:"description"`
-// 		IsActive    *bool   `json:"isActive"`
-// 	}
-// 	params := controller.Validated[updateBrandParams](ctx)
+func (brandController *AdminBrandController) UpdateBrand(ctx *gin.Context) {
+	type updateBrandParams struct {
+		ID          uint    `uri:"brandID" validate:"required"`
+		Name        *string `json:"name"`
+		Slug        *string `json:"slug"`
+		Description *string `json:"description"`
+		IsActive    *bool   `json:"isActive"`
+	}
+	params := controller.Validated[updateBrandParams](ctx)
 	
-// 	brandInfo := branddto.UpdateBrandRequest{
-// 		ID:          params.ID,
-// 		Name:        params.Name,
-// 		Slug:        params.Slug,
-// 		Description: params.Description,
-// 		IsActive:    params.IsActive,
-// 	}
+	brandInfo := branddto.UpdateBrandRequest{
+		ID:          params.ID,
+		Name:        params.Name,
+		Slug:        params.Slug,
+		Description: params.Description,
+		IsActive:    params.IsActive,
+	}
 
-// 	if err := brandController.brandService.UpdateBrand(brandInfo); err != nil {
-// 		panic(err)
-// 	}
+	if err := brandController.brandService.UpdateBrand(brandInfo); err != nil {
+		panic(err)
+	}
 	
-// 	trans := controller.GetTranslator(ctx, brandController.constants.Context.Translator)
-// 	message, _ := trans.Translate("successMessage.updateBrand")
-// 	controller.Response(ctx, 200, message, nil)
-// }
+	trans := controller.GetTranslator(ctx, brandController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.updateBrand")
+	controller.Response(ctx, 200, message, nil)
+}

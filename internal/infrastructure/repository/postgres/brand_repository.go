@@ -36,15 +36,15 @@ func (repo *BrandRepository) FindBrandBySlug(db database.Database, slug string) 
 	return &brand, nil
 }
 
-func (repo *BrandRepository) GetCategories(db database.Database) ([]*entity.Brand, error) {
-	var categories []*entity.Brand
-	result := db.GetDB().Find(&categories)
+func (repo *BrandRepository) GetBrands(db database.Database) ([]*entity.Brand, error) {
+	var brands []*entity.Brand
+	result := db.GetDB().Find(&brands)
 	
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	
-	return categories, nil
+	return brands, nil
 }
 
 func (repo *BrandRepository) CreateBrand(db database.Database, brand *entity.Brand) error {

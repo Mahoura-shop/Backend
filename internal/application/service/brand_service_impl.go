@@ -13,22 +13,22 @@ import (
 )
 
 type BrandService struct {
-	constants          *bootstrap.Constants
+	constants       *bootstrap.Constants
 	brandRepository postgres.BrandRepository
-	db                 database.Database
+	db              database.Database
 }
 
 type BrandServiceDeps struct {
-	Constants           *bootstrap.Constants
+	Constants       *bootstrap.Constants
 	BrandRepository postgres.BrandRepository
-	DB                  database.Database
+	DB              database.Database
 }
 
 func NewBrandService(deps BrandServiceDeps) *BrandService {
 	return &BrandService{
-		constants:          deps.Constants,
+		constants:       deps.Constants,
 		brandRepository: deps.BrandRepository,
-		db:                 deps.DB,
+		db:              deps.DB,
 	}
 }
 
@@ -91,13 +91,13 @@ func (brandService *BrandService) CreateBrand(brandInfo branddto.CreateBrandRequ
 	return err
 }
 
-func (brandService *BrandService) GetCategories() ([]branddto.BrandCredential, error) {
-	categories, err := brandService.brandRepository.GetCategories(brandService.db)
+func (brandService *BrandService) GetBrands() ([]branddto.BrandCredential, error) {
+	brands, err := brandService.brandRepository.GetBrands(brandService.db)
 	if err != nil {
 		return nil, err
 	}
 	var responses []branddto.BrandCredential
-	for _, brand := range categories {
+	for _, brand := range brands {
 		response := branddto.BrandCredential{
 			ID:       brand.ID,
 			Name:     brand.Name,

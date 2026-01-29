@@ -19,13 +19,13 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	
 	brands := routerGroup.Group("/brand")
 	{
-		// brands.GET("", app.Controllers.Admin.BrandController.GetBrands)
+		brands.GET("", app.Controllers.Admin.BrandController.GetBrands)
 		brands.POST("", app.Controllers.Admin.BrandController.CreateBrand)
-		// brandsSubGroup := brands.Group("/:brandID") 
-		// {
-		// 	brandsSubGroup.PUT("", app.Controllers.Admin.BrandController.UpdateBrand)
-		// 	brandsSubGroup.DELETE("", app.Controllers.Admin.BrandController.DeleteBrand)
-		// }
+		brandsSubGroup := brands.Group("/:brandID") 
+		{
+			brandsSubGroup.PUT("", app.Controllers.Admin.BrandController.UpdateBrand)
+			brandsSubGroup.DELETE("", app.Controllers.Admin.BrandController.DeleteBrand)
+		}
 	}
 
 	products := routerGroup.Group("/product")
