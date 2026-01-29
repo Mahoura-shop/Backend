@@ -64,13 +64,7 @@ type S3 struct {
 }
 
 type BucketName struct {
-	VATTaxpayerCertificate string
-	OfficialNewspaperAD    string
-	ProfilePic             string
-	TicketImage            string
-	LogoPic                string
-	NewsMedia              string
-	BlogMedia              string
+	ProductPic             string
 }
 
 type OTP struct {
@@ -141,6 +135,16 @@ func NewEnvironments() *Env {
 			Address:   os.Getenv("RDB_ADDRESS"),
 			Password:  os.Getenv("RDB_PASSWORD"),
 			RDBNumber: os.Getenv("RDB_NUMBER"),
+		},
+		Storage: S3{
+			Buckets: BucketName{
+				VATTaxpayerCertificate: os.Getenv("TAXPAYER_CERTIFICATE_BUCKET_NAME"),
+				ProductPic: os.Getenv("PRODUCT_PIC_BUCKET_NAME"),
+			},
+			Region:    os.Getenv("BUCKET_REGION"),
+			AccessKey: os.Getenv("BUCKET_ACCESS_key"),
+			SecretKey: os.Getenv("BUCKET_SECRET_key"),
+			Endpoint:  os.Getenv("BUCKET_ENDPOINT"),
 		},
 		OTP: OTP{
 			Length:       getEnvInt("OTP_LENGTH", 6),

@@ -83,8 +83,10 @@ var ServiceProviderSet = wire.NewSet(
 var AdapterProviderSet = wire.NewSet(
 	infraLocalization.NewTranslationService,
 	infraLogger.NewLogger,
+	infraStorage.NewS3Storage,
 	infraJWT.NewJWTKeyManager,
 	wire.Bind(new(domainLogger.Logger), new(*infraLogger.Logger)),
+	wire.Bind(new(s3.S3Storage), new(*infraStorage.S3Storage)),
 )
 
 var GeneralControllerProviderSet = wire.NewSet(
@@ -169,6 +171,10 @@ func ProvideEmailTemplates(container *bootstrap.Config) *bootstrap.EmailTemplate
 
 func ProvidePaginationConfig(container *bootstrap.Config) *bootstrap.Pagination {
 	return &container.Env.Pagination
+}
+
+func ProvideStorageConfig(container *bootstrap.Config) *bootstrap.S3 {
+	return &container.Env.Storage
 }
 
 func ProvideWebsocketSetting(container *bootstrap.Config) *bootstrap.WebsocketSetting {
