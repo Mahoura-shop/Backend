@@ -40,7 +40,6 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		Quantity     *uint   `json:"quantity"`
 		QuantityType *string `json:"quantityType"`
 		CurrencyCode *string `json:"currencyCode"`
-		
 	}
 	params := controller.Validated[createProductParams](ctx)
 
@@ -91,3 +90,44 @@ func (productController *AdminProductController) DeleteProduct(ctx *gin.Context)
 	controller.Response(ctx, 200, message, nil)
 }
 
+func (productController *AdminProductController) UpdateProduct(ctx *gin.Context) {
+	type updateProductParams struct {
+		ID           uint     `uri:"productID" validate:"required"`
+		Name         *string  `json:"name"`
+		Slug         *string  `json:"slug"`
+		Price        *float64 `json:"price"`
+		Description  *string  `json:"description"`
+		IsActive     *bool    `json:"isActive"`
+		IsNew        *bool    `json:"isNew"`
+		Priority     *uint    `json:"priority"`
+		MinOrder     *uint    `json:"minOrder"`
+		CategoryID   *uint    `json:"categoryID"`
+		Quantity     *uint    `json:"quantity"`
+		QuantityType *string  `json:"quantityType"`
+		CurrencyCode *string  `json:"currencyCode"`
+	}
+	params := controller.Validated[updateProductParams](ctx)
+	
+	productInfo := productdto.UpdateProductRequest{
+		ID:           params.ID,
+		Name:         params.Name,
+		Slug:         params.Slug,
+		Description:  params.Description,
+		IsActive:     params.IsActive,
+		IsNew:        params.IsNew,
+		Priority:     params.Priority,
+		MinOrder:     params.MinOrder,
+		CategoryID:   params.CategoryID,
+		Quantity:     params.Quantity,
+		QuantityType: params.QuantityType,
+		CurrencyCode: params.CurrencyCode,
+	}
+
+	if err := productController.productService.UpdateProduct(productInfo); err != nil {
+		panic(err)
+	}
+	
+	trans := controller.GetTranslator(ctx, productController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.updateProduct")
+	controller.Response(ctx, 200, message, nil)
+}

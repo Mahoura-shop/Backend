@@ -105,6 +105,7 @@ type ErrorTag struct {
 	AlreadyRejected        string
 	AlreadyAccepted        string
 	AlreadyDraft           string
+	EmptySlug              string
 }
 
 type SMSTemplates struct {
@@ -225,6 +226,7 @@ func NewConstants() *Constants {
 			AlreadyRejected:        "alreadyRejected",
 			AlreadyAccepted:        "alreadyAccepted",
 			AlreadyDraft:           "alreadyDraft",
+			EmptySlug:              "emptySlug",
 		},
 		SMSTemplates: SMSTemplates{
 			OTP: "sendOTPTemplate",
