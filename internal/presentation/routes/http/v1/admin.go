@@ -6,14 +6,26 @@ import (
 )
 
 func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
-	category := routerGroup.Group("/category")
+	categories := routerGroup.Group("/category")
 	{
-		category.GET("", app.Controllers.Admin.CategoryController.GetCategories)
-		category.POST("", app.Controllers.Admin.CategoryController.CreateCategory)
-		categorySubGroup := category.Group("/:categoryID") 
+		categories.GET("", app.Controllers.Admin.CategoryController.GetCategories)
+		categories.POST("", app.Controllers.Admin.CategoryController.CreateCategory)
+		categoriesSubGroup := categories.Group("/:categoryID") 
 		{
-			categorySubGroup.PUT("", app.Controllers.Admin.CategoryController.UpdateCategory)
-			categorySubGroup.DELETE("", app.Controllers.Admin.CategoryController.DeleteCategory)
+			categoriesSubGroup.PUT("", app.Controllers.Admin.CategoryController.UpdateCategory)
+			categoriesSubGroup.DELETE("", app.Controllers.Admin.CategoryController.DeleteCategory)
+		}
+	}
+
+	products := routerGroup.Group("/product")
+	{
+		products.POST("", app.Controllers.Admin.ProductController.CreateProduct)
+		products.GET("", app.Controllers.Admin.ProductController.GetProducts)
+		productsSubGroup := products.Group("/:productID") 
+		{
+			productsSubGroup.GET("", app.Controllers.Admin.ProductController.GetProduct)
+			productsSubGroup.PUT("", app.Controllers.Admin.ProductController.UpdateProduct)
+			productsSubGroup.DELETE("", app.Controllers.Admin.ProductController.DeleteProduct)
 		}
 	}
 

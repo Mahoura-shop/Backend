@@ -14,3 +14,6 @@ cover:
 
 log:
 	git log --oneline -n 10
+
+wire:
+	wire gen ./...
