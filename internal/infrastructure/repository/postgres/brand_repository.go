@@ -56,5 +56,5 @@ func (repo *BrandRepository) UpdateBrand(db database.Database, brand *entity.Bra
 }
 
 func (repo *BrandRepository) DeleteBrandByID(db database.Database, brandID uint) error {
-	return db.GetDB().Where("id = ?", brandID).Delete(&entity.Brand{}).Error
+	return db.GetDB().Where("id = ?", brandID).Unscoped().Delete(&entity.Brand{}).Error
 }

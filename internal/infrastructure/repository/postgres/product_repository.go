@@ -56,5 +56,5 @@ func (repo *ProductRepository) UpdateProduct(db database.Database, product *enti
 }
 
 func (repo *ProductRepository) DeleteProductByID(db database.Database, productID uint) error {
-	return db.GetDB().Where("id = ?", productID).Delete(&entity.Product{}).Error
+	return db.GetDB().Where("id = ?", productID).Unscoped().Delete(&entity.Product{}).Error
 }

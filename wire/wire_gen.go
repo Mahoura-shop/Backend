@@ -108,6 +108,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		Constants:          constants,
 		ProductRepository:  productRepository,
 		CategoryRepository: categoryRepository,
+		BrandRepository:    brandRepository,
 		DB:                 postgresDatabase,
 	}
 	productService := service.NewProductService(productServiceDeps)

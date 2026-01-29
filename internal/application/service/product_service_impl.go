@@ -34,8 +34,8 @@ func NewProductService(deps ProductServiceDeps) *ProductService {
 	return &ProductService{
 		constants:          deps.Constants,
 		productRepository:  deps.ProductRepository,
-		brandRepository:    deps.BrandRepository,
 	    categoryRepository: deps.CategoryRepository,
+		brandRepository:    deps.BrandRepository,
 		db:                 deps.DB,
 	}
 }
@@ -150,6 +150,7 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 			Priority:     product.Priority,
 			MinOrder:     product.MinOrder,
 			CategoryID:   product.CategoryID,
+			BrandID:      product.BrandID,
 			Quantity:     product.Quantity,
 			QuantityType: product.QuantityType,
 			CurrencyCode: product.CurrencyCode,
@@ -195,6 +196,10 @@ func (productService *ProductService) applyProductInitial(product *entity.Produc
 		product.CategoryID = productInfo.CategoryID
 	}
 
+	if productInfo.BrandID != nil {
+		product.BrandID = productInfo.BrandID
+	}
+
 	if productInfo.Quantity != nil {
 		product.Quantity = *productInfo.Quantity
 	} else {
@@ -230,6 +235,7 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 		Slug:       parsedSlug,
 		Price:      productInfo.Price,
 		CategoryID: productInfo.CategoryID,
+		BrandID:    productInfo.BrandID,
 	}
 
 	productService.applyProductInitial(product, productInfo)
@@ -302,6 +308,9 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 	if productInfo.CategoryID != nil {
 		product.CategoryID = productInfo.CategoryID
 	}
+	if productInfo.BrandID != nil {
+		product.BrandID = productInfo.BrandID
+	}
 	if productInfo.Quantity != nil {
 		product.Quantity = *productInfo.Quantity
 	}
@@ -358,6 +367,18 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 			return notFoundError
 		} 
 		product.Category = category
+	}
+
+	if productInfo.BrandID != nil {
+		brand, err := productService.brandRepository.FindBrandByID(productService.db, *productInfo.BrandID)
+		if err != nil {
+			return err
+		}
+		if brand == nil {
+			notFoundError := exception.NotFoundError{Item: productService.constants.Field.Brand}
+			return notFoundError
+		} 
+		product.Brand = brand
 	}
 
 	if (productInfo.Slug != nil) {

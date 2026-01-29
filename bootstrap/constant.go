@@ -71,8 +71,8 @@ type ErrorField struct {
 	Like                string
 	CorporationReview   string
 	Category            string
-	Product             string
 	Brand               string
+	Product             string
 }
 
 type ErrorTag struct {
