@@ -26,6 +26,14 @@ func NewAdminCategoryController(
 	}
 }
 
+func (categoryController *AdminCategoryController) GetCategories(ctx *gin.Context) {
+	categories, err := categoryController.categoryService.GetCategories(); 
+	if (err != nil) {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", categories)
+}
+
 func (categoryController *AdminCategoryController) CreateCategory(ctx *gin.Context) {
 	type createCategoryParams struct {
 		Name        string  `json:"name" validate:"required"`
@@ -53,14 +61,6 @@ func (categoryController *AdminCategoryController) CreateCategory(ctx *gin.Conte
 	trans := controller.GetTranslator(ctx, categoryController.constants.Context.Translator)
 	message, _ := trans.Translate("successMessage.createCategory")
 	controller.Response(ctx, 200, message, nil)
-}
-
-func (categoryController *AdminCategoryController) GetCategories(ctx *gin.Context) {
-	categories, err := categoryController.categoryService.GetCategories(); 
-	if (err != nil) {
-		panic(err)
-	}
-	controller.Response(ctx, 200, "", categories)
 }
 
 func (categoryController *AdminCategoryController) DeleteCategory(ctx *gin.Context) {
@@ -103,5 +103,4 @@ func (categoryController *AdminCategoryController) UpdateCategory(ctx *gin.Conte
 	trans := controller.GetTranslator(ctx, categoryController.constants.Context.Translator)
 	message, _ := trans.Translate("successMessage.updateCategory")
 	controller.Response(ctx, 200, message, nil)
-
 }

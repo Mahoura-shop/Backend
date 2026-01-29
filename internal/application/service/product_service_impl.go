@@ -100,6 +100,33 @@ func (productService *ProductService) validateDuplicateProduct(slug string) erro
 	return nil
 }
 
+func (productService *ProductService) GetProduct(productID uint) (*productdto.ProductCredential, error) {
+	product, err := productService.productRepository.FindProductByID(productService.db, productID)
+	if err != nil {
+		return nil, err
+	}
+	if product == nil {
+		return nil, exception.NotFoundError{Item: productService.constants.Field.Product}
+	}
+
+	response := &productdto.ProductCredential{
+		ID:           product.ID,
+		Name:         product.Name,
+		Slug:         product.Slug,
+		Price:        product.Price,
+		Description:  product.Description,
+		IsActive:     product.IsActive,
+		IsNew:        product.IsNew,
+		Priority:     product.Priority,
+		MinOrder:     product.MinOrder,
+		CategoryID:   product.CategoryID,
+		Quantity:     product.Quantity,
+		QuantityType: product.QuantityType,
+		CurrencyCode: product.CurrencyCode,
+	}
+	return response, nil
+}
+
 func (productService *ProductService) GetProducts() ([]productdto.ProductCredential, error) {
 	products, err := productService.productRepository.GetProducts(productService.db)
 	if err != nil {

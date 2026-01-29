@@ -8,6 +8,7 @@ import (
 type ProductService interface {
 	ParseSlug(string) (string, error)
 	FindProductBySlug(string) (*entity.Product, error)
+	GetProduct(uint) (*productdto.ProductCredential, error)
 	GetProducts() ([]productdto.ProductCredential, error)
 	CreateProduct(productdto.CreateProductRequest) error
 	UpdateProduct(productdto.UpdateProductRequest) error

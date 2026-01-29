@@ -21,13 +21,11 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	{
 		products.POST("", app.Controllers.Admin.ProductController.CreateProduct)
 		products.GET("", app.Controllers.Admin.ProductController.GetProducts)
-		// products.POST("/buy", app.Controllers.Admin.ProductController.BuyProducts)
-		// products.POST("/sell", app.Controllers.Admin.ProductController.SellProducts)
 		productsSubGroup := products.Group("/:productID") 
 		{
-			productsSubGroup.DELETE("", app.Controllers.Admin.ProductController.DeleteProduct)
+			productsSubGroup.GET("", app.Controllers.Admin.ProductController.GetProduct)
 			productsSubGroup.PUT("", app.Controllers.Admin.ProductController.UpdateProduct)
-			// productsSubGroup.GET("", app.Controllers.Admin.ProductController.GetProduct)
+			productsSubGroup.DELETE("", app.Controllers.Admin.ProductController.DeleteProduct)
 		}
 	}
 
