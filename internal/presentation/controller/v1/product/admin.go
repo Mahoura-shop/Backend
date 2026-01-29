@@ -60,6 +60,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		Priority     *uint   `json:"priority"`
 		MinOrder     *uint   `json:"minOrder"`
 		CategoryID   *uint   `json:"categoryID"`
+		BrandID      *uint   `json:"brandID"`
 		Quantity     *uint   `json:"quantity"`
 		QuantityType *string `json:"quantityType"`
 		CurrencyCode *string `json:"currencyCode"`
@@ -75,6 +76,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		Priority:     params.Priority,
 		MinOrder:     params.MinOrder,
 		CategoryID:   params.CategoryID,
+		BrandID:      params.BrandID,
 		Quantity:     params.Quantity,
 		QuantityType: params.QuantityType,
 		Price:        params.Price,
@@ -101,6 +103,7 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		Priority     *uint    `json:"priority"`
 		MinOrder     *uint    `json:"minOrder"`
 		CategoryID   *uint    `json:"categoryID"`
+		BrandID      *uint    `json:"brandID"`
 		Quantity     *uint    `json:"quantity"`
 		QuantityType *string  `json:"quantityType"`
 		CurrencyCode *string  `json:"currencyCode"`
@@ -117,6 +120,7 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		Priority:     params.Priority,
 		MinOrder:     params.MinOrder,
 		CategoryID:   params.CategoryID,
+		BrandID:      params.BrandID,
 		Quantity:     params.Quantity,
 		QuantityType: params.QuantityType,
 		CurrencyCode: params.CurrencyCode,

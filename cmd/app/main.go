@@ -27,6 +27,7 @@ func main() {
 		&entity.Province{},
 		&entity.User{},
 		&entity.Category{},
+		&entity.Brand{},
 		&entity.Product{},
 	)
 
