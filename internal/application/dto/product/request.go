@@ -10,6 +10,7 @@ type CreateProductRequest struct {
 	Priority     *uint      
 	MinOrder     *uint      
 	CategoryID   *uint 
+	BrandID      *uint 
 	Quantity     *uint      
 	QuantityType *string    
 	CurrencyCode *string     
@@ -26,6 +27,7 @@ type UpdateProductRequest struct {
 	Priority     *uint      
 	MinOrder     *uint      
 	CategoryID   *uint 
+	BrandID      *uint 
 	Quantity     *uint      
 	QuantityType *string    
 	CurrencyCode *string     
