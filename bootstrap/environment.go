@@ -138,7 +138,6 @@ func NewEnvironments() *Env {
 		},
 		Storage: S3{
 			Buckets: BucketName{
-				VATTaxpayerCertificate: os.Getenv("TAXPAYER_CERTIFICATE_BUCKET_NAME"),
 				ProductPic: os.Getenv("PRODUCT_PIC_BUCKET_NAME"),
 			},
 			Region:    os.Getenv("BUCKET_REGION"),
