@@ -96,11 +96,14 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 		CurrencyCode: product.CurrencyCode,
 		ProductPic:   product.ProductPic,
 	}
-
-	category, _ := productService.categoryService.FindCategoryByID(*product.CategoryID)
-	brand, _ := productService.brandService.FindBrandByID(*product.BrandID)
-	response.Category = category
-	response.Brand = brand
+	if product.Category != nil {
+		category := productService.categoryService.ParseCategory(*product.Category)
+		response.Category = &category
+	}
+	if product.Brand != nil {
+		brand := productService.brandService.ParseBrand(*product.Brand)
+		response.Brand = &brand
+	}
 	
 	return response
 }
@@ -149,6 +152,7 @@ func (productService *ProductService) GetProduct(productID uint) (*productdto.Pr
 	if err != nil {
 		return nil, err
 	}
+	
 	if product == nil {
 		return nil, exception.NotFoundError{Item: productService.constants.Field.Product}
 	}

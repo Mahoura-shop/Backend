@@ -16,9 +16,6 @@ func (repo *ProductRepository) FindProductByID(db database.Database, productID u
 	var product entity.Product
 	result := db.GetDB().Preload("Brand").Preload("Category").Where("id = ?", productID).First(&product)
 	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
 		return nil, result.Error
 	}
 	return &product, nil
@@ -26,7 +23,7 @@ func (repo *ProductRepository) FindProductByID(db database.Database, productID u
 
 func (repo *ProductRepository) FindProductBySlug(db database.Database, slug string) (*entity.Product, error) {
 	var product entity.Product
-	result := db.GetDB().Where("slug = ?", slug).First(&product)
+	result := db.GetDB().Preload("Brand").Preload("Category").Where("slug = ?", slug).First(&product)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, nil
