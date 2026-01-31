@@ -6,8 +6,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/BargheNo/Backend/bootstrap"
-	"github.com/BargheNo/Backend/internal/domain/enum"
+	"github.com/Mahoura-shop/Backend/bootstrap"
 	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"

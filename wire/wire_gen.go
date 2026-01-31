@@ -14,6 +14,7 @@ import (
 	logger2 "github.com/Mahoura-shop/Backend/internal/domain/logger"
 	postgres2 "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
 	redis2 "github.com/Mahoura-shop/Backend/internal/domain/repository/redis"
+	"github.com/Mahoura-shop/Backend/internal/domain/s3"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/communication/email"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/communication/sms"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
@@ -23,6 +24,7 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/repository/postgres"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/repository/redis"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
+	"github.com/Mahoura-shop/Backend/internal/infrastructure/storage"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/address"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/brand"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/category"
@@ -104,12 +106,15 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	brandService := service.NewBrandService(brandServiceDeps)
 	adminBrandController := brand.NewAdminBrandController(constants, pagination, brandService)
 	productRepository := postgres.NewProductRepository()
+	s3 := ProvideStorageConfig(container)
+	s3Storage := storage.NewS3Storage(constants, s3)
 	productServiceDeps := service.ProductServiceDeps{
-		Constants:          constants,
-		ProductRepository:  productRepository,
-		CategoryRepository: categoryRepository,
-		BrandRepository:    brandRepository,
-		DB:                 postgresDatabase,
+		Constants:         constants,
+		ProductRepository: productRepository,
+		CategoryService:   categoryService,
+		BrandService:      brandService,
+		S3Storage:         s3Storage,
+		DB:                postgresDatabase,
 	}
 	productService := service.NewProductService(productServiceDeps)
 	adminProductController := product.NewAdminProductController(constants, pagination, productService)
@@ -163,7 +168,7 @@ var RepositoryProviderSet = wire.NewSet(postgres.NewUserRepository, postgres.New
 
 var ServiceProviderSet = wire.NewSet(wire.Struct(new(service.UserServiceDeps), "*"), wire.Struct(new(service.CategoryServiceDeps), "*"), wire.Struct(new(service.BrandServiceDeps), "*"), wire.Struct(new(service.ProductServiceDeps), "*"), service.NewUserService, service.NewOTPService, sms.NewSMSService, email.NewEmailService, service.NewJWTService, service.NewAddressService, service.NewTestService, service.NewCategoryService, service.NewBrandService, service.NewProductService, wire.Bind(new(usecase.UserService), new(*service.UserService)), wire.Bind(new(usecase.OTPService), new(*service.OTPService)), wire.Bind(new(communication.SMSService), new(*sms.SMSService)), wire.Bind(new(communication.EmailService), new(*email.EmailService)), wire.Bind(new(usecase.JWTService), new(*service.JWTService)), wire.Bind(new(usecase.AddressService), new(*service.AddressService)), wire.Bind(new(usecase.TestService), new(*service.TestService)), wire.Bind(new(usecase.CategoryService), new(*service.CategoryService)), wire.Bind(new(usecase.BrandService), new(*service.BrandService)), wire.Bind(new(usecase.ProductService), new(*service.ProductService)))
 
-var AdapterProviderSet = wire.NewSet(localization.NewTranslationService, logger.NewLogger, jwt.NewJWTKeyManager, wire.Bind(new(logger2.Logger), new(*logger.Logger)))
+var AdapterProviderSet = wire.NewSet(localization.NewTranslationService, logger.NewLogger, storage.NewS3Storage, jwt.NewJWTKeyManager, wire.Bind(new(logger2.Logger), new(*logger.Logger)), wire.Bind(new(s3.S3Storage), new(*storage.S3Storage)))
 
 var GeneralControllerProviderSet = wire.NewSet(user.NewGeneralUserController, address.NewGeneralAddressController, test.NewGeneralTestController, wire.Struct(new(GeneralControllers), "*"))
 
@@ -183,6 +188,10 @@ func ProvideConstants(container *bootstrap.Config) *bootstrap.Constants {
 
 func ProvideLoggerConfig(container *bootstrap.Config) *bootstrap.Logger {
 	return &container.Env.Logger
+}
+
+func ProvideStorageConfig(container *bootstrap.Config) *bootstrap.S3 {
+	return &container.Env.Storage
 }
 
 func ProvideRateLimitConfig(container *bootstrap.Config) *bootstrap.RateLimit {
@@ -248,6 +257,7 @@ var ProviderSet = wire.NewSet(
 	SeederProviderSet,
 	ProvideConstants,
 	ProvideLoggerConfig,
+	ProvideStorageConfig,
 	ProvideRateLimitConfig,
 	ProvideDBConfig,
 	ProvideRDBConfig,

@@ -32,7 +32,35 @@ func NewBrandService(deps BrandServiceDeps) *BrandService {
 	}
 }
 
-func (brandService *BrandService) FindBrandBySlug(slug string) (*entity.Brand, error) {
+
+func (brandService *BrandService) ParseBrand(brand entity.Brand) (branddto.BrandCredential) {
+	response := branddto.BrandCredential{
+		ID:          brand.ID,
+		Name:        brand.Name,
+		Slug:        brand.Slug,
+		Description: brand.Description,
+		IsActive:    brand.IsActive,
+	}
+	return response
+}
+
+
+func (brandService *BrandService) FindBrandByID(brandID uint) (*branddto.BrandCredential, error) {
+	brand, err := brandService.brandRepository.FindBrandByID(brandService.db, brandID)
+	if err != nil {
+		return nil, err
+	}
+	if brand == nil {
+		notFoundError := exception.NotFoundError{Item: brandService.constants.Field.Brand}
+		return nil, notFoundError
+	}
+
+	parsedBrand := brandService.ParseBrand(*brand)
+	return &parsedBrand, nil
+}
+
+
+func (brandService *BrandService) FindBrandBySlug(slug string) (*branddto.BrandCredential, error) {
 	brand, err := brandService.brandRepository.FindBrandBySlug(brandService.db, slug)
 	if err != nil {
 		return nil, err
@@ -41,7 +69,9 @@ func (brandService *BrandService) FindBrandBySlug(slug string) (*entity.Brand, e
 		notFoundError := exception.NotFoundError{Item: brandService.constants.Field.Brand}
 		return nil, notFoundError
 	}
-	return brand, nil
+	
+	parsedBrand := brandService.ParseBrand(*brand)
+	return &parsedBrand, nil
 }
 
 func (brandService *BrandService) validateDuplicateBrand(slug string) error {
@@ -99,15 +129,11 @@ func (brandService *BrandService) GetBrands() ([]branddto.BrandCredential, error
 	var responses []branddto.BrandCredential
 	for _, brand := range brands {
 		response := branddto.BrandCredential{
-			ID:       brand.ID,
-			Name:     brand.Name,
-			Slug:     brand.Slug,
-			IsActive: brand.IsActive,
-		}
-		
-		if brand.Description != "" {
-			description := brand.Description
-			response.Description = &description
+			ID:          brand.ID,
+			Name:        brand.Name,
+			Slug:        brand.Slug,
+			Description: brand.Description,
+			IsActive:    brand.IsActive,
 		}
 		
 		responses = append(responses, response)

@@ -8,38 +8,40 @@ import (
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	productdto "github.com/Mahoura-shop/Backend/internal/application/dto/product"
+	"github.com/Mahoura-shop/Backend/internal/application/usecase"
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
 	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 	"github.com/Mahoura-shop/Backend/internal/domain/exception"
 	"github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
+	"github.com/Mahoura-shop/Backend/internal/domain/s3"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 	"gorm.io/gorm"
 )
 
 type ProductService struct {
-	constants          *bootstrap.Constants
-	productRepository  postgres.ProductRepository
-	categoryRepository postgres.CategoryRepository
-	brandRepository    postgres.BrandRepository
-	s3Storage          s3.S3Storage
-	db                 database.Database
+	constants         *bootstrap.Constants
+	productRepository postgres.ProductRepository
+	categoryService   usecase.CategoryService
+	brandService      usecase.BrandService
+	s3Storage         s3.S3Storage
+	db                database.Database
 }
 
 type ProductServiceDeps struct {
-	Constants          *bootstrap.Constants
-	ProductRepository  postgres.ProductRepository
-	CategoryRepository postgres.CategoryRepository
-	BrandRepository    postgres.BrandRepository
-	S3Storage          s3.S3Storage
-	DB                 database.Database
+	Constants         *bootstrap.Constants
+	ProductRepository postgres.ProductRepository
+	CategoryService   usecase.CategoryService
+	BrandService      usecase.BrandService
+	S3Storage         s3.S3Storage
+	DB                database.Database
 }
 
 func NewProductService(deps ProductServiceDeps) *ProductService {
 	return &ProductService{
 		constants:          deps.Constants,
 		productRepository:  deps.ProductRepository,
-	    categoryRepository: deps.CategoryRepository,
-		brandRepository:    deps.BrandRepository,
+		categoryService:    deps.CategoryService,
+		brandService:       deps.BrandService,
 		s3Storage:          deps.S3Storage,
 		db:                 deps.DB,
 	}
@@ -78,7 +80,32 @@ func (productService *ProductService) ParseSlug(slug string) (string, error) {
 	return parsedSlug, nil
 }
 
-func (productService *ProductService) FindProductBySlug(slug string) (*entity.Product, error) {
+func (productService *ProductService) ParseProduct(product entity.Product) (productdto.ProductCredential) {
+	response := productdto.ProductCredential{
+		ID:           product.ID,
+		Name:         product.Name,
+		Slug:         product.Slug,
+		Price:        product.Price,
+		Description:  product.Description,
+		IsActive:     product.IsActive,
+		IsNew:        product.IsNew,
+		Priority:     product.Priority,
+		MinOrder:     product.MinOrder,
+		Quantity:     product.Quantity,
+		QuantityType: product.QuantityType,
+		CurrencyCode: product.CurrencyCode,
+		ProductPic:   product.ProductPic,
+	}
+
+	category, _ := productService.categoryService.FindCategoryByID(*product.CategoryID)
+	brand, _ := productService.brandService.FindBrandByID(*product.BrandID)
+	response.Category = category
+	response.Brand = brand
+	
+	return response
+}
+
+func (productService *ProductService) FindProductBySlug(slug string) (*productdto.ProductCredential, error) {
 	product, err := productService.productRepository.FindProductBySlug(productService.db, slug)
 	if err != nil {
 		return nil, err
@@ -87,7 +114,16 @@ func (productService *ProductService) FindProductBySlug(slug string) (*entity.Pr
 		notFoundError := exception.NotFoundError{Item: productService.constants.Field.Product}
 		return nil, notFoundError
 	}
-	return product, nil
+	
+	if product.ProductPic != "" {
+		_, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	parsedProduct := productService.ParseProduct(*product)
+	return &parsedProduct, nil
 }
 
 func (productService *ProductService) validateDuplicateProduct(slug string) error {
@@ -117,32 +153,16 @@ func (productService *ProductService) GetProduct(productID uint) (*productdto.Pr
 		return nil, exception.NotFoundError{Item: productService.constants.Field.Product}
 	}
 
-	productPic := ""
 	if product.ProductPic != "" {
-		productPic, err = productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
+		productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
 		if err != nil {
-			return &productdto.ProductCredential{}, err
+			return nil, err
 		}
+		product.ProductPic = productPic
 	}
-
-	response := &productdto.ProductCredential{
-		ID:           product.ID,
-		Name:         product.Name,
-		Slug:         product.Slug,
-		Price:        product.Price,
-		Description:  product.Description,
-		IsActive:     product.IsActive,
-		IsNew:        product.IsNew,
-		Priority:     product.Priority,
-		MinOrder:     product.MinOrder,
-		CategoryID:   product.CategoryID,
-		BrandID:      product.BrandID,
-		Quantity:     product.Quantity,
-		QuantityType: product.QuantityType,
-		CurrencyCode: product.CurrencyCode,
-		ProductPic:   productPic,
-	}
-	return response, nil
+	
+	parsedProduct := productService.ParseProduct(*product)
+	return &parsedProduct, nil
 }
 
 func (productService *ProductService) GetProducts() ([]productdto.ProductCredential, error) {
@@ -163,19 +183,33 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 			IsNew:        product.IsNew,
 			Priority:     product.Priority,
 			MinOrder:     product.MinOrder,
-			CategoryID:   product.CategoryID,
-			BrandID:      product.BrandID,
 			Quantity:     product.Quantity,
 			QuantityType: product.QuantityType,
 			CurrencyCode: product.CurrencyCode,
 		}
+		if product.Brand != nil {
+			brand := productService.brandService.ParseBrand(*product.Brand)
+			response.Brand = &brand
+		}
+		if product.Category != nil {
+			category := productService.categoryService.ParseCategory(*product.Category)
+			response.Category = &category
+		}
+		if product.ProductPic != "" {
+			productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
+			if err != nil {
+				return nil, err
+			}
+			response.ProductPic = productPic
+		}
+
 		responses = append(responses, response)
 	}
 
 	return responses, nil
 }
 
-func (productService *ProductService) applyProductInitial(product *entity.Product, productInfo productdto.CreateProductRequest) {
+func (productService *ProductService) applyProductInitial(product entity.Product, productInfo productdto.CreateProductRequest) {
 	if productInfo.Description != nil {
 		product.Description = *productInfo.Description
 	} else {
@@ -244,7 +278,7 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 		return err
 	}
 
-	product := &entity.Product{
+	product := entity.Product{
 		Name:       productInfo.Name,
 		Slug:       parsedSlug,
 		Price:      productInfo.Price,
@@ -255,33 +289,41 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 	productService.applyProductInitial(product, productInfo)
 
 	if productInfo.CategoryID != nil {
-		category, err := productService.categoryRepository.FindCategoryByID(productService.db, *productInfo.CategoryID)
+		category, err := productService.categoryService.FindCategoryByID(*productInfo.CategoryID)
 		if err != nil {
 			return err
 		}
 		if category == nil {
 			notFoundError := exception.NotFoundError{Item: productService.constants.Field.Category}
 			return notFoundError
-		} 
-		product.Category = category
+		}
 	}
 
 	if productInfo.BrandID != nil {
-		brand, err := productService.brandRepository.FindBrandByID(productService.db, *productInfo.BrandID)
+		brand, err := productService.brandService.FindBrandByID(*productInfo.BrandID)
 		if err != nil {
 			return err
 		}
 		if brand == nil {
 			notFoundError := exception.NotFoundError{Item: productService.constants.Field.Brand}
 			return notFoundError
-		} 
-		product.Brand = brand
+		}
 	}
 
 	err = productService.db.WithTransaction(func(tx database.Database) error {
-		err = productService.productRepository.CreateProduct(tx, product)
+		createdProduct, err := productService.productRepository.CreateProduct(tx, &product)
 		if err != nil {
 			return err
+		}
+		if productInfo.ProductPic != nil {
+			product.ProductPic = productService.constants.S3BucketPath.GetProductPicPath(createdProduct.ID, productInfo.ProductPic.Filename)
+			if err := productService.s3Storage.UploadObject(enum.ProductPic, product.ProductPic, productInfo.ProductPic); err != nil {
+				return  err
+			}
+		
+			if err := productService.productRepository.UpdateProduct(tx, &product); err != nil {
+				return err
+			}
 		}
 		return nil
 	})
@@ -372,7 +414,7 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 	}
 
 	if productInfo.CategoryID != nil {
-		category, err := productService.categoryRepository.FindCategoryByID(productService.db, *productInfo.CategoryID)
+		category, err := productService.categoryService.FindCategoryByID(*productInfo.CategoryID)
 		if err != nil {
 			return err
 		}
@@ -380,11 +422,10 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 			notFoundError := exception.NotFoundError{Item: productService.constants.Field.Category}
 			return notFoundError
 		} 
-		product.Category = category
 	}
 
 	if productInfo.BrandID != nil {
-		brand, err := productService.brandRepository.FindBrandByID(productService.db, *productInfo.BrandID)
+		brand, err := productService.brandService.FindBrandByID(*productInfo.BrandID)
 		if err != nil {
 			return err
 		}
@@ -392,7 +433,6 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 			notFoundError := exception.NotFoundError{Item: productService.constants.Field.Brand}
 			return notFoundError
 		} 
-		product.Brand = brand
 	}
 
 	if (productInfo.Slug != nil) {
@@ -402,6 +442,11 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 		}
 	}
 	err = productService.db.WithTransaction(func(tx database.Database) error {
+		if productInfo.ProductPic != nil {
+			productPicPath := productService.constants.S3BucketPath.GetProductPicPath(productInfo.ID, productInfo.ProductPic.Filename)
+			productService.s3Storage.UploadObject(enum.ProductPic, productPicPath, productInfo.ProductPic)
+			product.ProductPic = productPicPath
+		}
 		if err := productService.productRepository.UpdateProduct(tx, product); err != nil {
 			return err
 		}

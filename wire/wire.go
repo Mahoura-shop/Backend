@@ -9,6 +9,7 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/application/usecase"
 	"github.com/Mahoura-shop/Backend/internal/domain/communication"
 	domainLogger "github.com/Mahoura-shop/Backend/internal/domain/logger"
+	domainS3 "github.com/Mahoura-shop/Backend/internal/domain/s3"
 	domainPostgres "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
 	domainRedis "github.com/Mahoura-shop/Backend/internal/domain/repository/redis"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/communication/email"
@@ -17,6 +18,7 @@ import (
 	infraJWT "github.com/Mahoura-shop/Backend/internal/infrastructure/jwt"
 	infraLocalization "github.com/Mahoura-shop/Backend/internal/infrastructure/localization"
 	infraLogger "github.com/Mahoura-shop/Backend/internal/infrastructure/logger"
+	infraStorage "github.com/Mahoura-shop/Backend/internal/infrastructure/storage"
 	infraPostgres "github.com/Mahoura-shop/Backend/internal/infrastructure/repository/postgres"
 	infraRedis "github.com/Mahoura-shop/Backend/internal/infrastructure/repository/redis"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
@@ -86,7 +88,7 @@ var AdapterProviderSet = wire.NewSet(
 	infraStorage.NewS3Storage,
 	infraJWT.NewJWTKeyManager,
 	wire.Bind(new(domainLogger.Logger), new(*infraLogger.Logger)),
-	wire.Bind(new(s3.S3Storage), new(*infraStorage.S3Storage)),
+	wire.Bind(new(domainS3.S3Storage), new(*infraStorage.S3Storage)),
 )
 
 var GeneralControllerProviderSet = wire.NewSet(
@@ -137,6 +139,10 @@ func ProvideLoggerConfig(container *bootstrap.Config) *bootstrap.Logger {
 	return &container.Env.Logger
 }
 
+func ProvideStorageConfig(container *bootstrap.Config) *bootstrap.S3 {
+	return &container.Env.Storage
+}
+
 func ProvideRateLimitConfig(container *bootstrap.Config) *bootstrap.RateLimit {
 	return &container.Env.RateLimit
 }
@@ -173,10 +179,6 @@ func ProvidePaginationConfig(container *bootstrap.Config) *bootstrap.Pagination 
 	return &container.Env.Pagination
 }
 
-func ProvideStorageConfig(container *bootstrap.Config) *bootstrap.S3 {
-	return &container.Env.Storage
-}
-
 func ProvideWebsocketSetting(container *bootstrap.Config) *bootstrap.WebsocketSetting {
 	return &container.Env.WebsocketSetting
 }
@@ -204,6 +206,7 @@ var ProviderSet = wire.NewSet(
 	SeederProviderSet,
 	ProvideConstants,
 	ProvideLoggerConfig,
+	ProvideStorageConfig,
 	ProvideRateLimitConfig,
 	ProvideDBConfig,
 	ProvideRDBConfig,

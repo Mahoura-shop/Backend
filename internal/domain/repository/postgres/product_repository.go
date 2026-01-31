@@ -6,7 +6,7 @@ import (
 )
 
 type ProductRepository interface {
-	CreateProduct(database.Database, *entity.Product) error
+	CreateProduct(database.Database, *entity.Product) (*entity.Product, error)
 	FindProductByID(database.Database, uint) (*entity.Product, error)
 	FindProductBySlug(database.Database, string) (*entity.Product, error)
 	GetProducts(database.Database) ([]*entity.Product, error)

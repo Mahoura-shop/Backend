@@ -1,6 +1,8 @@
 package product
 
 import (
+	"mime/multipart"
+
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	productdto "github.com/Mahoura-shop/Backend/internal/application/dto/product"
 	"github.com/Mahoura-shop/Backend/internal/application/usecase"
@@ -51,19 +53,20 @@ func (productController *AdminProductController) GetProducts(ctx *gin.Context) {
 
 func (productController *AdminProductController) CreateProduct(ctx *gin.Context) {
 	type createProductParams struct {
-		Name         string  `json:"name" validate:"required"`
-		Slug         string  `json:"slug" validate:"required"`
-		Price        float64 `json:"price" validate:"required"`
-		Description  *string `json:"description"`
-		IsActive     *bool   `json:"isActive"`
-		IsNew        *bool   `json:"isNew"`
-		Priority     *uint   `json:"priority"`
-		MinOrder     *uint   `json:"minOrder"`
-		CategoryID   *uint   `json:"categoryID"`
-		BrandID      *uint   `json:"brandID"`
-		Quantity     *uint   `json:"quantity"`
-		QuantityType *string `json:"quantityType"`
-		CurrencyCode *string `json:"currencyCode"`
+		Name         string                `form:"name" validate:"required"`
+		Slug         string                `form:"slug" validate:"required"`
+		Price        float64               `form:"price" validate:"required"`
+		Description  *string               `form:"description"`
+		IsActive     *bool                 `form:"isActive"`
+		IsNew        *bool                 `form:"isNew"`
+		Priority     *uint                 `form:"priority"`
+		MinOrder     *uint                 `form:"minOrder"`
+		CategoryID   *uint                 `form:"categoryID"`
+		BrandID      *uint                 `form:"brandID"`
+		Quantity     *uint                 `form:"quantity"`
+		QuantityType *string               `form:"quantityType"`
+		CurrencyCode *string               `form:"currencyCode"`
+		ProductPic   *multipart.FileHeader `form:"productPic"`
 	}
 	params := controller.Validated[createProductParams](ctx)
 
@@ -81,6 +84,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		QuantityType: params.QuantityType,
 		Price:        params.Price,
 		CurrencyCode: params.CurrencyCode,
+		ProductPic:   params.ProductPic,
 	}
 	if err := productController.productService.CreateProduct(productInfo); err != nil {
 		panic(err)
@@ -93,20 +97,21 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 
 func (productController *AdminProductController) UpdateProduct(ctx *gin.Context) {
 	type updateProductParams struct {
-		ID           uint     `uri:"productID" validate:"required"`
-		Name         *string  `json:"name"`
-		Slug         *string  `json:"slug"`
-		Price        *float64 `json:"price"`
-		Description  *string  `json:"description"`
-		IsActive     *bool    `json:"isActive"`
-		IsNew        *bool    `json:"isNew"`
-		Priority     *uint    `json:"priority"`
-		MinOrder     *uint    `json:"minOrder"`
-		CategoryID   *uint    `json:"categoryID"`
-		BrandID      *uint    `json:"brandID"`
-		Quantity     *uint    `json:"quantity"`
-		QuantityType *string  `json:"quantityType"`
-		CurrencyCode *string  `json:"currencyCode"`
+		ID           uint                  `uri:"productID" validate:"required"`
+		Name         *string               `form:"name"`
+		Slug         *string               `form:"slug"`
+		Price        *float64              `form:"price"`
+		Description  *string               `form:"description"`
+		IsActive     *bool                 `form:"isActive"`
+		IsNew        *bool                 `form:"isNew"`
+		Priority     *uint                 `form:"priority"`
+		MinOrder     *uint                 `form:"minOrder"`
+		CategoryID   *uint                 `form:"categoryID"`
+		BrandID      *uint                 `form:"brandID"`
+		Quantity     *uint                 `form:"quantity"`
+		QuantityType *string               `form:"quantityType"`
+		CurrencyCode *string               `form:"currencyCode"`
+		ProductPic   *multipart.FileHeader `form:"productPic"`
 	}
 	params := controller.Validated[updateProductParams](ctx)
 	
@@ -124,6 +129,7 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		Quantity:     params.Quantity,
 		QuantityType: params.QuantityType,
 		CurrencyCode: params.CurrencyCode,
+		ProductPic:   params.ProductPic,
 	}
 
 	if err := productController.productService.UpdateProduct(productInfo); err != nil {
