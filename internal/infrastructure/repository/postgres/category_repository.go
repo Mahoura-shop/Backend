@@ -58,3 +58,12 @@ func (repo *CategoryRepository) UpdateCategory(db database.Database, category *e
 func (repo *CategoryRepository) DeleteCategoryByID(db database.Database, categoryID uint) error {
 	return db.GetDB().Where("id = ?", categoryID).Delete(&entity.Category{}).Error
 }
+
+func (repo *CategoryRepository) GetCategoryProductsCount(db database.Database, categoryID uint) (uint, error) {
+	var count int64
+	err := db.GetDB().Model(&entity.Product{}).Where("CategoryID = ?", categoryID).Count(&count).Error
+	if err != nil {
+        return 0, err
+    }
+    return uint(count), nil
+}

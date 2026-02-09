@@ -32,7 +32,49 @@ func NewCategoryService(deps CategoryServiceDeps) *CategoryService {
 	}
 }
 
-func (categoryService *CategoryService) FindCategoryBySlug(slug string) (*entity.Category, error) {
+func (categoryService *CategoryService) GetCategoryProductsCount(categoryID uint) (uint, error) {
+	count, err := categoryService.categoryRepository.GetCategoryProductsCount(categoryService.db, categoryID)
+	if (err != nil) {
+		return 0, err
+	}
+	return count, nil
+}
+
+
+func (categoryService *CategoryService) ParseCategory(category entity.Category) (categorydto.CategoryCredential, error) {
+	count, err := categoryService.GetCategoryProductsCount(category.ID)
+	if err != nil {
+		return categorydto.CategoryCredential{}, err
+	}
+	response := categorydto.CategoryCredential{
+		ID:          category.ID,
+		Name:        category.Name,
+		Slug:        category.Slug,
+		Description: category.Description,
+		IsActive:    category.IsActive,
+		Count:       count,
+	}
+	return response, nil
+}
+
+func (categoryService *CategoryService) FindCategoryByID(categoryID uint) (*categorydto.CategoryCredential, error) {
+	category, err := categoryService.categoryRepository.FindCategoryByID(categoryService.db, categoryID)
+	if err != nil {
+		return nil, err
+	}
+	if category == nil {
+		notFoundError := exception.NotFoundError{Item: categoryService.constants.Field.Category}
+		return nil, notFoundError
+	}
+
+	parsedCategory, err := categoryService.ParseCategory(*category)
+	if err != nil {
+		return nil, err
+	}
+	return &parsedCategory, nil
+}
+
+func (categoryService *CategoryService) FindCategoryBySlug(slug string) (*categorydto.CategoryCredential, error) {
 	category, err := categoryService.categoryRepository.FindCategoryBySlug(categoryService.db, slug)
 	if err != nil {
 		return nil, err
@@ -41,7 +83,12 @@ func (categoryService *CategoryService) FindCategoryBySlug(slug string) (*entity
 		notFoundError := exception.NotFoundError{Item: categoryService.constants.Field.Category}
 		return nil, notFoundError
 	}
-	return category, nil
+
+	parsedCategory, err := categoryService.ParseCategory(*category)
+	if err != nil {
+		return nil, err
+	}
+	return &parsedCategory, nil
 }
 
 func (categoryService *CategoryService) validateDuplicateCategory(slug string) error {
@@ -100,15 +147,11 @@ func (categoryService *CategoryService) GetCategories() ([]categorydto.CategoryC
 	var responses []categorydto.CategoryCredential
 	for _, category := range categories {
 		response := categorydto.CategoryCredential{
-			ID:       category.ID,
-			Name:     category.Name,
-			Slug:     category.Slug,
-			IsActive: category.IsActive,
-		}
-		
-		if category.Description != "" {
-			description := category.Description
-			response.Description = &description
+			ID:          category.ID,
+			Name:        category.Name,
+			Slug:        category.Slug,
+			Description: category.Description,
+			IsActive:    category.IsActive,
 		}
 		
 		responses = append(responses, response)

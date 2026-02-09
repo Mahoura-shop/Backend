@@ -1,5 +1,7 @@
 package productdto
 
+import "mime/multipart"
+
 type CreateProductRequest struct {
 	Name         string
 	Slug         string
@@ -13,7 +15,8 @@ type CreateProductRequest struct {
 	BrandID      *uint 
 	Quantity     *uint      
 	QuantityType *string    
-	CurrencyCode *string     
+	CurrencyCode *string    
+	ProductPic   *multipart.FileHeader 
 }
 
 type UpdateProductRequest struct {
@@ -31,4 +34,5 @@ type UpdateProductRequest struct {
 	Quantity     *uint      
 	QuantityType *string    
 	CurrencyCode *string     
+	ProductPic   *multipart.FileHeader 
 }

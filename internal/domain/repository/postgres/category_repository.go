@@ -6,10 +6,11 @@ import (
 )
 
 type CategoryRepository interface {
-	CreateCategory(db database.Database, category *entity.Category) error
-	FindCategoryByID(db database.Database, categoryID uint) (*entity.Category, error)
-	FindCategoryBySlug(db database.Database, slug string) (*entity.Category, error)
-	GetCategories(db database.Database) ([]*entity.Category, error)
-	DeleteCategoryByID(db database.Database, categoryID uint) error
-	UpdateCategory(db database.Database, category *entity.Category) error
+	FindCategoryByID(database.Database, uint) (*entity.Category, error)
+	FindCategoryBySlug(database.Database, string) (*entity.Category, error)
+	CreateCategory(database.Database, *entity.Category) error
+	GetCategories(database.Database) ([]*entity.Category, error)
+	DeleteCategoryByID(database.Database, uint) error
+	UpdateCategory(database.Database, *entity.Category) error
+	GetCategoryProductsCount(database.Database, uint) (uint, error)
 }

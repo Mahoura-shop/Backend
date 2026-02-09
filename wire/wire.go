@@ -9,6 +9,7 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/application/usecase"
 	"github.com/Mahoura-shop/Backend/internal/domain/communication"
 	domainLogger "github.com/Mahoura-shop/Backend/internal/domain/logger"
+	domainS3 "github.com/Mahoura-shop/Backend/internal/domain/s3"
 	domainPostgres "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
 	domainRedis "github.com/Mahoura-shop/Backend/internal/domain/repository/redis"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/communication/email"
@@ -17,6 +18,7 @@ import (
 	infraJWT "github.com/Mahoura-shop/Backend/internal/infrastructure/jwt"
 	infraLocalization "github.com/Mahoura-shop/Backend/internal/infrastructure/localization"
 	infraLogger "github.com/Mahoura-shop/Backend/internal/infrastructure/logger"
+	infraStorage "github.com/Mahoura-shop/Backend/internal/infrastructure/storage"
 	infraPostgres "github.com/Mahoura-shop/Backend/internal/infrastructure/repository/postgres"
 	infraRedis "github.com/Mahoura-shop/Backend/internal/infrastructure/repository/redis"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
@@ -83,8 +85,10 @@ var ServiceProviderSet = wire.NewSet(
 var AdapterProviderSet = wire.NewSet(
 	infraLocalization.NewTranslationService,
 	infraLogger.NewLogger,
+	infraStorage.NewS3Storage,
 	infraJWT.NewJWTKeyManager,
 	wire.Bind(new(domainLogger.Logger), new(*infraLogger.Logger)),
+	wire.Bind(new(domainS3.S3Storage), new(*infraStorage.S3Storage)),
 )
 
 var GeneralControllerProviderSet = wire.NewSet(
@@ -133,6 +137,10 @@ func ProvideConstants(container *bootstrap.Config) *bootstrap.Constants {
 
 func ProvideLoggerConfig(container *bootstrap.Config) *bootstrap.Logger {
 	return &container.Env.Logger
+}
+
+func ProvideStorageConfig(container *bootstrap.Config) *bootstrap.S3 {
+	return &container.Env.Storage
 }
 
 func ProvideRateLimitConfig(container *bootstrap.Config) *bootstrap.RateLimit {
@@ -198,6 +206,7 @@ var ProviderSet = wire.NewSet(
 	SeederProviderSet,
 	ProvideConstants,
 	ProvideLoggerConfig,
+	ProvideStorageConfig,
 	ProvideRateLimitConfig,
 	ProvideDBConfig,
 	ProvideRDBConfig,

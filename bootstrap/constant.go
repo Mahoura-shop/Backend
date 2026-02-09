@@ -6,6 +6,7 @@ type Constants struct {
 	Context             Context
 	LogLevel            LogLevel
 	RedisKey            RedisKey
+	S3BucketPath        BucketPath
 	Field               ErrorField
 	Tag                 ErrorTag
 	SMSTemplates        SMSTemplates
@@ -196,6 +197,7 @@ func NewConstants() *Constants {
 			CorporationReview:   "corporationReview",
 			Product:             "product",
 			Brand:               "brand",
+			Category:            "category",
 		},
 		Tag: ErrorTag{
 			AlreadyRegistered:      "alreadyRegistered",
@@ -269,6 +271,10 @@ func (path *BucketPath) GetOfficialNewspaperADPath(corporationID uint, certifica
 
 func (path *BucketPath) GetUserProfilePath(userID uint, pictureFileName string) string {
 	return fmt.Sprintf("user/%d/profile/%s", userID, pictureFileName)
+}
+
+func (path *BucketPath) GetProductPicPath(productID uint, productPicFileName string) string {
+	return fmt.Sprintf("product/%d/picture/%s", productID, productPicFileName)
 }
 
 func (path *BucketPath) GetTicketImagePath(ticketID uint, imageFilename string) string {
