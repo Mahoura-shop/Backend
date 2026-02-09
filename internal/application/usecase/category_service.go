@@ -6,7 +6,7 @@ import (
 )
 
 type CategoryService interface {
-	ParseCategory(entity.Category) (categorydto.CategoryCredential)
+	ParseCategory(entity.Category) (categorydto.CategoryCredential, error)
 	FindCategoryBySlug(string) (*categorydto.CategoryCredential, error) 
 	FindCategoryByID(uint) (*categorydto.CategoryCredential, error) 
 	CreateCategory(categorydto.CreateCategoryRequest) error

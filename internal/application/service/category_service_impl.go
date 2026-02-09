@@ -32,15 +32,29 @@ func NewCategoryService(deps CategoryServiceDeps) *CategoryService {
 	}
 }
 
-func (categoryService *CategoryService) ParseCategory(category entity.Category) (categorydto.CategoryCredential) {
+func (categoryService *CategoryService) GetCategoryProductsCount(categoryID uint) (uint, error) {
+	count, err := categoryService.categoryRepository.GetCategoryProductsCount(categoryService.db, categoryID)
+	if (err != nil) {
+		return 0, err
+	}
+	return count, nil
+}
+
+
+func (categoryService *CategoryService) ParseCategory(category entity.Category) (categorydto.CategoryCredential, error) {
+	count, err := categoryService.GetCategoryProductsCount(category.ID)
+	if err != nil {
+		return categorydto.CategoryCredential{}, err
+	}
 	response := categorydto.CategoryCredential{
 		ID:          category.ID,
 		Name:        category.Name,
 		Slug:        category.Slug,
 		Description: category.Description,
 		IsActive:    category.IsActive,
+		Count:       count,
 	}
-	return response
+	return response, nil
 }
 
 func (categoryService *CategoryService) FindCategoryByID(categoryID uint) (*categorydto.CategoryCredential, error) {
@@ -53,7 +67,10 @@ func (categoryService *CategoryService) FindCategoryByID(categoryID uint) (*cate
 		return nil, notFoundError
 	}
 
-	parsedCategory := categoryService.ParseCategory(*category)
+	parsedCategory, err := categoryService.ParseCategory(*category)
+	if err != nil {
+		return nil, err
+	}
 	return &parsedCategory, nil
 }
 
@@ -67,7 +84,10 @@ func (categoryService *CategoryService) FindCategoryBySlug(slug string) (*catego
 		return nil, notFoundError
 	}
 
-	parsedCategory := categoryService.ParseCategory(*category)
+	parsedCategory, err := categoryService.ParseCategory(*category)
+	if err != nil {
+		return nil, err
+	}
 	return &parsedCategory, nil
 }
 

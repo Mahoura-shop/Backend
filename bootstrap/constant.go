@@ -197,6 +197,7 @@ func NewConstants() *Constants {
 			CorporationReview:   "corporationReview",
 			Product:             "product",
 			Brand:               "brand",
+			Category:            "category",
 		},
 		Tag: ErrorTag{
 			AlreadyRegistered:      "alreadyRegistered",

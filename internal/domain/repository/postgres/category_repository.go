@@ -12,4 +12,5 @@ type CategoryRepository interface {
 	GetCategories(database.Database) ([]*entity.Category, error)
 	DeleteCategoryByID(database.Database, uint) error
 	UpdateCategory(database.Database, *entity.Category) error
+	GetCategoryProductsCount(database.Database, uint) (uint, error)
 }
