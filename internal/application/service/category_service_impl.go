@@ -44,7 +44,7 @@ func (categoryService *CategoryService) GetCategoryProductsCount(categoryID uint
 func (categoryService *CategoryService) ParseCategory(category entity.Category) (categorydto.CategoryCredential, error) {
 	count, err := categoryService.GetCategoryProductsCount(category.ID)
 	if err != nil {
-		return categorydto.CategoryCredential{}, err
+		count = 0
 	}
 	response := categorydto.CategoryCredential{
 		ID:          category.ID,
@@ -146,14 +146,10 @@ func (categoryService *CategoryService) GetCategories() ([]categorydto.CategoryC
 	}
 	var responses []categorydto.CategoryCredential
 	for _, category := range categories {
-		response := categorydto.CategoryCredential{
-			ID:          category.ID,
-			Name:        category.Name,
-			Slug:        category.Slug,
-			Description: category.Description,
-			IsActive:    category.IsActive,
+		response, err := categoryService.ParseCategory(*category)
+		if err != nil {
+			return nil, err
 		}
-		
 		responses = append(responses, response)
 	}
 	return responses, nil

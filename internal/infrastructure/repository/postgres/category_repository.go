@@ -61,9 +61,9 @@ func (repo *CategoryRepository) DeleteCategoryByID(db database.Database, categor
 
 func (repo *CategoryRepository) GetCategoryProductsCount(db database.Database, categoryID uint) (uint, error) {
 	var count int64
-	err := db.GetDB().Model(&entity.Product{}).Where("CategoryID = ?", categoryID).Count(&count).Error
+	err := db.GetDB().Model(&entity.Product{}).Where("category_id = ?", categoryID).Count(&count).Error
 	if err != nil {
-        return 0, err
-    }
-    return uint(count), nil
+		return 0, err
+	}
+	return uint(count), nil
 }
