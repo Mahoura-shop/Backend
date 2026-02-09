@@ -30,6 +30,7 @@ func NewS3Storage(
 ) *S3Storage {
 	buckets := make(map[enum.BucketType]string)
 	buckets[enum.ProductPic] = storage.Buckets.ProductPic
+	buckets[enum.CategoryPic] = storage.Buckets.CategoryPic
 	return &S3Storage{
 		constants: constants,
 		storage:   storage,

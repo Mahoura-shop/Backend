@@ -7,4 +7,5 @@ type CategoryCredential struct {
 	Description string `json:"description"`
 	IsActive    bool   `json:"isActive"`
 	Count       uint   `json:"count"`
+	CategoryPic string `json:"categoryPic"`
 }

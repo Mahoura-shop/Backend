@@ -47,8 +47,13 @@ func (repo *CategoryRepository) GetCategories(db database.Database) ([]*entity.C
 	return categories, nil
 }
 
-func (repo *CategoryRepository) CreateCategory(db database.Database, category *entity.Category) error {
-	return db.GetDB().Create(&category).Error
+func (repo *CategoryRepository) CreateCategory(db database.Database, category *entity.Category) (*entity.Category, error) {
+	result := db.GetDB().Create(&category)
+	if result.Error != nil {
+        return nil, result.Error
+    }
+    
+    return category, nil
 }
 
 func (repo *CategoryRepository) UpdateCategory(db database.Database, category *entity.Category) error {

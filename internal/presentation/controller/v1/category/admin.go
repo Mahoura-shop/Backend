@@ -1,6 +1,8 @@
 package category
 
 import (
+	"mime/multipart"
+
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	categorydto "github.com/Mahoura-shop/Backend/internal/application/dto/category"
 	"github.com/Mahoura-shop/Backend/internal/application/usecase"
@@ -36,23 +38,25 @@ func (categoryController *AdminCategoryController) GetCategories(ctx *gin.Contex
 
 func (categoryController *AdminCategoryController) CreateCategory(ctx *gin.Context) {
 	type createCategoryParams struct {
-		Name        string  `json:"name" validate:"required"`
-		Slug        string  `json:"slug" validate:"required"`
-		Description *string `json:"description" validate:"omitempty"`
-		IsActive    *bool   `json:"isActive" validate:"omitempty"`
+		Name        string                `form:"name" validate:"required"`
+		Slug        string                `form:"slug" validate:"required"`
+		Description *string               `form:"description"`
+		IsActive    *bool                 `form:"isActive"`
+		CategoryPic *multipart.FileHeader `form:"categoryPic"`
 	}
 	params := controller.Validated[createCategoryParams](ctx)
+
+	isActive := true
+	if params.IsActive != nil {
+		isActive = *params.IsActive
+	}
 
 	categoryInfo := categorydto.CreateCategoryRequest{
 		Name:        params.Name,
 		Slug:        params.Slug,
 		Description: params.Description,
-		IsActive:    func() bool {
-			if params.IsActive != nil {
-				return *params.IsActive
-			}
-			return true
-		}(),
+		IsActive:    isActive,
+		CategoryPic: params.CategoryPic,
 	}
 	if err := categoryController.categoryService.CreateCategory(categoryInfo); err != nil {
 		panic(err)
@@ -80,11 +84,12 @@ func (categoryController *AdminCategoryController) DeleteCategory(ctx *gin.Conte
 
 func (categoryController *AdminCategoryController) UpdateCategory(ctx *gin.Context) {
 	type updateCategoryParams struct {
-		ID          uint    `uri:"categoryID" validate:"required"`
-		Name        *string `json:"name"`
-		Slug        *string `json:"slug"`
-		Description *string `json:"description"`
-		IsActive    *bool   `json:"isActive"`
+		ID          uint                  `uri:"categoryID" validate:"required"`
+		Name        *string               `form:"name"`
+		Slug        *string               `form:"slug"`
+		Description *string               `form:"description"`
+		IsActive    *bool                 `form:"isActive"`
+		CategoryPic *multipart.FileHeader `form:"categoryPic"`
 	}
 	params := controller.Validated[updateCategoryParams](ctx)
 	
@@ -94,6 +99,7 @@ func (categoryController *AdminCategoryController) UpdateCategory(ctx *gin.Conte
 		Slug:        params.Slug,
 		Description: params.Description,
 		IsActive:    params.IsActive,
+		CategoryPic: params.CategoryPic,
 	}
 
 	if err := categoryController.categoryService.UpdateCategory(categoryInfo); err != nil {
