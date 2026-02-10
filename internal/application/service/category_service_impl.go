@@ -110,7 +110,7 @@ func (categoryService *CategoryService) validateDuplicateCategory(slug string) e
 	}
 	
 	if category != nil {
-		conflictErrors.Add(categoryService.constants.Field.Category, categoryService.constants.Tag.AlreadyExist)
+		conflictErrors.Add(categoryService.constants.Field.Slug, categoryService.constants.Tag.AlreadyExist)
 		return conflictErrors
 	}
 
