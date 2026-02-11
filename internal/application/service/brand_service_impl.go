@@ -92,7 +92,7 @@ func (brandService *BrandService) validateDuplicateBrand(slug string) error {
 		return err
 	}
 	if brand != nil {
-		conflictErrors.Add(brandService.constants.Field.Brand, brandService.constants.Tag.AlreadyExist)
+		conflictErrors.Add(brandService.constants.Field.Slug, brandService.constants.Tag.AlreadyExist)
 		return conflictErrors
 	}
 
