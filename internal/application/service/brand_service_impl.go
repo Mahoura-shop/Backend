@@ -167,7 +167,9 @@ func (brandService *BrandService) CreateBrand(brandInfo branddto.CreateBrandRequ
 		if brandInfo.BrandPic != nil {
 			brand.BrandPic = brandService.constants.S3BucketPath.GetBrandPicPath(createdBrand.ID, brandInfo.BrandPic.Filename)
 			if err := brandService.s3Storage.UploadObject(enum.BrandPic, brand.BrandPic, brandInfo.BrandPic); err != nil {
-				return  err
+				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+				_ = brandService.brandRepository.DeleteBrandByID(tx, createdBrand.ID);
+				return networkErr
 			}
 		
 			if err := brandService.brandRepository.UpdateBrand(tx, brand); err != nil {
@@ -233,7 +235,11 @@ func (brandService *BrandService) UpdateBrand(brandInfo branddto.UpdateBrandRequ
 	err = brandService.db.WithTransaction(func(tx database.Database) error {
 		if brandInfo.BrandPic != nil {
 			brandPicPath := brandService.constants.S3BucketPath.GetBrandPicPath(brandInfo.ID, brandInfo.BrandPic.Filename)
-			brandService.s3Storage.UploadObject(enum.BrandPic, brandPicPath, brandInfo.BrandPic)
+			if err := brandService.s3Storage.UploadObject(enum.BrandPic, brand.BrandPic, brandInfo.BrandPic); err != nil {
+				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+				_ = brandService.brandRepository.DeleteBrandByID(tx, brandInfo.ID);
+				return networkErr
+			}
 			brand.BrandPic = brandPicPath
 		}
 		if err := brandService.brandRepository.UpdateBrand(tx, brand); err != nil {

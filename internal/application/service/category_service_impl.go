@@ -164,7 +164,9 @@ func (categoryService *CategoryService) CreateCategory(categoryInfo categorydto.
 		if categoryInfo.CategoryPic != nil {
 			category.CategoryPic = categoryService.constants.S3BucketPath.GetCategoryPicPath(createdCategory.ID, categoryInfo.CategoryPic.Filename)
 			if err := categoryService.s3Storage.UploadObject(enum.CategoryPic, category.CategoryPic, categoryInfo.CategoryPic); err != nil {
-				return  err
+				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+				_ = categoryService.categoryRepository.DeleteCategoryByID(tx, createdCategory.ID);
+				return networkErr
 			}
 		
 			if err := categoryService.categoryRepository.UpdateCategory(tx, category); err != nil {
@@ -230,7 +232,11 @@ func (categoryService *CategoryService) UpdateCategory(categoryInfo categorydto.
 	err = categoryService.db.WithTransaction(func(tx database.Database) error {
 		if categoryInfo.CategoryPic != nil {
 			categoryPicPath := categoryService.constants.S3BucketPath.GetCategoryPicPath(categoryInfo.ID, categoryInfo.CategoryPic.Filename)
-			categoryService.s3Storage.UploadObject(enum.CategoryPic, categoryPicPath, categoryInfo.CategoryPic)
+			if err := categoryService.s3Storage.UploadObject(enum.CategoryPic, category.CategoryPic, categoryInfo.CategoryPic); err != nil {
+				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+				_ = categoryService.categoryRepository.DeleteCategoryByID(tx, categoryInfo.ID);
+				return networkErr
+			}
 			category.CategoryPic = categoryPicPath
 		}
 		if err := categoryService.categoryRepository.UpdateCategory(tx, category); err != nil {
