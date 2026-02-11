@@ -63,3 +63,12 @@ func (repo *BrandRepository) UpdateBrand(db database.Database, brand *entity.Bra
 func (repo *BrandRepository) DeleteBrandByID(db database.Database, brandID uint) error {
 	return db.GetDB().Where("id = ?", brandID).Unscoped().Delete(&entity.Brand{}).Error
 }
+
+func (repo *BrandRepository) GetBrandProductsCount(db database.Database, brandID uint) (uint, error) {
+	var count int64
+	err := db.GetDB().Model(&entity.Product{}).Where("brand_id = ?", brandID).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return uint(count), nil
+}

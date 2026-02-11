@@ -38,6 +38,7 @@ func NewCategoryService(deps CategoryServiceDeps) *CategoryService {
 	}
 }
 
+
 func (categoryService *CategoryService) GetCategoryProductsCount(categoryID uint) (uint, error) {
 	count, err := categoryService.categoryRepository.GetCategoryProductsCount(categoryService.db, categoryID)
 	if (err != nil) {
@@ -45,7 +46,6 @@ func (categoryService *CategoryService) GetCategoryProductsCount(categoryID uint
 	}
 	return count, nil
 }
-
 
 func (categoryService *CategoryService) ParseCategory(category entity.Category) (categorydto.CategoryCredential, error) {
 	count, err := categoryService.GetCategoryProductsCount(category.ID)

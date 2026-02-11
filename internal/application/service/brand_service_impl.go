@@ -39,7 +39,19 @@ func NewBrandService(deps BrandServiceDeps) *BrandService {
 }
 
 
-func (brandService *BrandService) ParseBrand(brand entity.Brand) (branddto.BrandCredential) {
+func (brandService *BrandService) GetBrandProductsCount(brandID uint) (uint, error) {
+	count, err := brandService.brandRepository.GetBrandProductsCount(brandService.db, brandID)
+	if (err != nil) {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (brandService *BrandService) ParseBrand(brand entity.Brand) (branddto.BrandCredential, error) {
+	count, err := brandService.GetBrandProductsCount(brand.ID)
+	if err != nil {
+		count = 0
+	}
 	response := branddto.BrandCredential{
 		ID:          brand.ID,
 		Name:        brand.Name,
@@ -47,8 +59,9 @@ func (brandService *BrandService) ParseBrand(brand entity.Brand) (branddto.Brand
 		Description: brand.Description,
 		IsActive:    brand.IsActive,
 		BrandPic:    brand.BrandPic,
+		Count:       count,
 	}
-	return response
+	return response, nil
 }
 
 
@@ -62,7 +75,10 @@ func (brandService *BrandService) FindBrandByID(brandID uint) (*branddto.BrandCr
 		return nil, notFoundError
 	}
 
-	parsedBrand := brandService.ParseBrand(*brand)
+	parsedBrand, err := brandService.ParseBrand(*brand)
+	if err != nil {
+		return nil, err
+	}
 	return &parsedBrand, nil
 }
 
@@ -77,7 +93,10 @@ func (brandService *BrandService) FindBrandBySlug(slug string) (*branddto.BrandC
 		return nil, notFoundError
 	}
 	
-	parsedBrand := brandService.ParseBrand(*brand)
+	parsedBrand, err := brandService.ParseBrand(*brand)
+	if err != nil {
+		return nil, err
+	}
 	return &parsedBrand, nil
 }
 
@@ -97,6 +116,31 @@ func (brandService *BrandService) validateDuplicateBrand(slug string) error {
 	}
 
 	return nil
+}
+
+func (brandService *BrandService) GetBrands() ([]branddto.BrandCredential, error) {
+	brands, err := brandService.brandRepository.GetBrands(brandService.db)
+	if err != nil {
+		return nil, err
+	}
+	var responses []branddto.BrandCredential
+	for _, brand := range brands {
+		response, err := brandService.ParseBrand(*brand)
+		if err != nil {
+			return nil, err
+		}
+		
+		if brand.BrandPic != "" {
+			brandPic, err := brandService.s3Storage.GetPresignedURL(enum.BrandPic, brand.BrandPic, 8*time.Hour)
+			if err != nil {
+				return nil, err
+			}
+			response.BrandPic = brandPic
+		}
+		
+		responses = append(responses, response)
+	}
+	return responses, nil
 }
 
 func (brandService *BrandService) CreateBrand(brandInfo branddto.CreateBrandRequest) error {
@@ -134,28 +178,6 @@ func (brandService *BrandService) CreateBrand(brandInfo branddto.CreateBrandRequ
 	})
 
 	return err
-}
-
-func (brandService *BrandService) GetBrands() ([]branddto.BrandCredential, error) {
-	brands, err := brandService.brandRepository.GetBrands(brandService.db)
-	if err != nil {
-		return nil, err
-	}
-	var responses []branddto.BrandCredential
-	for _, brand := range brands {
-		response := brandService.ParseBrand(*brand)
-		
-		if brand.BrandPic != "" {
-			brandPic, err := brandService.s3Storage.GetPresignedURL(enum.BrandPic, brand.BrandPic, 8*time.Hour)
-			if err != nil {
-				return nil, err
-			}
-			response.BrandPic = brandPic
-		}
-		
-		responses = append(responses, response)
-	}
-	return responses, nil
 }
 
 func (brandService *BrandService) DeleteBrand(brandID uint) error {
