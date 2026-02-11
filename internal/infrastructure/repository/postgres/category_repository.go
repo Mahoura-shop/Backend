@@ -47,8 +47,13 @@ func (repo *CategoryRepository) GetCategories(db database.Database) ([]*entity.C
 	return categories, nil
 }
 
-func (repo *CategoryRepository) CreateCategory(db database.Database, category *entity.Category) error {
-	return db.GetDB().Create(&category).Error
+func (repo *CategoryRepository) CreateCategory(db database.Database, category *entity.Category) (*entity.Category, error) {
+	result := db.GetDB().Create(&category)
+	if result.Error != nil {
+        return nil, result.Error
+    }
+    
+    return category, nil
 }
 
 func (repo *CategoryRepository) UpdateCategory(db database.Database, category *entity.Category) error {
@@ -61,9 +66,9 @@ func (repo *CategoryRepository) DeleteCategoryByID(db database.Database, categor
 
 func (repo *CategoryRepository) GetCategoryProductsCount(db database.Database, categoryID uint) (uint, error) {
 	var count int64
-	err := db.GetDB().Model(&entity.Product{}).Where("CategoryID = ?", categoryID).Count(&count).Error
+	err := db.GetDB().Model(&entity.Product{}).Where("category_id = ?", categoryID).Count(&count).Error
 	if err != nil {
-        return 0, err
-    }
-    return uint(count), nil
+		return 0, err
+	}
+	return uint(count), nil
 }

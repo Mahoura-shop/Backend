@@ -8,7 +8,7 @@ import (
 type CategoryRepository interface {
 	FindCategoryByID(database.Database, uint) (*entity.Category, error)
 	FindCategoryBySlug(database.Database, string) (*entity.Category, error)
-	CreateCategory(database.Database, *entity.Category) error
+	CreateCategory(database.Database, *entity.Category) (*entity.Category, error)
 	GetCategories(database.Database) ([]*entity.Category, error)
 	DeleteCategoryByID(database.Database, uint) error
 	UpdateCategory(database.Database, *entity.Category) error

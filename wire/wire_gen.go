@@ -90,9 +90,12 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	}
 	pagination := ProvidePaginationConfig(container)
 	categoryRepository := postgres.NewCategoryRepository()
+	s3 := ProvideStorageConfig(container)
+	s3Storage := storage.NewS3Storage(constants, s3)
 	categoryServiceDeps := service.CategoryServiceDeps{
 		Constants:          constants,
 		CategoryRepository: categoryRepository,
+		S3Storage:          s3Storage,
 		DB:                 postgresDatabase,
 	}
 	categoryService := service.NewCategoryService(categoryServiceDeps)
@@ -106,8 +109,6 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	brandService := service.NewBrandService(brandServiceDeps)
 	adminBrandController := brand.NewAdminBrandController(constants, pagination, brandService)
 	productRepository := postgres.NewProductRepository()
-	s3 := ProvideStorageConfig(container)
-	s3Storage := storage.NewS3Storage(constants, s3)
 	productServiceDeps := service.ProductServiceDeps{
 		Constants:         constants,
 		ProductRepository: productRepository,

@@ -10,4 +10,5 @@ type Category struct {
 	Slug        string `gorm:"type:varchar(50);uniqueIndex"`
 	Description string `gorm:"type:text"`
 	IsActive    bool   `gorm:"default:true"`
+	CategoryPic string `gorm:"type:varchar(255);default:null"`
 }

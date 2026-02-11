@@ -38,12 +38,12 @@ type ProductServiceDeps struct {
 
 func NewProductService(deps ProductServiceDeps) *ProductService {
 	return &ProductService{
-		constants:          deps.Constants,
-		productRepository:  deps.ProductRepository,
-		categoryService:    deps.CategoryService,
-		brandService:       deps.BrandService,
-		s3Storage:          deps.S3Storage,
-		db:                 deps.DB,
+		constants:         deps.Constants,
+		productRepository: deps.ProductRepository,
+		categoryService:   deps.CategoryService,
+		brandService:      deps.BrandService,
+		s3Storage:         deps.S3Storage,
+		db:                deps.DB,
 	}
 }
 
@@ -97,7 +97,7 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 		ProductPic:   product.ProductPic,
 	}
 	if product.Category != nil {
-		category := productService.categoryService.ParseCategory(*product.Category)
+		category, _ := productService.categoryService.ParseCategory(*product.Category)
 		response.Category = &category
 	}
 	if product.Brand != nil {
@@ -177,26 +177,13 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 
 	var responses []productdto.ProductCredential
 	for _, product := range products {
-		response := productdto.ProductCredential{
-			ID:           product.ID,
-			Name:         product.Name,
-			Slug:         product.Slug,
-			Price:        product.Price,
-			Description:  product.Description,
-			IsActive:     product.IsActive,
-			IsNew:        product.IsNew,
-			Priority:     product.Priority,
-			MinOrder:     product.MinOrder,
-			Quantity:     product.Quantity,
-			QuantityType: product.QuantityType,
-			CurrencyCode: product.CurrencyCode,
-		}
+		response := productService.ParseProduct(*product)
 		if product.Brand != nil {
 			brand := productService.brandService.ParseBrand(*product.Brand)
 			response.Brand = &brand
 		}
 		if product.Category != nil {
-			category := productService.categoryService.ParseCategory(*product.Category)
+			category, _ := productService.categoryService.ParseCategory(*product.Category)
 			response.Category = &category
 		}
 		if product.ProductPic != "" {
