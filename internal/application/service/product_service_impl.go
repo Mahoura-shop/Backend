@@ -73,7 +73,7 @@ func (productService *ProductService) ParseSlug(slug string) (string, error) {
 
 	var validationErrors exception.ValidationErrors
 	if parsedSlug == "" {
-		validationErrors.Add(productService.constants.Field.Product, productService.constants.Tag.EmptySlug)
+		validationErrors.Add(productService.constants.Field.Slug, productService.constants.Tag.EmptySlug)
 		return "", validationErrors
 	}
 	
@@ -140,7 +140,7 @@ func (productService *ProductService) validateDuplicateProduct(slug string) erro
 		return err
 	}
 	if product != nil {
-		conflictErrors.Add(productService.constants.Field.Product, productService.constants.Tag.AlreadyExist)
+		conflictErrors.Add(productService.constants.Field.Slug, productService.constants.Tag.AlreadyExist)
 		return conflictErrors
 	}
 
@@ -384,7 +384,7 @@ func (productService *ProductService) newSlugAvailable(slug string, productID ui
 	}
 	if product != nil {
 		if product.ID != productID {
-			conflictErrors.Add(productService.constants.Field.Product, productService.constants.Tag.AlreadyExist)
+			conflictErrors.Add(productService.constants.Field.Slug, productService.constants.Tag.AlreadyExist)
 			return conflictErrors
 		}
 	}
