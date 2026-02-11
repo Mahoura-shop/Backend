@@ -99,10 +99,12 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 	if product.Category != nil {
 		category, _ := productService.categoryService.ParseCategory(*product.Category)
 		response.Category = &category
+		response.CategoryID = category.ID
 	}
 	if product.Brand != nil {
 		brand, _ := productService.brandService.ParseBrand(*product.Brand)
 		response.Brand = &brand
+		response.BrandID = brand.ID
 	}
 	
 	return response
