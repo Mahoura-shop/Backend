@@ -6,7 +6,7 @@ import (
 )
 
 type BrandService interface {
-	ParseBrand(entity.Brand) (branddto.BrandCredential)
+	ParseBrand(entity.Brand) (branddto.BrandCredential, error)
 	FindBrandBySlug(string) (*branddto.BrandCredential, error) 
 	FindBrandByID(uint) (*branddto.BrandCredential, error) 
 	CreateBrand(branddto.CreateBrandRequest) error

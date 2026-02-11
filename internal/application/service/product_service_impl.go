@@ -101,7 +101,7 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 		response.Category = &category
 	}
 	if product.Brand != nil {
-		brand := productService.brandService.ParseBrand(*product.Brand)
+		brand, _ := productService.brandService.ParseBrand(*product.Brand)
 		response.Brand = &brand
 	}
 	
@@ -179,7 +179,7 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 	for _, product := range products {
 		response := productService.ParseProduct(*product)
 		if product.Brand != nil {
-			brand := productService.brandService.ParseBrand(*product.Brand)
+			brand, _ := productService.brandService.ParseBrand(*product.Brand)
 			response.Brand = &brand
 		}
 		if product.Category != nil {
