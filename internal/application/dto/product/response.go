@@ -16,9 +16,9 @@ type ProductCredential struct {
 	Priority     uint                            `json:"priority"`
 	MinOrder     uint                            `json:"minOrder"`
 	Category     *categorydto.CategoryCredential `json:"category"`
-	CategoryID   uint                            `json:"categoryId"`
+	CategoryID   uint                            `json:"categoryID"`
 	Brand        *branddto.BrandCredential       `json:"brand"`
-	BrandID      uint                            `json:"brandId"`
+	BrandID      uint                            `json:"brandID"`
 	Quantity     uint                            `json:"quantity"`
 	QuantityType string                          `json:"quantityType"`
 	CurrencyCode string                          `json:"currencyCode"`

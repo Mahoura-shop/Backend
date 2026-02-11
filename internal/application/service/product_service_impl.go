@@ -99,12 +99,12 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 	if product.Category != nil {
 		category, _ := productService.categoryService.ParseCategory(*product.Category)
 		response.Category = &category
-		response.CategoryID = category.ID
+		response.CategoryID = *product.CategoryID
 	}
 	if product.Brand != nil {
 		brand, _ := productService.brandService.ParseBrand(*product.Brand)
 		response.Brand = &brand
-		response.BrandID = brand.ID
+		response.BrandID = *product.BrandID
 	}
 	
 	return response
@@ -180,14 +180,6 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 	var responses []productdto.ProductCredential
 	for _, product := range products {
 		response := productService.ParseProduct(*product)
-		if product.Brand != nil {
-			brand, _ := productService.brandService.ParseBrand(*product.Brand)
-			response.Brand = &brand
-		}
-		if product.Category != nil {
-			category, _ := productService.categoryService.ParseCategory(*product.Category)
-			response.Category = &category
-		}
 		if product.ProductPic != "" {
 			productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
 			if err != nil {
