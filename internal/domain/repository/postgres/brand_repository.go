@@ -6,7 +6,7 @@ import (
 )
 
 type BrandRepository interface {
-	CreateBrand(database.Database, *entity.Brand) error
+	CreateBrand(database.Database, *entity.Brand) (*entity.Brand, error)
 	FindBrandByID(database.Database, uint) (*entity.Brand, error)
 	FindBrandBySlug(database.Database, string) (*entity.Brand, error)
 	GetBrands(database.Database) ([]*entity.Brand, error)

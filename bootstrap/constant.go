@@ -283,6 +283,10 @@ func (path *BucketPath) GetCategoryPicPath(categoryID uint, categoryPicFileName 
 	return fmt.Sprintf("category/%d/picture/%s", categoryID, categoryPicFileName)
 }
 
+func (path *BucketPath) GetBrandPicPath(brandID uint, brandPicFileName string) string {
+	return fmt.Sprintf("brand/%d/picture/%s", brandID, brandPicFileName)
+}
+
 func (path *BucketPath) GetTicketImagePath(ticketID uint, imageFilename string) string {
 	return fmt.Sprintf("tickets/%d/%s", ticketID, imageFilename)
 }

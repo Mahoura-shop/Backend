@@ -2,12 +2,15 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	branddto "github.com/Mahoura-shop/Backend/internal/application/dto/brand"
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 	"github.com/Mahoura-shop/Backend/internal/domain/exception"
 	"github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
+	"github.com/Mahoura-shop/Backend/internal/domain/s3"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 	"gorm.io/gorm"
 )
@@ -15,12 +18,14 @@ import (
 type BrandService struct {
 	constants       *bootstrap.Constants
 	brandRepository postgres.BrandRepository
+	s3Storage       s3.S3Storage
 	db              database.Database
 }
 
 type BrandServiceDeps struct {
 	Constants       *bootstrap.Constants
 	BrandRepository postgres.BrandRepository
+	S3Storage       s3.S3Storage
 	DB              database.Database
 }
 
@@ -28,6 +33,7 @@ func NewBrandService(deps BrandServiceDeps) *BrandService {
 	return &BrandService{
 		constants:       deps.Constants,
 		brandRepository: deps.BrandRepository,
+		s3Storage:       deps.S3Storage,
 		db:              deps.DB,
 	}
 }
@@ -40,6 +46,7 @@ func (brandService *BrandService) ParseBrand(brand entity.Brand) (branddto.Brand
 		Slug:        brand.Slug,
 		Description: brand.Description,
 		IsActive:    brand.IsActive,
+		BrandPic:    brand.BrandPic,
 	}
 	return response
 }
@@ -97,24 +104,32 @@ func (brandService *BrandService) CreateBrand(brandInfo branddto.CreateBrandRequ
 	if err != nil {
 		return err
 	}
+	brand := &entity.Brand{
+		Name:     brandInfo.Name,
+		Slug:     brandInfo.Slug,
+		IsActive: brandInfo.IsActive,
+	}
 
 	err = brandService.db.WithTransaction(func(tx database.Database) error {
-		brand := &entity.Brand{
-			Name:     brandInfo.Name,
-			Slug:     brandInfo.Slug,
-			IsActive: brandInfo.IsActive,
-		}
-		
 		if brandInfo.Description != nil {
 			brand.Description = *brandInfo.Description
 		} else {
 			brand.Description = ""
 		}
-		err = brandService.brandRepository.CreateBrand(tx, brand)
+		createdBrand, err := brandService.brandRepository.CreateBrand(tx, brand)
 		if err != nil {
 			return err
 		}
-
+		if brandInfo.BrandPic != nil {
+			brand.BrandPic = brandService.constants.S3BucketPath.GetBrandPicPath(createdBrand.ID, brandInfo.BrandPic.Filename)
+			if err := brandService.s3Storage.UploadObject(enum.BrandPic, brand.BrandPic, brandInfo.BrandPic); err != nil {
+				return  err
+			}
+		
+			if err := brandService.brandRepository.UpdateBrand(tx, brand); err != nil {
+				return err
+			}
+		}
 		return nil
 	})
 
@@ -128,12 +143,14 @@ func (brandService *BrandService) GetBrands() ([]branddto.BrandCredential, error
 	}
 	var responses []branddto.BrandCredential
 	for _, brand := range brands {
-		response := branddto.BrandCredential{
-			ID:          brand.ID,
-			Name:        brand.Name,
-			Slug:        brand.Slug,
-			Description: brand.Description,
-			IsActive:    brand.IsActive,
+		response := brandService.ParseBrand(*brand)
+		
+		if brand.BrandPic != "" {
+			brandPic, err := brandService.s3Storage.GetPresignedURL(enum.BrandPic, brand.BrandPic, 8*time.Hour)
+			if err != nil {
+				return nil, err
+			}
+			response.BrandPic = brandPic
 		}
 		
 		responses = append(responses, response)
@@ -192,6 +209,11 @@ func (brandService *BrandService) UpdateBrand(brandInfo branddto.UpdateBrandRequ
 		}
 	}
 	err = brandService.db.WithTransaction(func(tx database.Database) error {
+		if brandInfo.BrandPic != nil {
+			brandPicPath := brandService.constants.S3BucketPath.GetBrandPicPath(brandInfo.ID, brandInfo.BrandPic.Filename)
+			brandService.s3Storage.UploadObject(enum.BrandPic, brandPicPath, brandInfo.BrandPic)
+			brand.BrandPic = brandPicPath
+		}
 		if err := brandService.brandRepository.UpdateBrand(tx, brand); err != nil {
 			return err
 		}

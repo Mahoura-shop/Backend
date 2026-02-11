@@ -47,8 +47,13 @@ func (repo *BrandRepository) GetBrands(db database.Database) ([]*entity.Brand, e
 	return brands, nil
 }
 
-func (repo *BrandRepository) CreateBrand(db database.Database, brand *entity.Brand) error {
-	return db.GetDB().Create(&brand).Error
+func (repo *BrandRepository) CreateBrand(db database.Database, brand *entity.Brand) (*entity.Brand, error) {
+	result := db.GetDB().Create(&brand)
+	if result.Error != nil {
+        return nil, result.Error
+    }
+    
+    return brand, nil
 }
 
 func (repo *BrandRepository) UpdateBrand(db database.Database, brand *entity.Brand) error {

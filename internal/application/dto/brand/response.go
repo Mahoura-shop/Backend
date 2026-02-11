@@ -6,4 +6,5 @@ type BrandCredential struct {
 	Slug        string `json:"slug"`
 	Description string `json:"description"`
 	IsActive    bool   `json:"isActive"`
+	BrandPic    string `json:"brandPic"`
 }

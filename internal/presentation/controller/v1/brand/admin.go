@@ -1,6 +1,8 @@
 package brand
 
 import (
+	"mime/multipart"
+
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	branddto "github.com/Mahoura-shop/Backend/internal/application/dto/brand"
 	"github.com/Mahoura-shop/Backend/internal/application/usecase"
@@ -36,23 +38,25 @@ func (brandController *AdminBrandController) GetBrands(ctx *gin.Context) {
 
 func (brandController *AdminBrandController) CreateBrand(ctx *gin.Context) {
 	type createBrandParams struct {
-		Name        string  `json:"name" validate:"required"`
-		Slug        string  `json:"slug" validate:"required"`
-		Description *string `json:"description" validate:"omitempty"`
-		IsActive    *bool   `json:"isActive" validate:"omitempty"`
+		Name        string                `form:"name" validate:"required"`
+		Slug        string                `form:"slug" validate:"required"`
+		Description *string               `form:"description"`
+		IsActive    *bool                 `form:"isActive"`
+		BrandPic    *multipart.FileHeader `form:"brandPic"`
 	}
 	params := controller.Validated[createBrandParams](ctx)
+
+	isActive := true
+	if params.IsActive != nil {
+		isActive = *params.IsActive
+	}
 
 	brandInfo := branddto.CreateBrandRequest{
 		Name:        params.Name,
 		Slug:        params.Slug,
 		Description: params.Description,
-		IsActive:    func() bool {
-			if params.IsActive != nil {
-				return *params.IsActive
-			}
-			return true
-		}(),
+		IsActive:    isActive,
+		BrandPic:    params.BrandPic,
 	}
 	if err := brandController.brandService.CreateBrand(brandInfo); err != nil {
 		panic(err)
@@ -80,11 +84,12 @@ func (brandController *AdminBrandController) DeleteBrand(ctx *gin.Context) {
 
 func (brandController *AdminBrandController) UpdateBrand(ctx *gin.Context) {
 	type updateBrandParams struct {
-		ID          uint    `uri:"brandID" validate:"required"`
-		Name        *string `json:"name"`
-		Slug        *string `json:"slug"`
-		Description *string `json:"description"`
-		IsActive    *bool   `json:"isActive"`
+		ID          uint                  `uri:"brandID" validate:"required"`
+		Name        *string               `form:"name"`
+		Slug        *string               `form:"slug"`
+		Description *string               `form:"description"`
+		IsActive    *bool                 `form:"isActive"`
+		BrandPic    *multipart.FileHeader `form:"brandPic"`
 	}
 	params := controller.Validated[updateBrandParams](ctx)
 	
@@ -94,6 +99,7 @@ func (brandController *AdminBrandController) UpdateBrand(ctx *gin.Context) {
 		Slug:        params.Slug,
 		Description: params.Description,
 		IsActive:    params.IsActive,
+		BrandPic:    params.BrandPic,
 	}
 
 	if err := brandController.brandService.UpdateBrand(brandInfo); err != nil {

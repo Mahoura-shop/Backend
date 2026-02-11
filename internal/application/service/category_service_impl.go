@@ -145,7 +145,7 @@ func (categoryService *CategoryService) CreateCategory(categoryInfo categorydto.
 	if err != nil {
 		return err
 	}
-	category := entity.Category{
+	category := &entity.Category{
 		Name:     categoryInfo.Name,
 		Slug:     categoryInfo.Slug,
 		IsActive: categoryInfo.IsActive,
@@ -157,7 +157,7 @@ func (categoryService *CategoryService) CreateCategory(categoryInfo categorydto.
 		} else {
 			category.Description = ""
 		}
-		createdCategory, err := categoryService.categoryRepository.CreateCategory(tx, &category)
+		createdCategory, err := categoryService.categoryRepository.CreateCategory(tx, category)
 		if err != nil {
 			return err
 		}
@@ -167,7 +167,7 @@ func (categoryService *CategoryService) CreateCategory(categoryInfo categorydto.
 				return  err
 			}
 		
-			if err := categoryService.categoryRepository.UpdateCategory(tx, &category); err != nil {
+			if err := categoryService.categoryRepository.UpdateCategory(tx, category); err != nil {
 				return err
 			}
 		}

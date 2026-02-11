@@ -66,6 +66,7 @@ type S3 struct {
 type BucketName struct {
 	ProductPic  string
 	CategoryPic string
+	BrandPic string
 }
 
 type OTP struct {
@@ -141,6 +142,7 @@ func NewEnvironments() *Env {
 			Buckets: BucketName{
 				ProductPic: os.Getenv("PRODUCT_PIC_BUCKET_NAME"),
 				CategoryPic: os.Getenv("CATEGORY_PIC_BUCKET_NAME"),
+				BrandPic: os.Getenv("BRAND_PIC_BUCKET_NAME"),
 			},
 			Region:    os.Getenv("BUCKET_REGION"),
 			AccessKey: os.Getenv("BUCKET_ACCESS_key"),
