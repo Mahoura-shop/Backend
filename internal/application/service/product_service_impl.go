@@ -139,10 +139,10 @@ func (productService *ProductService) FindProductBySlug(slug string) (*productdt
 	return &parsedProduct, nil
 }
 
-func (productService *ProductService) validateDuplicateProduct(slug string) error {
+func (productService *ProductService) validateDuplicateProduct(slug string, name string) error {
 	var conflictErrors exception.ConflictErrors
-	product, err := productService.productRepository.FindProductBySlug(productService.db, slug)
 
+	product, err := productService.productRepository.FindProductBySlug(productService.db, slug)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
@@ -151,6 +151,18 @@ func (productService *ProductService) validateDuplicateProduct(slug string) erro
 	}
 	if product != nil {
 		conflictErrors.Add(productService.constants.Field.Slug, productService.constants.Tag.AlreadyExist)
+		return conflictErrors
+	}
+
+	product, err = productService.productRepository.FindProductByName(productService.db, name)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	if product != nil {
+		conflictErrors.Add(productService.constants.Field.Name, productService.constants.Tag.AlreadyExist)
 		return conflictErrors
 	}
 
@@ -314,7 +326,7 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 		return err
 	}
 
-	err = productService.validateDuplicateProduct(parsedSlug)
+	err = productService.validateDuplicateProduct(parsedSlug, productInfo.Name)
 	if err != nil {
 		return err
 	}

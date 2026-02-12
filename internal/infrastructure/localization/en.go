@@ -40,6 +40,13 @@ var English = map[string]interface{}{
 	"like":                "like",
 	"unlike":              "unlike",
 	"corporationReview":   "corporation review",
+	"category":            "category",
+	"brand":               "brand",
+	"product":             "product",
+	"productPic":          "product picture",
+	"categoryPic":         "category picture",
+	"brandPic":            "brand picture",
+	"slug":                "slug",
 	"errors": map[string]interface{}{
 		"generic":                "an error occurred, please try again.",
 		"numeric":                "The {0} should be a numeric value.",
@@ -83,6 +90,7 @@ var English = map[string]interface{}{
 		"alreadyRejected":        "This {0} has been already rejected.",
 		"alreadyAccepted":        "This {0} has been already accepted.",
 		"alreadyDraft":           "This {0} has been already drafted.",
+		"uploadFailed":           "An error occured while uploading the file.",
 	},
 	"successMessage": map[string]interface{}{
 		"test": 					  "meow",

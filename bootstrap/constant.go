@@ -236,7 +236,7 @@ func NewConstants() *Constants {
 			AlreadyAccepted:        "alreadyAccepted",
 			AlreadyDraft:           "alreadyDraft",
 			EmptySlug:              "emptySlug",
-			UploadFailed:           "UploadFailed",
+			UploadFailed:           "uploadFailed",
 		},
 		SMSTemplates: SMSTemplates{
 			OTP: "sendOTPTemplate",

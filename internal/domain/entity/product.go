@@ -6,7 +6,7 @@ import (
 
 type Product struct {
 	database.Model
-	Name          string    `gorm:"type:varchar(50);not null"`
+	Name          string    `gorm:"type:varchar(50);uniqueIndex"`
 	Slug          string    `gorm:"type:varchar(50);uniqueIndex"`
 	Price         float64   `gorm:"type:decimal(10,2);not null"`
 	CurrencyCode  string    `gorm:"type:varchar(5);default:'IRR';not null"`

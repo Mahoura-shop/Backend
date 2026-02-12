@@ -40,6 +40,11 @@ var Persian = map[string]interface{}{
 	"like":                "لایک",
 	"unlike":              "حذف لایک",
 	"corporationReview":   "بازبینی شرکت",
+	"category":            "دسته‌بندی",
+	"brand":               "برند",
+	"product":             "محصول",
+	"productPic":          "عکس محصول",
+	"slug":                "نام انگلیسی",
 	"errors": map[string]interface{}{
 		"generic":                "خطایی رخ داده است، لطفا دوباره تلاش کنید.",
 		"numeric":                "`{0}` باید عدد باشد.",
@@ -83,6 +88,7 @@ var Persian = map[string]interface{}{
 		"alreadyRejected":        "این {0} قبلا رد شده است.",
 		"alreadyAccepted":        "این {0} قبلا قبول شده است.",
 		"alreadyDraft":           "این {0} قبلا در حالت پیش نویس قرار گرفته است.",
+		"uploadFailed":           "آپلود فایل با خطا مواجه شد.",
 	},
 	"successMessage": map[string]interface{}{
 		"test": 					 "میو",
