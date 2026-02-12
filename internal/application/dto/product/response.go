@@ -5,7 +5,7 @@ import (
 	categorydto "github.com/Mahoura-shop/Backend/internal/application/dto/category"
 )
 
-type ProductCredential struct {
+type cotrProductCredential struct {
 	ID           uint                            `json:"id"`
 	Name         string                          `json:"name"`
 	Slug         string                          `json:"slug"`
