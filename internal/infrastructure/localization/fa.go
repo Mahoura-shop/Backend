@@ -45,6 +45,7 @@ var Persian = map[string]interface{}{
 	"product":             "محصول",
 	"productPic":          "عکس محصول",
 	"slug":                "نام انگلیسی",
+	"currency":            "واحد پول",
 	"errors": map[string]interface{}{
 		"generic":                "خطایی رخ داده است، لطفا دوباره تلاش کنید.",
 		"numeric":                "`{0}` باید عدد باشد.",

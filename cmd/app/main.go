@@ -29,6 +29,7 @@ func main() {
 		&entity.Category{},
 		&entity.Brand{},
 		&entity.Product{},
+		&entity.Currency{},
 	)
 	
 	app.Seeds.AddressSeeder.SeedProvincesAndCities()

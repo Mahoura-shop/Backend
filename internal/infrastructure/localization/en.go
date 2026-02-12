@@ -47,6 +47,7 @@ var English = map[string]interface{}{
 	"categoryPic":         "category picture",
 	"brandPic":            "brand picture",
 	"slug":                "slug",
+	"currency":            "currency",
 	"errors": map[string]interface{}{
 		"generic":                "an error occurred, please try again.",
 		"numeric":                "The {0} should be a numeric value.",

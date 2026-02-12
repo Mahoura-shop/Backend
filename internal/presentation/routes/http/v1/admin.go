@@ -16,6 +16,15 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 			categoriesSubGroup.DELETE("", app.Controllers.Admin.CategoryController.DeleteCategory)
 		}
 	}
+
+	currencies := routerGroup.Group("/currency")
+	{
+		currencies.GET("", app.Controllers.Admin.CurrencyController.GetCurrencies)
+		currenciesSubGroup := currencies.Group("/:currencyCode") 
+		{
+			currenciesSubGroup.PUT("", app.Controllers.Admin.CurrencyController.UpdateCurrency)
+		}
+	}
 	
 	brands := routerGroup.Group("/brand")
 	{
