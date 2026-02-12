@@ -75,6 +75,7 @@ type ErrorField struct {
 	Brand               string
 	Product             string
 	Slug                string
+	ProductPic          string
 }
 
 type ErrorTag struct {
@@ -109,6 +110,7 @@ type ErrorTag struct {
 	AlreadyAccepted        string
 	AlreadyDraft           string
 	EmptySlug              string
+	UploadFailed           string
 }
 
 type SMSTemplates struct {
@@ -199,7 +201,8 @@ func NewConstants() *Constants {
 			Product:             "product",
 			Brand:               "brand",
 			Category:            "category",
-			Slug:                 "slug",
+			Slug:                "slug",
+			ProductPic:          "productPic",
 		},
 		Tag: ErrorTag{
 			AlreadyRegistered:      "alreadyRegistered",
@@ -233,6 +236,7 @@ func NewConstants() *Constants {
 			AlreadyAccepted:        "alreadyAccepted",
 			AlreadyDraft:           "alreadyDraft",
 			EmptySlug:              "emptySlug",
+			UploadFailed:           "uploadFailed",
 		},
 		SMSTemplates: SMSTemplates{
 			OTP: "sendOTPTemplate",
@@ -281,6 +285,10 @@ func (path *BucketPath) GetProductPicPath(productID uint, productPicFileName str
 
 func (path *BucketPath) GetCategoryPicPath(categoryID uint, categoryPicFileName string) string {
 	return fmt.Sprintf("category/%d/picture/%s", categoryID, categoryPicFileName)
+}
+
+func (path *BucketPath) GetBrandPicPath(brandID uint, brandPicFileName string) string {
+	return fmt.Sprintf("brand/%d/picture/%s", brandID, brandPicFileName)
 }
 
 func (path *BucketPath) GetTicketImagePath(ticketID uint, imageFilename string) string {

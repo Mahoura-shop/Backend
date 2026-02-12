@@ -104,6 +104,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	brandServiceDeps := service.BrandServiceDeps{
 		Constants:       constants,
 		BrandRepository: brandRepository,
+		S3Storage:       s3Storage,
 		DB:              postgresDatabase,
 	}
 	brandService := service.NewBrandService(brandServiceDeps)

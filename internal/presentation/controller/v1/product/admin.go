@@ -53,38 +53,54 @@ func (productController *AdminProductController) GetProducts(ctx *gin.Context) {
 
 func (productController *AdminProductController) CreateProduct(ctx *gin.Context) {
 	type createProductParams struct {
-		Name         string                `form:"name" validate:"required"`
-		Slug         string                `form:"slug" validate:"required"`
-		Price        float64               `form:"price" validate:"required"`
-		Description  *string               `form:"description"`
-		IsActive     *bool                 `form:"isActive"`
-		IsNew        *bool                 `form:"isNew"`
-		Priority     *uint                 `form:"priority"`
-		MinOrder     *uint                 `form:"minOrder"`
-		CategoryID   *uint                 `form:"categoryID"`
-		BrandID      *uint                 `form:"brandID"`
-		Quantity     *uint                 `form:"quantity"`
-		QuantityType *string               `form:"quantityType"`
-		CurrencyCode *string               `form:"currencyCode"`
-		ProductPic   *multipart.FileHeader `form:"productPic"`
+		Name          string                `form:"name" validate:"required"`
+		Slug          string                `form:"slug" validate:"required"`
+		Price         float64               `form:"price" validate:"required"`
+		CurrencyCode  *string               `form:"currencyCode"`
+		IRRPrice      *float64              `form:"irrPrice"`
+		ConsumerPrice *float64              `form:"consumerPrice"`
+		Step1Percent  *float64              `form:"step1Percent"`
+		Step2Percent  *float64              `form:"step2Percent"`
+		Step3Percent  *float64              `form:"step3Percent"`
+		Step1Price    *float64              `form:"step1Price"`
+		Step2Price    *float64              `form:"step2Price"`
+		Step3Price    *float64              `form:"step3Price"`
+		Quantity      *uint                 `form:"quantity"`
+		QuantityType  *string               `form:"quantityType"`
+		Priority      *uint                 `form:"priority"`
+		MinOrder      *uint                 `form:"minOrder"`
+		CategoryID    *uint                 `form:"categoryID"`
+		BrandID       *uint                 `form:"brandID"`
+		Description   *string               `form:"description"`
+		IsActive      *bool                 `form:"isActive"`
+		IsNew         *bool                 `form:"isNew"`
+		ProductPic    *multipart.FileHeader `form:"productPic"`
 	}
 	params := controller.Validated[createProductParams](ctx)
 
 	productInfo := productdto.CreateProductRequest{
-		Name:         params.Name,
-		Slug:         params.Slug,
-		Description:  params.Description,
-		IsActive:     params.IsActive,
-		IsNew:        params.IsNew,
-		Priority:     params.Priority,
-		MinOrder:     params.MinOrder,
-		CategoryID:   params.CategoryID,
-		BrandID:      params.BrandID,
-		Quantity:     params.Quantity,
-		QuantityType: params.QuantityType,
-		Price:        params.Price,
-		CurrencyCode: params.CurrencyCode,
-		ProductPic:   params.ProductPic,
+		Name:          params.Name,
+		Slug:          params.Slug,
+		Price:         params.Price,
+		CurrencyCode:  params.CurrencyCode,
+		IRRPrice:      params.IRRPrice,
+		ConsumerPrice: params.ConsumerPrice,
+		Step1Percent:  params.Step1Percent,
+		Step2Percent:  params.Step2Percent,
+		Step3Percent:  params.Step3Percent,
+		Step1Price:    params.Step1Price,
+		Step2Price:    params.Step2Price,
+		Step3Price:    params.Step3Price,
+		Quantity:      params.Quantity,
+		QuantityType:  params.QuantityType,
+		Priority:      params.Priority,
+		MinOrder:      params.MinOrder,
+		CategoryID:    params.CategoryID,
+		BrandID:       params.BrandID,
+		Description:   params.Description,
+		IsActive:      params.IsActive,
+		IsNew:         params.IsNew,
+		ProductPic:    params.ProductPic,
 	}
 	if err := productController.productService.CreateProduct(productInfo); err != nil {
 		panic(err)
@@ -97,39 +113,56 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 
 func (productController *AdminProductController) UpdateProduct(ctx *gin.Context) {
 	type updateProductParams struct {
-		ID           uint                  `uri:"productID" validate:"required"`
-		Name         *string               `form:"name"`
-		Slug         *string               `form:"slug"`
-		Price        *float64              `form:"price"`
-		Description  *string               `form:"description"`
-		IsActive     *bool                 `form:"isActive"`
-		IsNew        *bool                 `form:"isNew"`
-		Priority     *uint                 `form:"priority"`
-		MinOrder     *uint                 `form:"minOrder"`
-		CategoryID   *uint                 `form:"categoryID"`
-		BrandID      *uint                 `form:"brandID"`
-		Quantity     *uint                 `form:"quantity"`
-		QuantityType *string               `form:"quantityType"`
-		CurrencyCode *string               `form:"currencyCode"`
-		ProductPic   *multipart.FileHeader `form:"productPic"`
+		ID            uint                  `uri:"productID" validate:"required"`
+		Name          *string               `form:"name"`
+		Slug          *string               `form:"slug"`
+		Price         *float64              `form:"price"`
+		CurrencyCode  *string               `form:"currencyCode"`
+		IRRPrice      *float64              `form:"irrPrice"`
+		ConsumerPrice *float64              `form:"consumerPrice"`
+		Step1Percent  *float64              `form:"step1Percent"`
+		Step2Percent  *float64              `form:"step2Percent"`
+		Step3Percent  *float64              `form:"step3Percent"`
+		Step1Price    *float64              `form:"step1Price"`
+		Step2Price    *float64              `form:"step2Price"`
+		Step3Price    *float64              `form:"step3Price"`
+		Quantity      *uint                 `form:"quantity"`
+		QuantityType  *string               `form:"quantityType"`
+		Priority      *uint                 `form:"priority"`
+		MinOrder      *uint                 `form:"minOrder"`
+		CategoryID    *uint                 `form:"categoryID"`
+		BrandID       *uint                 `form:"brandID"`
+		Description   *string               `form:"description"`
+		IsActive      *bool                 `form:"isActive"`
+		IsNew         *bool                 `form:"isNew"`
+		ProductPic    *multipart.FileHeader `form:"productPic"`
 	}
 	params := controller.Validated[updateProductParams](ctx)
 	
 	productInfo := productdto.UpdateProductRequest{
-		ID:           params.ID,
-		Name:         params.Name,
-		Slug:         params.Slug,
-		Description:  params.Description,
-		IsActive:     params.IsActive,
-		IsNew:        params.IsNew,
-		Priority:     params.Priority,
-		MinOrder:     params.MinOrder,
-		CategoryID:   params.CategoryID,
-		BrandID:      params.BrandID,
-		Quantity:     params.Quantity,
-		QuantityType: params.QuantityType,
-		CurrencyCode: params.CurrencyCode,
-		ProductPic:   params.ProductPic,
+		ID:            params.ID,
+		Name:          params.Name,
+		Slug:          params.Slug,
+		Price:         params.Price,
+		CurrencyCode:  params.CurrencyCode,
+		IRRPrice:      params.IRRPrice,
+		ConsumerPrice: params.ConsumerPrice,
+		Step1Percent:  params.Step1Percent,
+		Step2Percent:  params.Step2Percent,
+		Step3Percent:  params.Step3Percent,
+		Step1Price:    params.Step1Price,
+		Step2Price:    params.Step2Price,
+		Step3Price:    params.Step3Price,
+		Quantity:      params.Quantity,
+		QuantityType:  params.QuantityType,
+		Priority:      params.Priority,
+		MinOrder:      params.MinOrder,
+		CategoryID:    params.CategoryID,
+		BrandID:       params.BrandID,
+		Description:   params.Description,
+		IsActive:      params.IsActive,
+		IsNew:         params.IsNew,
+		ProductPic:    params.ProductPic,
 	}
 
 	if err := productController.productService.UpdateProduct(productInfo); err != nil {

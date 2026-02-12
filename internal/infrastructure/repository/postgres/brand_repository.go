@@ -47,8 +47,13 @@ func (repo *BrandRepository) GetBrands(db database.Database) ([]*entity.Brand, e
 	return brands, nil
 }
 
-func (repo *BrandRepository) CreateBrand(db database.Database, brand *entity.Brand) error {
-	return db.GetDB().Create(&brand).Error
+func (repo *BrandRepository) CreateBrand(db database.Database, brand *entity.Brand) (*entity.Brand, error) {
+	result := db.GetDB().Create(&brand)
+	if result.Error != nil {
+        return nil, result.Error
+    }
+    
+    return brand, nil
 }
 
 func (repo *BrandRepository) UpdateBrand(db database.Database, brand *entity.Brand) error {
@@ -57,4 +62,13 @@ func (repo *BrandRepository) UpdateBrand(db database.Database, brand *entity.Bra
 
 func (repo *BrandRepository) DeleteBrandByID(db database.Database, brandID uint) error {
 	return db.GetDB().Where("id = ?", brandID).Unscoped().Delete(&entity.Brand{}).Error
+}
+
+func (repo *BrandRepository) GetBrandProductsCount(db database.Database, brandID uint) (uint, error) {
+	var count int64
+	err := db.GetDB().Model(&entity.Product{}).Where("brand_id = ?", brandID).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return uint(count), nil
 }

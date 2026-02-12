@@ -33,6 +33,18 @@ func (repo *ProductRepository) FindProductBySlug(db database.Database, slug stri
 	return &product, nil
 }
 
+func (repo *ProductRepository) FindProductByName(db database.Database, name string) (*entity.Product, error) {
+	var product entity.Product
+	result := db.GetDB().Preload("Brand").Preload("Category").Where("name = ?", name).First(&product)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+	return &product, nil
+}
+
 func (repo *ProductRepository) GetProducts(db database.Database) ([]*entity.Product, error) {
 	var products []*entity.Product
 	result := db.GetDB().Preload("Brand").Preload("Category").Find(&products)

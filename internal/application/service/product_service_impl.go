@@ -73,7 +73,7 @@ func (productService *ProductService) ParseSlug(slug string) (string, error) {
 
 	var validationErrors exception.ValidationErrors
 	if parsedSlug == "" {
-		validationErrors.Add(productService.constants.Field.Product, productService.constants.Tag.EmptySlug)
+		validationErrors.Add(productService.constants.Field.Slug, productService.constants.Tag.EmptySlug)
 		return "", validationErrors
 	}
 	
@@ -82,27 +82,37 @@ func (productService *ProductService) ParseSlug(slug string) (string, error) {
 
 func (productService *ProductService) ParseProduct(product entity.Product) (productdto.ProductCredential) {
 	response := productdto.ProductCredential{
-		ID:           product.ID,
-		Name:         product.Name,
-		Slug:         product.Slug,
-		Price:        product.Price,
-		Description:  product.Description,
-		IsActive:     product.IsActive,
-		IsNew:        product.IsNew,
-		Priority:     product.Priority,
-		MinOrder:     product.MinOrder,
-		Quantity:     product.Quantity,
-		QuantityType: product.QuantityType,
-		CurrencyCode: product.CurrencyCode,
-		ProductPic:   product.ProductPic,
+		ID:            product.ID,
+		Name:          product.Name,
+		Slug:          product.Slug,
+		Price:         product.Price,
+		CurrencyCode:  product.CurrencyCode,
+		IRRPrice:      product.IRRPrice,
+		ConsumerPrice: product.ConsumerPrice,
+		Step1Percent:  product.Step1Percent,
+		Step2Percent:  product.Step2Percent,
+		Step3Percent:  product.Step3Percent,
+		Step1Price:    product.Step1Price,
+		Step2Price:    product.Step2Price,
+		Step3Price:    product.Step3Price,
+		Quantity:      product.Quantity,
+		QuantityType:  product.QuantityType,
+		Priority:      product.Priority,
+		MinOrder:      product.MinOrder,
+		Description:   product.Description,
+		IsActive:      product.IsActive,
+		IsNew:         product.IsNew,
+		ProductPic:    product.ProductPic,
 	}
 	if product.Category != nil {
 		category, _ := productService.categoryService.ParseCategory(*product.Category)
 		response.Category = &category
+		response.CategoryID = *product.CategoryID
 	}
 	if product.Brand != nil {
-		brand := productService.brandService.ParseBrand(*product.Brand)
+		brand, _ := productService.brandService.ParseBrand(*product.Brand)
 		response.Brand = &brand
+		response.BrandID = *product.BrandID
 	}
 	
 	return response
@@ -129,10 +139,10 @@ func (productService *ProductService) FindProductBySlug(slug string) (*productdt
 	return &parsedProduct, nil
 }
 
-func (productService *ProductService) validateDuplicateProduct(slug string) error {
+func (productService *ProductService) validateDuplicateProduct(slug string, name string) error {
 	var conflictErrors exception.ConflictErrors
-	product, err := productService.productRepository.FindProductBySlug(productService.db, slug)
 
+	product, err := productService.productRepository.FindProductBySlug(productService.db, slug)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
@@ -140,7 +150,19 @@ func (productService *ProductService) validateDuplicateProduct(slug string) erro
 		return err
 	}
 	if product != nil {
-		conflictErrors.Add(productService.constants.Field.Product, productService.constants.Tag.AlreadyExist)
+		conflictErrors.Add(productService.constants.Field.Slug, productService.constants.Tag.AlreadyExist)
+		return conflictErrors
+	}
+
+	product, err = productService.productRepository.FindProductByName(productService.db, name)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		return err
+	}
+	if product != nil {
+		conflictErrors.Add(productService.constants.Field.Name, productService.constants.Tag.AlreadyExist)
 		return conflictErrors
 	}
 
@@ -178,14 +200,6 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 	var responses []productdto.ProductCredential
 	for _, product := range products {
 		response := productService.ParseProduct(*product)
-		if product.Brand != nil {
-			brand := productService.brandService.ParseBrand(*product.Brand)
-			response.Brand = &brand
-		}
-		if product.Category != nil {
-			category, _ := productService.categoryService.ParseCategory(*product.Category)
-			response.Category = &category
-		}
 		if product.ProductPic != "" {
 			productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
 			if err != nil {
@@ -200,7 +214,7 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 	return responses, nil
 }
 
-func (productService *ProductService) applyProductInitial(product entity.Product, productInfo productdto.CreateProductRequest) {
+func (productService *ProductService) applyProductInitial(product *entity.Product, productInfo productdto.CreateProductRequest) {
 	if productInfo.Description != nil {
 		product.Description = *productInfo.Description
 	} else {
@@ -256,6 +270,54 @@ func (productService *ProductService) applyProductInitial(product entity.Product
 	} else {
 		product.CurrencyCode = "IRR"
 	}
+
+	if productInfo.IRRPrice != nil {
+		product.IRRPrice = *productInfo.IRRPrice
+	} else {
+		product.IRRPrice = 0
+	}
+	
+	if productInfo.ConsumerPrice != nil {
+		product.ConsumerPrice = *productInfo.ConsumerPrice
+	} else {
+		product.ConsumerPrice = 0
+	}
+
+	if productInfo.Step1Percent != nil {
+		product.Step1Percent = *productInfo.Step1Percent
+	} else {
+		product.Step1Percent = 0
+	}
+
+	if productInfo.Step2Percent != nil {
+		product.Step2Percent = *productInfo.Step2Percent
+	} else {
+		product.Step2Percent = 0
+	}
+
+	if productInfo.Step3Percent != nil {
+		product.Step3Percent = *productInfo.Step3Percent
+	} else {
+		product.Step3Percent = 0
+	}
+
+	if productInfo.Step1Price != nil {
+		product.Step1Price = *productInfo.Step1Price
+	} else {
+		product.Step1Price = 0
+	}
+
+	if productInfo.Step2Price != nil {
+		product.Step2Price = *productInfo.Step2Price
+	} else {
+		product.Step2Price = 0
+	}
+
+	if productInfo.Step3Price != nil {
+		product.Step3Price = *productInfo.Step3Price
+	} else {
+		product.Step3Price = 0
+	}
 }
 
 func (productService *ProductService) CreateProduct(productInfo productdto.CreateProductRequest) error {
@@ -264,7 +326,7 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 		return err
 	}
 
-	err = productService.validateDuplicateProduct(parsedSlug)
+	err = productService.validateDuplicateProduct(parsedSlug, productInfo.Name)
 	if err != nil {
 		return err
 	}
@@ -277,7 +339,7 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 		BrandID:    productInfo.BrandID,
 	}
 
-	productService.applyProductInitial(product, productInfo)
+	productService.applyProductInitial(&product, productInfo)
 
 	if productInfo.CategoryID != nil {
 		category, err := productService.categoryService.FindCategoryByID(*productInfo.CategoryID)
@@ -309,7 +371,9 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 		if productInfo.ProductPic != nil {
 			product.ProductPic = productService.constants.S3BucketPath.GetProductPicPath(createdProduct.ID, productInfo.ProductPic.Filename)
 			if err := productService.s3Storage.UploadObject(enum.ProductPic, product.ProductPic, productInfo.ProductPic); err != nil {
-				return  err
+				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+				_ = productService.productRepository.DeleteProductByID(tx, createdProduct.ID);
+				return networkErr
 			}
 		
 			if err := productService.productRepository.UpdateProduct(tx, &product); err != nil {
@@ -367,6 +431,30 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 	if productInfo.CurrencyCode != nil {
 		product.CurrencyCode = *productInfo.CurrencyCode
 	}
+	if productInfo.IRRPrice != nil {
+		product.IRRPrice = *productInfo.IRRPrice
+	}
+	if productInfo.ConsumerPrice != nil {
+		product.ConsumerPrice = *productInfo.ConsumerPrice
+	}
+	if productInfo.Step1Percent != nil {
+		product.Step1Percent = *productInfo.Step1Percent
+	}
+	if productInfo.Step2Percent != nil {
+		product.Step2Percent = *productInfo.Step2Percent
+	}
+	if productInfo.Step3Percent != nil {
+		product.Step3Percent = *productInfo.Step3Percent
+	}
+	if productInfo.Step1Price != nil {
+		product.Step1Price = *productInfo.Step1Price
+	}
+	if productInfo.Step2Price != nil {
+		product.Step2Price = *productInfo.Step2Price
+	}
+	if productInfo.Step3Price != nil {
+		product.Step3Price = *productInfo.Step3Price
+	}
 	return nil
 }
 
@@ -382,7 +470,7 @@ func (productService *ProductService) newSlugAvailable(slug string, productID ui
 	}
 	if product != nil {
 		if product.ID != productID {
-			conflictErrors.Add(productService.constants.Field.Product, productService.constants.Tag.AlreadyExist)
+			conflictErrors.Add(productService.constants.Field.Slug, productService.constants.Tag.AlreadyExist)
 			return conflictErrors
 		}
 	}
@@ -435,9 +523,20 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 	err = productService.db.WithTransaction(func(tx database.Database) error {
 		if productInfo.ProductPic != nil {
 			productPicPath := productService.constants.S3BucketPath.GetProductPicPath(productInfo.ID, productInfo.ProductPic.Filename)
-			productService.s3Storage.UploadObject(enum.ProductPic, productPicPath, productInfo.ProductPic)
+			if err := productService.s3Storage.UploadObject(enum.ProductPic, productPicPath, productInfo.ProductPic); err != nil {
+				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+				_ = productService.productRepository.DeleteProductByID(tx, productInfo.ID);
+				return networkErr
+			}
 			product.ProductPic = productPicPath
+		} else if product.ProductPic != "" {
+			if err := productService.s3Storage.DeleteObject(enum.ProductPic, product.ProductPic); err != nil {
+				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
+				return networkErr
+			}
+			product.ProductPic = ""
 		}
+		
 		if err := productService.productRepository.UpdateProduct(tx, product); err != nil {
 			return err
 		}

@@ -2,12 +2,15 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	branddto "github.com/Mahoura-shop/Backend/internal/application/dto/brand"
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 	"github.com/Mahoura-shop/Backend/internal/domain/exception"
 	"github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
+	"github.com/Mahoura-shop/Backend/internal/domain/s3"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 	"gorm.io/gorm"
 )
@@ -15,12 +18,14 @@ import (
 type BrandService struct {
 	constants       *bootstrap.Constants
 	brandRepository postgres.BrandRepository
+	s3Storage       s3.S3Storage
 	db              database.Database
 }
 
 type BrandServiceDeps struct {
 	Constants       *bootstrap.Constants
 	BrandRepository postgres.BrandRepository
+	S3Storage       s3.S3Storage
 	DB              database.Database
 }
 
@@ -28,20 +33,35 @@ func NewBrandService(deps BrandServiceDeps) *BrandService {
 	return &BrandService{
 		constants:       deps.Constants,
 		brandRepository: deps.BrandRepository,
+		s3Storage:       deps.S3Storage,
 		db:              deps.DB,
 	}
 }
 
 
-func (brandService *BrandService) ParseBrand(brand entity.Brand) (branddto.BrandCredential) {
+func (brandService *BrandService) GetBrandProductsCount(brandID uint) (uint, error) {
+	count, err := brandService.brandRepository.GetBrandProductsCount(brandService.db, brandID)
+	if (err != nil) {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (brandService *BrandService) ParseBrand(brand entity.Brand) (branddto.BrandCredential, error) {
+	count, err := brandService.GetBrandProductsCount(brand.ID)
+	if err != nil {
+		count = 0
+	}
 	response := branddto.BrandCredential{
 		ID:          brand.ID,
 		Name:        brand.Name,
 		Slug:        brand.Slug,
 		Description: brand.Description,
 		IsActive:    brand.IsActive,
+		BrandPic:    brand.BrandPic,
+		Count:       count,
 	}
-	return response
+	return response, nil
 }
 
 
@@ -55,7 +75,10 @@ func (brandService *BrandService) FindBrandByID(brandID uint) (*branddto.BrandCr
 		return nil, notFoundError
 	}
 
-	parsedBrand := brandService.ParseBrand(*brand)
+	parsedBrand, err := brandService.ParseBrand(*brand)
+	if err != nil {
+		return nil, err
+	}
 	return &parsedBrand, nil
 }
 
@@ -70,7 +93,10 @@ func (brandService *BrandService) FindBrandBySlug(slug string) (*branddto.BrandC
 		return nil, notFoundError
 	}
 	
-	parsedBrand := brandService.ParseBrand(*brand)
+	parsedBrand, err := brandService.ParseBrand(*brand)
+	if err != nil {
+		return nil, err
+	}
 	return &parsedBrand, nil
 }
 
@@ -85,40 +111,11 @@ func (brandService *BrandService) validateDuplicateBrand(slug string) error {
 		return err
 	}
 	if brand != nil {
-		conflictErrors.Add(brandService.constants.Field.Brand, brandService.constants.Tag.AlreadyExist)
+		conflictErrors.Add(brandService.constants.Field.Slug, brandService.constants.Tag.AlreadyExist)
 		return conflictErrors
 	}
 
 	return nil
-}
-
-func (brandService *BrandService) CreateBrand(brandInfo branddto.CreateBrandRequest) error {
-	err := brandService.validateDuplicateBrand(brandInfo.Slug)
-	if err != nil {
-		return err
-	}
-
-	err = brandService.db.WithTransaction(func(tx database.Database) error {
-		brand := &entity.Brand{
-			Name:     brandInfo.Name,
-			Slug:     brandInfo.Slug,
-			IsActive: brandInfo.IsActive,
-		}
-		
-		if brandInfo.Description != nil {
-			brand.Description = *brandInfo.Description
-		} else {
-			brand.Description = ""
-		}
-		err = brandService.brandRepository.CreateBrand(tx, brand)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	return err
 }
 
 func (brandService *BrandService) GetBrands() ([]branddto.BrandCredential, error) {
@@ -128,17 +125,61 @@ func (brandService *BrandService) GetBrands() ([]branddto.BrandCredential, error
 	}
 	var responses []branddto.BrandCredential
 	for _, brand := range brands {
-		response := branddto.BrandCredential{
-			ID:          brand.ID,
-			Name:        brand.Name,
-			Slug:        brand.Slug,
-			Description: brand.Description,
-			IsActive:    brand.IsActive,
+		response, err := brandService.ParseBrand(*brand)
+		if err != nil {
+			return nil, err
+		}
+		
+		if brand.BrandPic != "" {
+			brandPic, err := brandService.s3Storage.GetPresignedURL(enum.BrandPic, brand.BrandPic, 8*time.Hour)
+			if err != nil {
+				return nil, err
+			}
+			response.BrandPic = brandPic
 		}
 		
 		responses = append(responses, response)
 	}
 	return responses, nil
+}
+
+func (brandService *BrandService) CreateBrand(brandInfo branddto.CreateBrandRequest) error {
+	err := brandService.validateDuplicateBrand(brandInfo.Slug)
+	if err != nil {
+		return err
+	}
+	brand := &entity.Brand{
+		Name:     brandInfo.Name,
+		Slug:     brandInfo.Slug,
+		IsActive: brandInfo.IsActive,
+	}
+
+	err = brandService.db.WithTransaction(func(tx database.Database) error {
+		if brandInfo.Description != nil {
+			brand.Description = *brandInfo.Description
+		} else {
+			brand.Description = ""
+		}
+		createdBrand, err := brandService.brandRepository.CreateBrand(tx, brand)
+		if err != nil {
+			return err
+		}
+		if brandInfo.BrandPic != nil {
+			brand.BrandPic = brandService.constants.S3BucketPath.GetBrandPicPath(createdBrand.ID, brandInfo.BrandPic.Filename)
+			if err := brandService.s3Storage.UploadObject(enum.BrandPic, brand.BrandPic, brandInfo.BrandPic); err != nil {
+				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+				_ = brandService.brandRepository.DeleteBrandByID(tx, createdBrand.ID);
+				return networkErr
+			}
+		
+			if err := brandService.brandRepository.UpdateBrand(tx, brand); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return err
 }
 
 func (brandService *BrandService) DeleteBrand(brandID uint) error {
@@ -192,6 +233,21 @@ func (brandService *BrandService) UpdateBrand(brandInfo branddto.UpdateBrandRequ
 		}
 	}
 	err = brandService.db.WithTransaction(func(tx database.Database) error {
+		if brandInfo.BrandPic != nil {
+			brandPicPath := brandService.constants.S3BucketPath.GetBrandPicPath(brandInfo.ID, brandInfo.BrandPic.Filename)
+			if err := brandService.s3Storage.UploadObject(enum.BrandPic, brand.BrandPic, brandInfo.BrandPic); err != nil {
+				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+				_ = brandService.brandRepository.DeleteBrandByID(tx, brandInfo.ID);
+				return networkErr
+			} else if brand.BrandPic != "" {
+				if err := brandService.s3Storage.DeleteObject(enum.BrandPic, brand.BrandPic); err != nil {
+					networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
+					return networkErr
+				}
+				brand.BrandPic = ""
+			}
+			brand.BrandPic = brandPicPath
+		}
 		if err := brandService.brandRepository.UpdateBrand(tx, brand); err != nil {
 			return err
 		}
