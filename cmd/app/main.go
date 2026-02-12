@@ -30,7 +30,7 @@ func main() {
 		&entity.Brand{},
 		&entity.Product{},
 	)
-
+	
 	app.Seeds.AddressSeeder.SeedProvincesAndCities()
 	app.Seeds.AdminSeeder.SeedAdmins()
 

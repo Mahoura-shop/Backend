@@ -214,7 +214,7 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 	return responses, nil
 }
 
-func (productService *ProductService) applyProductInitial(product entity.Product, productInfo productdto.CreateProductRequest) {
+func (productService *ProductService) applyProductInitial(product *entity.Product, productInfo productdto.CreateProductRequest) {
 	if productInfo.Description != nil {
 		product.Description = *productInfo.Description
 	} else {
@@ -339,7 +339,7 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 		BrandID:    productInfo.BrandID,
 	}
 
-	productService.applyProductInitial(product, productInfo)
+	productService.applyProductInitial(&product, productInfo)
 
 	if productInfo.CategoryID != nil {
 		category, err := productService.categoryService.FindCategoryByID(*productInfo.CategoryID)
@@ -529,6 +529,14 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 				return networkErr
 			}
 			product.ProductPic = productPicPath
+		} else {
+			if product.ProductPic != "" {
+				if err := productService.s3Storage.DeleteObject(enum.ProductPic, product.ProductPic); err != nil {
+					networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
+					return networkErr
+				}
+				product.ProductPic = ""
+			}
 		}
 		if err := productService.productRepository.UpdateProduct(tx, product); err != nil {
 			return err
