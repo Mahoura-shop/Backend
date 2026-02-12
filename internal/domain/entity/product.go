@@ -9,7 +9,8 @@ type Product struct {
 	Name          string    `gorm:"type:varchar(50);uniqueIndex"`
 	Slug          string    `gorm:"type:varchar(50);uniqueIndex"`
 	Price         float64   `gorm:"type:decimal(10,2);not null"`
-	CurrencyCode  string    `gorm:"type:varchar(5);default:'IRR';not null"`
+	CurrencyID    uint
+	Currency      *Currency `gorm:"foreignKey:CurrencyID"`
 	IRRPrice      float64   `gorm:"type:decimal(10,2);not null"`
 	ConsumerPrice float64   `gorm:"type:decimal(10,2)"`
 	Step1Percent  float64   `gorm:"type:decimal(10,2);check:step1_percent >= -100 AND step1_percent <= 100"`

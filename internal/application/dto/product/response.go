@@ -3,6 +3,7 @@ package productdto
 import (
 	branddto "github.com/Mahoura-shop/Backend/internal/application/dto/brand"
 	categorydto "github.com/Mahoura-shop/Backend/internal/application/dto/category"
+	currencydto "github.com/Mahoura-shop/Backend/internal/application/dto/currency"
 )
 
 type ProductCredential struct {
@@ -10,7 +11,8 @@ type ProductCredential struct {
 	Name          string                          `json:"name"`
 	Slug          string                          `json:"slug"`
 	Price         float64                         `json:"price"`
-	CurrencyCode  string                          `json:"currencyCode"`
+	CurrencyID    uint                            `json:"currencyID"`
+	Currency      *currencydto.CurrencyCredential `json:"currency"`
 	IRRPrice      float64                         `json:"irrPrice"`
 	ConsumerPrice float64                         `json:"consumerPrice"`
 	Step1Percent  float64                         `json:"step1Percent"`

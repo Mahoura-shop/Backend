@@ -56,7 +56,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		Name          string                `form:"name" validate:"required"`
 		Slug          string                `form:"slug" validate:"required"`
 		Price         float64               `form:"price" validate:"required"`
-		CurrencyCode  *string               `form:"currencyCode"`
+		CurrencyID    uint                  `form:"currencyID"`
 		IRRPrice      *float64              `form:"irrPrice"`
 		ConsumerPrice *float64              `form:"consumerPrice"`
 		Step1Percent  *float64              `form:"step1Percent"`
@@ -82,7 +82,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		Name:          params.Name,
 		Slug:          params.Slug,
 		Price:         params.Price,
-		CurrencyCode:  params.CurrencyCode,
+		CurrencyID:    params.CurrencyID,
 		IRRPrice:      params.IRRPrice,
 		ConsumerPrice: params.ConsumerPrice,
 		Step1Percent:  params.Step1Percent,
@@ -117,7 +117,7 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		Name          *string               `form:"name"`
 		Slug          *string               `form:"slug"`
 		Price         *float64              `form:"price"`
-		CurrencyCode  *string               `form:"currencyCode"`
+		CurrencyID    *uint                 `form:"currencyID"`
 		IRRPrice      *float64              `form:"irrPrice"`
 		ConsumerPrice *float64              `form:"consumerPrice"`
 		Step1Percent  *float64              `form:"step1Percent"`
@@ -144,7 +144,7 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		Name:          params.Name,
 		Slug:          params.Slug,
 		Price:         params.Price,
-		CurrencyCode:  params.CurrencyCode,
+		CurrencyID:    params.CurrencyID,
 		IRRPrice:      params.IRRPrice,
 		ConsumerPrice: params.ConsumerPrice,
 		Step1Percent:  params.Step1Percent,

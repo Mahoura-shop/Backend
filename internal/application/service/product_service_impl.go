@@ -23,6 +23,7 @@ type ProductService struct {
 	productRepository postgres.ProductRepository
 	categoryService   usecase.CategoryService
 	brandService      usecase.BrandService
+	currencyService   usecase.CurrencyService
 	s3Storage         s3.S3Storage
 	db                database.Database
 }
@@ -32,6 +33,7 @@ type ProductServiceDeps struct {
 	ProductRepository postgres.ProductRepository
 	CategoryService   usecase.CategoryService
 	BrandService      usecase.BrandService
+	CurrencyService   usecase.CurrencyService
 	S3Storage         s3.S3Storage
 	DB                database.Database
 }
@@ -42,6 +44,7 @@ func NewProductService(deps ProductServiceDeps) *ProductService {
 		productRepository: deps.ProductRepository,
 		categoryService:   deps.CategoryService,
 		brandService:      deps.BrandService,
+		currencyService:   deps.CurrencyService,
 		s3Storage:         deps.S3Storage,
 		db:                deps.DB,
 	}
@@ -86,7 +89,6 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 		Name:          product.Name,
 		Slug:          product.Slug,
 		Price:         product.Price,
-		CurrencyCode:  product.CurrencyCode,
 		IRRPrice:      product.IRRPrice,
 		ConsumerPrice: product.ConsumerPrice,
 		Step1Percent:  product.Step1Percent,
@@ -113,6 +115,11 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 		brand, _ := productService.brandService.ParseBrand(*product.Brand)
 		response.Brand = &brand
 		response.BrandID = *product.BrandID
+	}
+	if product.Currency != nil {
+		currency, _ := productService.currencyService.ParseCurrency(*product.Currency)
+		response.Currency = &currency
+		response.CurrencyID = product.CurrencyID
 	}
 	
 	return response
@@ -265,12 +272,6 @@ func (productService *ProductService) applyProductInitial(product *entity.Produc
 		product.QuantityType = "عدد"
 	}
 
-	if productInfo.CurrencyCode != nil {
-		product.CurrencyCode = *productInfo.CurrencyCode
-	} else {
-		product.CurrencyCode = "IRR"
-	}
-
 	if productInfo.IRRPrice != nil {
 		product.IRRPrice = *productInfo.IRRPrice
 	} else {
@@ -362,6 +363,15 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 			return notFoundError
 		}
 	}
+	
+	currency, err := productService.currencyService.FindCurrencyByID(productInfo.CurrencyID)
+	if err != nil {
+		return err
+	}
+	if currency == nil {
+		notFoundError := exception.NotFoundError{Item: productService.constants.Field.Currency}
+		return notFoundError
+	}
 
 	err = productService.db.WithTransaction(func(tx database.Database) error {
 		createdProduct, err := productService.productRepository.CreateProduct(tx, &product)
@@ -428,8 +438,8 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 	if productInfo.QuantityType != nil {
 		product.QuantityType = *productInfo.QuantityType
 	}
-	if productInfo.CurrencyCode != nil {
-		product.CurrencyCode = *productInfo.CurrencyCode
+	if productInfo.CurrencyID != nil {
+		product.CurrencyID = *productInfo.CurrencyID
 	}
 	if productInfo.IRRPrice != nil {
 		product.IRRPrice = *productInfo.IRRPrice
@@ -510,6 +520,17 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 		}
 		if brand == nil {
 			notFoundError := exception.NotFoundError{Item: productService.constants.Field.Brand}
+			return notFoundError
+		} 
+	}
+
+	if productInfo.CurrencyID != nil {
+		currency, err := productService.currencyService.FindCurrencyByID(*productInfo.CurrencyID)
+		if err != nil {
+			return err
+		}
+		if currency == nil {
+			notFoundError := exception.NotFoundError{Item: productService.constants.Field.Currency}
 			return notFoundError
 		} 
 	}

@@ -10,4 +10,5 @@ type CurrencyRepository interface {
 	FindCurrencyByCode(database.Database, string) (*entity.Currency, error)
 	GetCurrencies(database.Database) ([]*entity.Currency, error)
 	UpdateCurrency(database.Database, *entity.Currency) error
+	CreateCurrency(database.Database, *entity.Currency) error
 }

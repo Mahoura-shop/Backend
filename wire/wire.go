@@ -135,6 +135,7 @@ var MiddlewareProviderSet = wire.NewSet(
 var SeederProviderSet = wire.NewSet(
 	seed.NewAddressSeeder,
 	seed.NewAdminSeeder,
+	seed.NewCurrencySeeder,
 	wire.Struct(new(Seeds), "*"),
 )
 
@@ -267,8 +268,9 @@ type Middlewares struct {
 }
 
 type Seeds struct {
-	AddressSeeder *seed.AddressSeeder
-	AdminSeeder   *seed.AdminSeeder
+	AddressSeeder  *seed.AddressSeeder
+	AdminSeeder    *seed.AdminSeeder
+	CurrencySeeder *seed.CurrencySeeder
 }
 
 type Application struct {

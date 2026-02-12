@@ -36,6 +36,15 @@ func (repo *CurrencyRepository) FindCurrencyByCode(db database.Database, code st
 	return &currency, nil
 }
 
+func (repo *CurrencyRepository) CreateCurrency(db database.Database, currency *entity.Currency) error {
+	result := db.GetDB().Create(&currency)
+	if result.Error != nil {
+        return result.Error
+    }
+    
+    return nil
+}
+
 func (repo *CurrencyRepository) GetCurrencies(db database.Database) ([]*entity.Currency, error) {
 	var currencies []*entity.Currency
 	result := db.GetDB().Find(&currencies)

@@ -3,8 +3,8 @@ package bootstrap
 import (
 	"os"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 )

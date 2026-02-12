@@ -34,6 +34,7 @@ func main() {
 	
 	app.Seeds.AddressSeeder.SeedProvincesAndCities()
 	app.Seeds.AdminSeeder.SeedAdmins()
+	app.Seeds.CurrencySeeder.SeedCurrencies()
 
 	routes.Run(ginEngine, app)
 

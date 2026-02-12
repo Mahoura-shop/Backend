@@ -5,8 +5,8 @@ import "mime/multipart"
 type CreateProductRequest struct {
 	Name          string
 	Slug          string
-	Price         float64    
-	CurrencyCode  *string   
+	Price         float64   
+	CurrencyID    uint
 	IRRPrice      *float64 
 	ConsumerPrice *float64
 	Step1Percent  *float64
@@ -32,7 +32,7 @@ type UpdateProductRequest struct {
 	Name          *string
 	Slug          *string
 	Price         *float64    
-	CurrencyCode  *string   
+	CurrencyID    *uint
 	IRRPrice      *float64 
 	ConsumerPrice *float64
 	Step1Percent  *float64

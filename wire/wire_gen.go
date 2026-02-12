@@ -125,6 +125,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		ProductRepository: productRepository,
 		CategoryService:   categoryService,
 		BrandService:      brandService,
+		CurrencyService:   currencyService,
 		S3Storage:         s3Storage,
 		DB:                postgresDatabase,
 	}
@@ -165,9 +166,11 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	addressSeeder := seed.NewAddressSeeder(addressRepository, postgresDatabase)
 	adminCredentials := ProvideSuperAdminCredential(container)
 	adminSeeder := seed.NewAdminSeeder(adminCredentials, userRepository, postgresDatabase)
+	currencySeeder := seed.NewCurrencySeeder(currencyRepository, postgresDatabase)
 	seeds := &Seeds{
-		AddressSeeder: addressSeeder,
-		AdminSeeder:   adminSeeder,
+		AddressSeeder:  addressSeeder,
+		AdminSeeder:    adminSeeder,
+		CurrencySeeder: currencySeeder,
 	}
 	application := NewApplication(wireDatabase, controllers, middlewares, seeds)
 	return application, nil
@@ -193,7 +196,7 @@ var ControllersProviderSet = wire.NewSet(wire.Struct(new(Controllers), "*"))
 
 var MiddlewareProviderSet = wire.NewSet(middleware.NewAuthMiddleware, middleware.NewCorsMiddleware, middleware.NewRecovery, middleware.NewLocalization, middleware.NewRateLimit, middleware.NewLoggerMiddleware, wire.Struct(new(Middlewares), "*"))
 
-var SeederProviderSet = wire.NewSet(seed.NewAddressSeeder, seed.NewAdminSeeder, wire.Struct(new(Seeds), "*"))
+var SeederProviderSet = wire.NewSet(seed.NewAddressSeeder, seed.NewAdminSeeder, seed.NewCurrencySeeder, wire.Struct(new(Seeds), "*"))
 
 func ProvideConstants(container *bootstrap.Config) *bootstrap.Constants {
 	return container.Constants
@@ -324,8 +327,9 @@ type Middlewares struct {
 }
 
 type Seeds struct {
-	AddressSeeder *seed.AddressSeeder
-	AdminSeeder   *seed.AdminSeeder
+	AddressSeeder  *seed.AddressSeeder
+	AdminSeeder    *seed.AdminSeeder
+	CurrencySeeder *seed.CurrencySeeder
 }
 
 type Application struct {

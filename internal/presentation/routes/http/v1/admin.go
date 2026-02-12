@@ -20,7 +20,7 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	currencies := routerGroup.Group("/currency")
 	{
 		currencies.GET("", app.Controllers.Admin.CurrencyController.GetCurrencies)
-		currenciesSubGroup := currencies.Group("/:currencyCode") 
+		currenciesSubGroup := currencies.Group("/:currencyID") 
 		{
 			currenciesSubGroup.PUT("", app.Controllers.Admin.CurrencyController.UpdateCurrency)
 		}
