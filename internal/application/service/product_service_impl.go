@@ -82,19 +82,27 @@ func (productService *ProductService) ParseSlug(slug string) (string, error) {
 
 func (productService *ProductService) ParseProduct(product entity.Product) (productdto.ProductCredential) {
 	response := productdto.ProductCredential{
-		ID:           product.ID,
-		Name:         product.Name,
-		Slug:         product.Slug,
-		Price:        product.Price,
-		Description:  product.Description,
-		IsActive:     product.IsActive,
-		IsNew:        product.IsNew,
-		Priority:     product.Priority,
-		MinOrder:     product.MinOrder,
-		Quantity:     product.Quantity,
-		QuantityType: product.QuantityType,
-		CurrencyCode: product.CurrencyCode,
-		ProductPic:   product.ProductPic,
+		ID:            product.ID,
+		Name:          product.Name,
+		Slug:          product.Slug,
+		Price:         product.Price,
+		CurrencyCode:  product.CurrencyCode,
+		IRRPrice:      product.IRRPrice,
+		ConsumerPrice: product.ConsumerPrice,
+		Step1Percent:  product.Step1Percent,
+		Step2Percent:  product.Step2Percent,
+		Step3Percent:  product.Step3Percent,
+		Step1Price:    product.Step1Price,
+		Step2Price:    product.Step2Price,
+		Step3Price:    product.Step3Price,
+		Quantity:      product.Quantity,
+		QuantityType:  product.QuantityType,
+		Priority:      product.Priority,
+		MinOrder:      product.MinOrder,
+		Description:   product.Description,
+		IsActive:      product.IsActive,
+		IsNew:         product.IsNew,
+		ProductPic:    product.ProductPic,
 	}
 	if product.Category != nil {
 		category, _ := productService.categoryService.ParseCategory(*product.Category)
@@ -250,6 +258,54 @@ func (productService *ProductService) applyProductInitial(product entity.Product
 	} else {
 		product.CurrencyCode = "IRR"
 	}
+
+	if productInfo.IRRPrice != nil {
+		product.IRRPrice = *productInfo.IRRPrice
+	} else {
+		product.IRRPrice = 0
+	}
+	
+	if productInfo.ConsumerPrice != nil {
+		product.ConsumerPrice = *productInfo.ConsumerPrice
+	} else {
+		product.ConsumerPrice = 0
+	}
+
+	if productInfo.Step1Percent != nil {
+		product.Step1Percent = *productInfo.Step1Percent
+	} else {
+		product.Step1Percent = 0
+	}
+
+	if productInfo.Step2Percent != nil {
+		product.Step2Percent = *productInfo.Step2Percent
+	} else {
+		product.Step2Percent = 0
+	}
+
+	if productInfo.Step3Percent != nil {
+		product.Step3Percent = *productInfo.Step3Percent
+	} else {
+		product.Step3Percent = 0
+	}
+
+	if productInfo.Step1Price != nil {
+		product.Step1Price = *productInfo.Step1Price
+	} else {
+		product.Step1Price = 0
+	}
+
+	if productInfo.Step2Price != nil {
+		product.Step2Price = *productInfo.Step2Price
+	} else {
+		product.Step2Price = 0
+	}
+
+	if productInfo.Step3Price != nil {
+		product.Step3Price = *productInfo.Step3Price
+	} else {
+		product.Step3Price = 0
+	}
 }
 
 func (productService *ProductService) CreateProduct(productInfo productdto.CreateProductRequest) error {
@@ -362,6 +418,30 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 	}
 	if productInfo.CurrencyCode != nil {
 		product.CurrencyCode = *productInfo.CurrencyCode
+	}
+	if productInfo.IRRPrice != nil {
+		product.IRRPrice = *productInfo.IRRPrice
+	}
+	if productInfo.ConsumerPrice != nil {
+		product.ConsumerPrice = *productInfo.ConsumerPrice
+	}
+	if productInfo.Step1Percent != nil {
+		product.Step1Percent = *productInfo.Step1Percent
+	}
+	if productInfo.Step2Percent != nil {
+		product.Step2Percent = *productInfo.Step2Percent
+	}
+	if productInfo.Step3Percent != nil {
+		product.Step3Percent = *productInfo.Step3Percent
+	}
+	if productInfo.Step1Price != nil {
+		product.Step1Price = *productInfo.Step1Price
+	}
+	if productInfo.Step2Price != nil {
+		product.Step2Price = *productInfo.Step2Price
+	}
+	if productInfo.Step3Price != nil {
+		product.Step3Price = *productInfo.Step3Price
 	}
 	return nil
 }
