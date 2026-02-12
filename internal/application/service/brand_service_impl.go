@@ -239,6 +239,12 @@ func (brandService *BrandService) UpdateBrand(brandInfo branddto.UpdateBrandRequ
 				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
 				_ = brandService.brandRepository.DeleteBrandByID(tx, brandInfo.ID);
 				return networkErr
+			} else if brand.BrandPic != "" {
+				if err := brandService.s3Storage.DeleteObject(enum.BrandPic, brand.BrandPic); err != nil {
+					networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
+					return networkErr
+				}
+				brand.BrandPic = ""
 			}
 			brand.BrandPic = brandPicPath
 		}

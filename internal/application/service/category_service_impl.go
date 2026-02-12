@@ -236,7 +236,14 @@ func (categoryService *CategoryService) UpdateCategory(categoryInfo categorydto.
 				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
 				_ = categoryService.categoryRepository.DeleteCategoryByID(tx, categoryInfo.ID);
 				return networkErr
+			} else if category.CategoryPic != "" {
+				if err := categoryService.s3Storage.DeleteObject(enum.CategoryPic, category.CategoryPic); err != nil {
+					networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
+					return networkErr
+				}
+				category.CategoryPic = ""
 			}
+		
 			category.CategoryPic = categoryPicPath
 		}
 		if err := categoryService.categoryRepository.UpdateCategory(tx, category); err != nil {

@@ -529,15 +529,14 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 				return networkErr
 			}
 			product.ProductPic = productPicPath
-		} else {
-			if product.ProductPic != "" {
-				if err := productService.s3Storage.DeleteObject(enum.ProductPic, product.ProductPic); err != nil {
-					networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
-					return networkErr
-				}
-				product.ProductPic = ""
+		} else if product.ProductPic != "" {
+			if err := productService.s3Storage.DeleteObject(enum.ProductPic, product.ProductPic); err != nil {
+				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
+				return networkErr
 			}
+			product.ProductPic = ""
 		}
+		
 		if err := productService.productRepository.UpdateProduct(tx, product); err != nil {
 			return err
 		}
