@@ -7,14 +7,14 @@ type CreateProductRequest struct {
 	Slug          string
 	Price         float64   
 	CurrencyID    uint
-	IRRPrice      *float64 
-	ConsumerPrice *float64
+	IRRPrice      *uint 
+	ConsumerPrice *uint
 	Step1Percent  *float64
 	Step2Percent  *float64
 	Step3Percent  *float64
-	Step1Price    *float64
-	Step2Price    *float64
-	Step3Price    *float64
+	Step1Price    *uint
+	Step2Price    *uint
+	Step3Price    *uint
 	Quantity      *uint      
 	QuantityType  *string    
 	Priority      *uint      
@@ -33,14 +33,14 @@ type UpdateProductRequest struct {
 	Slug          *string
 	Price         *float64    
 	CurrencyID    *uint
-	IRRPrice      *float64 
-	ConsumerPrice *float64
+	IRRPrice      *uint 
+	ConsumerPrice *uint
 	Step1Percent  *float64
 	Step2Percent  *float64
 	Step3Percent  *float64
-	Step1Price    *float64
-	Step2Price    *float64
-	Step3Price    *float64
+	Step1Price    *uint
+	Step2Price    *uint
+	Step3Price    *uint
 	Quantity      *uint      
 	QuantityType  *string    
 	Priority      *uint      

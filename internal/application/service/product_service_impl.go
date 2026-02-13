@@ -116,11 +116,10 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 		response.Brand = &brand
 		response.BrandID = *product.BrandID
 	}
-	if product.Currency != nil {
-		currency, _ := productService.currencyService.ParseCurrency(*product.Currency)
-		response.Currency = &currency
-		response.CurrencyID = product.CurrencyID
-	}
+
+	currency, _ := productService.currencyService.ParseCurrency(product.Currency)
+	response.Currency = &currency
+	response.CurrencyID = product.CurrencyID
 	
 	return response
 }
@@ -338,6 +337,7 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 		Price:      productInfo.Price,
 		CategoryID: productInfo.CategoryID,
 		BrandID:    productInfo.BrandID,
+		CurrencyID: productInfo.CurrencyID,
 	}
 
 	productService.applyProductInitial(&product, productInfo)
@@ -431,6 +431,9 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 	}
 	if productInfo.BrandID != nil {
 		product.BrandID = productInfo.BrandID
+	}
+	if productInfo.CurrencyID != nil {
+		product.CurrencyID = *productInfo.CurrencyID
 	}
 	if productInfo.Quantity != nil {
 		product.Quantity = *productInfo.Quantity

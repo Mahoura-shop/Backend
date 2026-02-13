@@ -13,14 +13,14 @@ type ProductCredential struct {
 	Price         float64                         `json:"price"`
 	CurrencyID    uint                            `json:"currencyID"`
 	Currency      *currencydto.CurrencyCredential `json:"currency"`
-	IRRPrice      float64                         `json:"irrPrice"`
-	ConsumerPrice float64                         `json:"consumerPrice"`
+	IRRPrice      uint                            `json:"irrPrice"`
+	ConsumerPrice uint                            `json:"consumerPrice"`
 	Step1Percent  float64                         `json:"step1Percent"`
 	Step2Percent  float64                         `json:"step2Percent"`
 	Step3Percent  float64                         `json:"step3Percent"`
-	Step1Price    float64                         `json:"step1Price"`
-	Step2Price    float64                         `json:"step2Price"`
-	Step3Price    float64                         `json:"step3Price"`
+	Step1Price    uint                            `json:"step1Price"`
+	Step2Price    uint                            `json:"step2Price"`
+	Step3Price    uint                            `json:"step3Price"`
 	Quantity      uint                            `json:"quantity"`
 	QuantityType  string                          `json:"quantityType"`
 	Priority      uint                            `json:"priority"`

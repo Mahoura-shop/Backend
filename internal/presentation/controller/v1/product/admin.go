@@ -57,14 +57,14 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		Slug          string                `form:"slug" validate:"required"`
 		Price         float64               `form:"price" validate:"required"`
 		CurrencyID    uint                  `form:"currencyID"`
-		IRRPrice      *float64              `form:"irrPrice"`
-		ConsumerPrice *float64              `form:"consumerPrice"`
+		IRRPrice      *uint                 `form:"irrPrice"`
+		ConsumerPrice *uint                 `form:"consumerPrice"`
 		Step1Percent  *float64              `form:"step1Percent"`
 		Step2Percent  *float64              `form:"step2Percent"`
 		Step3Percent  *float64              `form:"step3Percent"`
-		Step1Price    *float64              `form:"step1Price"`
-		Step2Price    *float64              `form:"step2Price"`
-		Step3Price    *float64              `form:"step3Price"`
+		Step1Price    *uint                 `form:"step1Price"`
+		Step2Price    *uint                 `form:"step2Price"`
+		Step3Price    *uint                 `form:"step3Price"`
 		Quantity      *uint                 `form:"quantity"`
 		QuantityType  *string               `form:"quantityType"`
 		Priority      *uint                 `form:"priority"`
@@ -118,14 +118,14 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		Slug          *string               `form:"slug"`
 		Price         *float64              `form:"price"`
 		CurrencyID    *uint                 `form:"currencyID"`
-		IRRPrice      *float64              `form:"irrPrice"`
-		ConsumerPrice *float64              `form:"consumerPrice"`
+		IRRPrice      *uint                 `form:"irrPrice"`
+		ConsumerPrice *uint                 `form:"consumerPrice"`
 		Step1Percent  *float64              `form:"step1Percent"`
 		Step2Percent  *float64              `form:"step2Percent"`
 		Step3Percent  *float64              `form:"step3Percent"`
-		Step1Price    *float64              `form:"step1Price"`
-		Step2Price    *float64              `form:"step2Price"`
-		Step3Price    *float64              `form:"step3Price"`
+		Step1Price    *uint                 `form:"step1Price"`
+		Step2Price    *uint                 `form:"step2Price"`
+		Step3Price    *uint                 `form:"step3Price"`
 		Quantity      *uint                 `form:"quantity"`
 		QuantityType  *string               `form:"quantityType"`
 		Priority      *uint                 `form:"priority"`
