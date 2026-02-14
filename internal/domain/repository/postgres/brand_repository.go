@@ -11,6 +11,7 @@ type BrandRepository interface {
 	FindBrandByID(database.Database, uint) (*entity.Brand, error)
 	FindBrandBySlug(database.Database, string) (*entity.Brand, error)
 	GetBrands(database.Database) ([]*entity.Brand, error)
+	GetBrandsCount(database.Database) (uint, error)
 	DeleteBrandByID(database.Database, uint) error
 	UpdateBrand(database.Database, *entity.Brand) error
 }

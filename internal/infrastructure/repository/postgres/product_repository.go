@@ -72,3 +72,12 @@ func (repo *ProductRepository) UpdateProduct(db database.Database, product *enti
 func (repo *ProductRepository) DeleteProductByID(db database.Database, productID uint) error {
 	return db.GetDB().Where("id = ?", productID).Unscoped().Delete(&entity.Product{}).Error
 }
+
+func (repo *ProductRepository) GetProductsCount(db database.Database) (uint, error) {
+	var count int64
+	err := db.GetDB().Model(&entity.Product{}).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return uint(count), nil
+}

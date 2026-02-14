@@ -25,6 +25,9 @@ type UserService struct {
 	smsService          communication.SMSService
 	emailService        communication.EmailService
 	userRepository      postgres.UserRepository
+	categoryRepository  postgres.CategoryRepository
+	brandRepository     postgres.BrandRepository
+	productRepository   postgres.ProductRepository
 	userCacheRepository redis.UserCacheRepository
 	db                  database.Database
 }
@@ -36,6 +39,9 @@ type UserServiceDeps struct {
 	SMSService          communication.SMSService
 	EmailService        communication.EmailService
 	UserRepository      postgres.UserRepository
+	CategoryRepository  postgres.CategoryRepository
+	BrandRepository     postgres.BrandRepository
+	ProductRepository   postgres.ProductRepository
 	UserCacheRepository redis.UserCacheRepository
 	DB                  database.Database
 }
@@ -48,6 +54,9 @@ func NewUserService(deps UserServiceDeps) *UserService {
 		smsService:          deps.SMSService,
 		emailService:        deps.EmailService,
 		userRepository:      deps.UserRepository,
+		categoryRepository:  deps.CategoryRepository,
+		brandRepository:     deps.BrandRepository,
+		productRepository:   deps.ProductRepository,
 		userCacheRepository: deps.UserCacheRepository,
 		db:                  deps.DB,
 	}
@@ -538,15 +547,15 @@ func (userService *UserService) AdminLogin(adminInfo userdto.AdminLoginRequest) 
 	
 	if !user.IsAdmin {
 		return userdto.AdminInfoResponse{},
-			exception.NewAccessDeniedError("user is not admin", nil)
+		exception.NewAccessDeniedError("user is not admin", nil)
 	}
-
+	
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(adminInfo.Password))
 	if err != nil {
 		authError := exception.NewInvalidCredentialsError("phone and password not matched", nil)
 		return userdto.AdminInfoResponse{}, authError
 	}
-
+	
 	accessToken, refreshToken, err := userService.jwtService.GenerateToken(user.ID)
 	if err != nil {
 		return userdto.AdminInfoResponse{}, err
@@ -554,5 +563,28 @@ func (userService *UserService) AdminLogin(adminInfo userdto.AdminLoginRequest) 
 	return userdto.AdminInfoResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-	}, nil
+		}, nil
+}	
+	
+func (userService *UserService) GetDashboard() (userdto.DashboardResponse, error) {
+	brandsCount, err := userService.brandRepository.GetBrandsCount(userService.db); 
+	if err != nil {
+		return userdto.DashboardResponse{}, err
+	}
+	
+	categoriesCount, err := userService.categoryRepository.GetCategoriesCount(userService.db); 
+	if err != nil {
+		return userdto.DashboardResponse{}, err
+	}
+	
+	productsCount, err := userService.productRepository.GetProductsCount(userService.db); 
+	if err != nil {
+		return userdto.DashboardResponse{}, err
+	}
+	
+	return userdto.DashboardResponse{
+		BrandsCount: brandsCount,
+		CategoriesCount: categoriesCount,
+		ProductsCount: productsCount,
+		}, nil
 }

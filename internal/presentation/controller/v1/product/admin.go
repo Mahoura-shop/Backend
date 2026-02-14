@@ -30,11 +30,11 @@ func NewAdminProductController(
 
 func (productController *AdminProductController) GetProduct(ctx *gin.Context) {
 	type getProductParams struct {
-		ProductID uint `uri:"productID" validate:"required"`
+		Slug string `uri:"slug" validate:"required"`
 	}
 	params := controller.Validated[getProductParams](ctx)
 	
-	product, err := productController.productService.GetProduct(params.ProductID); 
+	product, err := productController.productService.GetProductBySlug(params.Slug); 
 	if (err != nil) {
 		panic(err)
 	}

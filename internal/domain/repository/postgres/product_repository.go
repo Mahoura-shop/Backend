@@ -11,6 +11,7 @@ type ProductRepository interface {
 	FindProductBySlug(database.Database, string) (*entity.Product, error)
 	FindProductByName(database.Database, string) (*entity.Product, error)
 	GetProducts(database.Database) ([]*entity.Product, error)
+	GetProductsCount(database.Database) (uint, error)
 	DeleteProductByID(database.Database, uint) error
 	UpdateProduct(database.Database, *entity.Product) error
 }

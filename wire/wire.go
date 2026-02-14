@@ -115,6 +115,7 @@ var AdminControllerProviderSet = wire.NewSet(
 	category.NewAdminCategoryController,
 	brand.NewAdminBrandController,
 	product.NewAdminProductController,
+	user.NewAdminUserController,
 	wire.Struct(new(AdminControllers), "*"),
 )
 
@@ -250,6 +251,7 @@ type AdminControllers struct {
 	CurrencyController *currency.AdminCurrencyController
 	BrandController    *brand.AdminBrandController
 	ProductController  *product.AdminProductController
+	UserController     *user.AdminUserController
 }
 
 type Controllers struct {

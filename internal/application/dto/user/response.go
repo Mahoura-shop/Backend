@@ -31,3 +31,9 @@ type AdminInfoResponse struct {
 	AccessToken  string               `json:"accessToken"`
 	RefreshToken string               `json:"refreshToken"`
 }
+
+type DashboardResponse struct {
+	ProductsCount   uint `json:"productsCount"`
+	CategoriesCount uint `json:"categoriesCount"`
+	BrandsCount     uint `json:"brandsCount"`
+}

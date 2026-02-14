@@ -72,3 +72,12 @@ func (repo *CategoryRepository) GetCategoryProductsCount(db database.Database, c
 	}
 	return uint(count), nil
 }
+
+func (repo *CategoryRepository) GetCategoriesCount(db database.Database) (uint, error) {
+	var count int64
+	err := db.GetDB().Model(&entity.Category{}).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return uint(count), nil
+}

@@ -61,6 +61,9 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	emailTemplates := ProvideEmailTemplates(container)
 	emailService := email.NewEmailService(emailAccount, emailTemplates)
 	userRepository := postgres.NewUserRepository()
+	categoryRepository := postgres.NewCategoryRepository()
+	brandRepository := postgres.NewBrandRepository()
+	productRepository := postgres.NewProductRepository()
 	userServiceDeps := service.UserServiceDeps{
 		Constants:           constants,
 		OTPService:          otpService,
@@ -68,6 +71,9 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		SMSService:          smsService,
 		EmailService:        emailService,
 		UserRepository:      userRepository,
+		CategoryRepository:  categoryRepository,
+		BrandRepository:     brandRepository,
+		ProductRepository:   productRepository,
 		UserCacheRepository: userCacheRepository,
 		DB:                  postgresDatabase,
 	}
@@ -90,7 +96,6 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		AddressController: customerAddressController,
 	}
 	pagination := ProvidePaginationConfig(container)
-	categoryRepository := postgres.NewCategoryRepository()
 	s3 := ProvideStorageConfig(container)
 	s3Storage := storage.NewS3Storage(constants, s3)
 	categoryServiceDeps := service.CategoryServiceDeps{
@@ -110,7 +115,6 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	}
 	currencyService := service.NewCurrencyService(currencyServiceDeps)
 	adminCurrencyController := currency.NewAdminCurrencyController(constants, pagination, currencyService)
-	brandRepository := postgres.NewBrandRepository()
 	brandServiceDeps := service.BrandServiceDeps{
 		Constants:       constants,
 		BrandRepository: brandRepository,
@@ -119,7 +123,6 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	}
 	brandService := service.NewBrandService(brandServiceDeps)
 	adminBrandController := brand.NewAdminBrandController(constants, pagination, brandService)
-	productRepository := postgres.NewProductRepository()
 	productServiceDeps := service.ProductServiceDeps{
 		Constants:         constants,
 		ProductRepository: productRepository,
@@ -131,11 +134,13 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	}
 	productService := service.NewProductService(productServiceDeps)
 	adminProductController := product.NewAdminProductController(constants, pagination, productService)
+	adminUserController := user.NewAdminUserController(constants, pagination, userService)
 	adminControllers := &AdminControllers{
 		CategoryController: adminCategoryController,
 		CurrencyController: adminCurrencyController,
 		BrandController:    adminBrandController,
 		ProductController:  adminProductController,
+		UserController:     adminUserController,
 	}
 	controllers := &Controllers{
 		General:  generalControllers,
@@ -190,7 +195,7 @@ var GeneralControllerProviderSet = wire.NewSet(user.NewGeneralUserController, ad
 
 var CustomerControllerProviderSet = wire.NewSet(user.NewCustomerUserController, address.NewCustomerAddressController, wire.Struct(new(CustomerControllers), "*"))
 
-var AdminControllerProviderSet = wire.NewSet(currency.NewAdminCurrencyController, category.NewAdminCategoryController, brand.NewAdminBrandController, product.NewAdminProductController, wire.Struct(new(AdminControllers), "*"))
+var AdminControllerProviderSet = wire.NewSet(currency.NewAdminCurrencyController, category.NewAdminCategoryController, brand.NewAdminBrandController, product.NewAdminProductController, user.NewAdminUserController, wire.Struct(new(AdminControllers), "*"))
 
 var ControllersProviderSet = wire.NewSet(wire.Struct(new(Controllers), "*"))
 
@@ -309,6 +314,7 @@ type AdminControllers struct {
 	CurrencyController *currency.AdminCurrencyController
 	BrandController    *brand.AdminBrandController
 	ProductController  *product.AdminProductController
+	UserController     *user.AdminUserController
 }
 
 type Controllers struct {

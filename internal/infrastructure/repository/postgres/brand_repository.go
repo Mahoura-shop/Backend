@@ -72,3 +72,12 @@ func (repo *BrandRepository) GetBrandProductsCount(db database.Database, brandID
 	}
 	return uint(count), nil
 }
+
+func (repo *BrandRepository) GetBrandsCount(db database.Database) (uint, error) {
+	var count int64
+	err := db.GetDB().Model(&entity.Brand{}).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return uint(count), nil
+}

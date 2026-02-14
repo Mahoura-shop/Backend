@@ -167,3 +167,12 @@ func (userController *GeneralUserController) AdminLogin(ctx *gin.Context) {
 	message, _ := trans.Translate("successMessage.login")
 	controller.Response(ctx, 200, message, adminInfo)
 }
+
+func (userController *AdminUserController) GetDashboard(ctx *gin.Context) {
+	dashboard, err := userController.userService.GetDashboard();
+	if err != nil {
+		panic(err)
+	}
+
+	controller.Response(ctx, 200, "", dashboard)
+}

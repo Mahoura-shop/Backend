@@ -22,4 +22,5 @@ type UserService interface {
 	FindActiveUserByPhone(phone string) (*entity.User, error)
 	UpdateProfile(profileInfo userdto.UpdateProfileRequest) error
 	AdminLogin(adminInfo userdto.AdminLoginRequest) (userdto.AdminInfoResponse, error)
+	GetDashboard() (userdto.DashboardResponse, error)
 }

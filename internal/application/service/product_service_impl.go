@@ -51,36 +51,44 @@ func NewProductService(deps ProductServiceDeps) *ProductService {
 }
 
 func (productService *ProductService) ParseSlug(slug string) (string, error) {
-	parsedSlug := strings.ReplaceAll(slug, " ", "_")
-    parsedSlug = strings.ReplaceAll(parsedSlug, "\t", "_")
-    parsedSlug = strings.ReplaceAll(parsedSlug, "\n", "_")
+    parsedSlug := strings.ReplaceAll(slug, " ", "-")
+    parsedSlug = strings.ReplaceAll(parsedSlug, "\t", "-")
+    parsedSlug = strings.ReplaceAll(parsedSlug, "\n", "-")
     
     parsedSlug = strings.ToLower(parsedSlug)
 
-	var result strings.Builder
-    for _, r := range slug {
-        if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' || r == '-' {
+    var result strings.Builder
+    for _, r := range parsedSlug {
+        if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '-' || r == '_' {
             result.WriteRune(r)
         }
     }
     
     parsedSlug = result.String()
     
-    parsedSlug = strings.Trim(parsedSlug, "_")
+    parsedSlug = strings.Trim(parsedSlug, "-_")
     
-    for strings.Contains(parsedSlug, "__") {
-		parsedSlug = strings.ReplaceAll(parsedSlug, "__", "_")
+    for strings.Contains(parsedSlug, "--") {
+        parsedSlug = strings.ReplaceAll(parsedSlug, "--", "-")
     }
+    
+    for strings.Contains(parsedSlug, "-_") {
+        parsedSlug = strings.ReplaceAll(parsedSlug, "-_", "-")
+    }
+    
+    for strings.Contains(parsedSlug, "_-") {
+        parsedSlug = strings.ReplaceAll(parsedSlug, "_-", "-")
+    }
+    
+    parsedSlug = strings.Trim(parsedSlug, "-_")
 
-	parsedSlug = strings.Trim(parsedSlug, "_")
-
-	var validationErrors exception.ValidationErrors
-	if parsedSlug == "" {
-		validationErrors.Add(productService.constants.Field.Slug, productService.constants.Tag.EmptySlug)
-		return "", validationErrors
-	}
-	
-	return parsedSlug, nil
+    var validationErrors exception.ValidationErrors
+    if parsedSlug == "" {
+        validationErrors.Add(productService.constants.Field.Slug, productService.constants.Tag.EmptySlug)
+        return "", validationErrors
+    }
+    
+    return parsedSlug, nil
 }
 
 func (productService *ProductService) ParseProduct(product entity.Product) (productdto.ProductCredential) {
@@ -125,7 +133,8 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 }
 
 func (productService *ProductService) FindProductBySlug(slug string) (*productdto.ProductCredential, error) {
-	product, err := productService.productRepository.FindProductBySlug(productService.db, slug)
+	parsedSlug, err := productService.ParseSlug(slug)
+	product, err := productService.productRepository.FindProductBySlug(productService.db, parsedSlug)
 	if err != nil {
 		return nil, err
 	}
@@ -173,6 +182,32 @@ func (productService *ProductService) validateDuplicateProduct(slug string, name
 	}
 
 	return nil
+}
+
+func (productService *ProductService) GetProductBySlug(slug string) (*productdto.ProductCredential, error) {
+	parsedSlug, err := productService.ParseSlug(slug)
+	if err != nil {
+		return nil, err
+	}
+	product, err := productService.productRepository.FindProductBySlug(productService.db, parsedSlug)
+	if err != nil {
+		return nil, err
+	}
+	
+	if product == nil {
+		return nil, exception.NotFoundError{Item: productService.constants.Field.Product}
+	}
+
+	if product.ProductPic != "" {
+		productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
+		if err != nil {
+			return nil, err
+		}
+		product.ProductPic = productPic
+	}
+	
+	parsedProduct := productService.ParseProduct(*product)
+	return &parsedProduct, nil
 }
 
 func (productService *ProductService) GetProduct(productID uint) (*productdto.ProductCredential, error) {

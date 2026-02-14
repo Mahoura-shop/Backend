@@ -43,14 +43,18 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		products.GET("", app.Controllers.Admin.ProductController.GetProducts)
 		productsSubGroup := products.Group("/:productID") 
 		{
-			productsSubGroup.GET("", app.Controllers.Admin.ProductController.GetProduct)
 			productsSubGroup.PUT("", app.Controllers.Admin.ProductController.UpdateProduct)
 			productsSubGroup.DELETE("", app.Controllers.Admin.ProductController.DeleteProduct)
+		}
+		productsSlugSubgroup := products.Group("/:slug") 
+		{
+			productsSlugSubgroup.GET("", app.Controllers.Admin.ProductController.GetProduct)
 		}
 	}
 
 	admin := routerGroup.Group("/admin")
 	{
 		admin.POST("/login", app.Controllers.General.UserController.AdminLogin)
+		admin.GET("/dashboard", app.Controllers.Admin.UserController.GetDashboard)
 	}
 }

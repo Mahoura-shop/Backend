@@ -10,6 +10,7 @@ type ProductService interface {
 	ParseProduct(entity.Product) (productdto.ProductCredential)
 	FindProductBySlug(string) (*productdto.ProductCredential, error)
 	GetProduct(uint) (*productdto.ProductCredential, error)
+	GetProductBySlug(string) (*productdto.ProductCredential, error)
 	GetProducts() ([]productdto.ProductCredential, error)
 	CreateProduct(productdto.CreateProductRequest) error
 	UpdateProduct(productdto.UpdateProductRequest) error
