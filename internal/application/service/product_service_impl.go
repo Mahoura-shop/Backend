@@ -255,6 +255,38 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 	return responses, nil
 }
 
+
+func (productService *ProductService) GetCategoryProducts(categoryID uint) ([]productdto.ProductCredential, error) {
+	category, err := productService.categoryService.FindCategoryByID(categoryID)
+	if err != nil {
+		return nil, err
+	}
+	if category == nil {
+		return nil, exception.NotFoundError{Item: productService.constants.Field.Category}
+	}
+	
+	products, err := productService.productRepository.GetCategoryProducts(productService.db, categoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []productdto.ProductCredential
+	for _, product := range products {
+		response := productService.ParseProduct(*product)
+		if product.ProductPic != "" {
+			productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
+			if err != nil {
+				return nil, err
+			}
+			response.ProductPic = productPic
+		}
+
+		responses = append(responses, response)
+	}
+
+	return responses, nil
+}
+
 func (productService *ProductService) applyProductInitial(product *entity.Product, productInfo productdto.CreateProductRequest) {
 	if productInfo.Description != nil {
 		product.Description = *productInfo.Description

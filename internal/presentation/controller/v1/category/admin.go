@@ -22,8 +22,8 @@ func NewAdminCategoryController(
 	categoryService usecase.CategoryService,
 ) *AdminCategoryController {
 	return &AdminCategoryController{
-		constants:   constants,
-		pagination:  pagination,
+		constants:       constants,
+		pagination:      pagination,
 		categoryService: categoryService,
 	}
 }

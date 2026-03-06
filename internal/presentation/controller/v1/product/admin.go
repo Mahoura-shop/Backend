@@ -51,6 +51,18 @@ func (productController *AdminProductController) GetProducts(ctx *gin.Context) {
 	controller.Response(ctx, 200, "", products)
 }
 
+func (productController *AdminProductController) GetCategoryProducts(ctx *gin.Context) {
+	type getCategoryProductsParams struct {
+		ID uint `uri:"categoryID" validate:"required"`
+	}
+	params := controller.Validated[getCategoryProductsParams](ctx)
+	products, err := productController.productService.GetCategoryProducts(params.ID);
+	if (err != nil) {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", products)
+}
+
 func (productController *AdminProductController) CreateProduct(ctx *gin.Context) {
 	type createProductParams struct {
 		Name          string                `form:"name" validate:"required"`

@@ -50,6 +50,10 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		{
 			productsSlugSubgroup.GET("", app.Controllers.Admin.ProductController.GetProduct)
 		}
+		categoryProductsSubGroup := products.Group("/category")
+		{
+			categoryProductsSubGroup.GET("/:categoryID", app.Controllers.Admin.ProductController.GetCategoryProducts)
+		} 
 	}
 
 	admin := routerGroup.Group("/admin")

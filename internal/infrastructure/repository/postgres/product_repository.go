@@ -56,6 +56,18 @@ func (repo *ProductRepository) GetProducts(db database.Database) ([]*entity.Prod
 	return products, nil
 }
 
+
+func (repo *ProductRepository) GetCategoryProducts(db database.Database, categoryID uint) ([]*entity.Product, error) {
+	var products []*entity.Product
+	result := db.GetDB().Preload("Brand").Preload("Category").Where("category_id = ?", categoryID).Find(&products)
+	
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	
+	return products, nil
+}
+
 func (repo *ProductRepository) CreateProduct(db database.Database, product *entity.Product) (*entity.Product, error) {
     result := db.GetDB().Create(product)
     if result.Error != nil {

@@ -12,6 +12,7 @@ type ProductService interface {
 	GetProduct(uint) (*productdto.ProductCredential, error)
 	GetProductBySlug(string) (*productdto.ProductCredential, error)
 	GetProducts() ([]productdto.ProductCredential, error)
+	GetCategoryProducts(categoryID uint) ([]productdto.ProductCredential, error)
 	CreateProduct(productdto.CreateProductRequest) error
 	UpdateProduct(productdto.UpdateProductRequest) error
 	DeleteProduct(uint) error
