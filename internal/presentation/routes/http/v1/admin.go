@@ -59,6 +59,8 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	}
 
 	admin := routerGroup.Group("/admin")
+	admin.Use(app.Middlewares.Authentication.AuthRequired)
+	// admin.Use(app.Middlewares.Auth.RequirePermission([]enums.PermissionType{enums.ManageUsers, enums.ManageRoles}))
 	{
 		admin.POST("/login", app.Controllers.General.UserController.AdminLogin)
 		admin.GET("/dashboard", app.Controllers.Admin.UserController.GetDashboard)
