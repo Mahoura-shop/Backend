@@ -12,9 +12,15 @@ type CreateProductRequest struct {
 	Step1Percent  *float64
 	Step2Percent  *float64
 	Step3Percent  *float64
+	Step4Percent  *float64
 	Step1Price    *uint
 	Step2Price    *uint
 	Step3Price    *uint
+	Step4Price    *uint
+	Step1Origin   *bool
+	Step2Origin   *bool
+	Step3Origin   *bool
+	Step4Origin   *bool
 	Quantity      *uint      
 	QuantityType  *string    
 	Priority      *uint      
@@ -38,9 +44,15 @@ type UpdateProductRequest struct {
 	Step1Percent  *float64
 	Step2Percent  *float64
 	Step3Percent  *float64
+	Step4Percent  *float64
 	Step1Price    *uint
 	Step2Price    *uint
 	Step3Price    *uint
+	Step4Price    *uint
+	Step1Origin   *uint
+	Step2Origin   *uint
+	Step3Origin   *uint
+	Step4Origin   *uint
 	Quantity      *uint      
 	QuantityType  *string    
 	Priority      *uint      
@@ -51,4 +63,9 @@ type UpdateProductRequest struct {
 	IsActive      *bool
 	IsNew         *bool
 	ProductPic    *multipart.FileHeader 
+}
+
+type ProductPriceUpdateCredentials struct {
+	ID       uint
+	IRRPrice uint
 }

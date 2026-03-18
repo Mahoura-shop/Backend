@@ -16,9 +16,15 @@ type Product struct {
 	Step1Percent  float64   `gorm:"type:decimal(10,2);check:step1_percent >= -100 AND step1_percent <= 100"`
 	Step2Percent  float64   `gorm:"type:decimal(10,2);check:step2_percent >= -100 AND step2_percent <= 100"`
 	Step3Percent  float64   `gorm:"type:decimal(10,2);check:step3_percent >= -100 AND step3_percent <= 100"`
+	Step4Percent  float64   `gorm:"type:decimal(10,2);check:step4_percent >= -100 AND step4_percent <= 100"`
 	Step1Price    uint      `gorm:"type:int"`
 	Step2Price    uint      `gorm:"type:int"`
 	Step3Price    uint      `gorm:"type:int"`
+	Step4Price    uint      `gorm:"type:int"`
+	Step1Origin   bool      `gorm:"default:false"`
+	Step2Origin   bool      `gorm:"default:false"`
+	Step3Origin   bool      `gorm:"default:false"`
+	Step4Origin   bool      `gorm:"default:false"`
 	Quantity      uint      `gorm:"default:0;not null"`
 	QuantityType  string    `gorm:"default:'pieces';not null"`
 	Priority      uint      `gorm:"default:0;index" validate:"min=0"`

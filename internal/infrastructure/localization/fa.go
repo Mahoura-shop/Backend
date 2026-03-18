@@ -175,7 +175,8 @@ var Persian = map[string]interface{}{
 		"createProduct":             "محصول با موقفیت ساخته شد.",
 		"deleteProduct":             "محصول با موفقیت حذف شد.",
 		"updateProduct":             "محصول با موفقیت به‌روز‌رسانی شد.",
-		"buyProducts":               "خرید محصولات با موفقیت ثبت شد",
+		"updateProducts":            "محصولات با موفقیت به‌روز‌رسانی شدند.",
+		"buyProducts":               "خرید محصولات با موفقیت ثبت شد.",
 	},
 	"emailSubject": map[string]interface{}{
 		"emailConfirmation": "تأیید آدرس ایمیل شما",

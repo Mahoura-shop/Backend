@@ -11,8 +11,8 @@ import (
 )
 
 type AdminProductController struct {
-	constants       *bootstrap.Constants
-	pagination      *bootstrap.Pagination
+	constants      *bootstrap.Constants
+	pagination     *bootstrap.Pagination
 	productService usecase.ProductService
 }
 
@@ -48,18 +48,6 @@ func (productController *AdminProductController) GetProducts(ctx *gin.Context) {
 		panic(err)
 	}
 
-	controller.Response(ctx, 200, "", products)
-}
-
-func (productController *AdminProductController) GetCategoryProducts(ctx *gin.Context) {
-	type getCategoryProductsParams struct {
-		ID uint `uri:"categoryID" validate:"required"`
-	}
-	params := controller.Validated[getCategoryProductsParams](ctx)
-	products, err := productController.productService.GetCategoryProducts(params.ID);
-	if (err != nil) {
-		panic(err)
-	}
 	controller.Response(ctx, 200, "", products)
 }
 
@@ -199,4 +187,53 @@ func (productController *AdminProductController) DeleteProduct(ctx *gin.Context)
 	trans := controller.GetTranslator(ctx, productController.constants.Context.Translator)
 	message, _ := trans.Translate("successMessage.deleteProduct")
 	controller.Response(ctx, 200, message, nil)
+}
+
+func (productController *AdminProductController) GetCategoryProducts(ctx *gin.Context) {
+	type getCategoryProductsParams struct {
+		ID uint `uri:"categoryID" validate:"required"`
+	}
+	params := controller.Validated[getCategoryProductsParams](ctx)
+	products, err := productController.productService.GetCategoryProducts(params.ID);
+	if (err != nil) {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", products)
+}
+
+func (productController *AdminProductController) UpdateProductPrices(ctx *gin.Context) {
+	type productPrice struct {
+		ID       uint `json:"id" validate:"required"`
+		IRRPrice uint `json:"irrPrice" validate:"required"`
+	}
+
+	type updateProductPricesParams struct {
+		ProductPrices []productPrice `json:"productPrices" validate:"required"`
+		// ProductPrices []productPrice `json:"productPrices" validate:"required,dive"`
+	}
+	params := controller.Validated[updateProductPricesParams](ctx)
+
+	products := make([]productdto.ProductPriceUpdateCredentials, len(params.ProductPrices))
+	for i, product := range params.ProductPrices {
+		products[i] = productdto.ProductPriceUpdateCredentials{
+			ID: product.ID,
+			IRRPrice: product.IRRPrice,
+		}
+	}
+
+	if err := productController.productService.UpdateProductsPrice(products); err != nil {
+		panic(err)
+	}
+	
+	trans := controller.GetTranslator(ctx, productController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.updateProducts")
+	controller.Response(ctx, 200, message, nil)
+}
+
+func (productController *AdminProductController) GetProductPrices(ctx *gin.Context) {
+	productPrices, err := productController.productService.GetProductPrices();
+	if (err != nil) {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", productPrices)
 }

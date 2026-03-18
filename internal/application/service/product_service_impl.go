@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"math"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	productdto "github.com/Mahoura-shop/Backend/internal/application/dto/product"
@@ -132,6 +133,13 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 	return response
 }
 
+func (productService *ProductService) roundPrice(price uint) uint {
+	if price > 10_000_000 {
+		return uint(math.Floor(float64(price) / 100_000) * 100_000)
+	}
+	return uint(math.Floor(float64(price) / 10_000) * 10_000)
+}
+
 func (productService *ProductService) FindProductBySlug(slug string) (*productdto.ProductCredential, error) {
 	parsedSlug, err := productService.ParseSlug(slug)
 	product, err := productService.productRepository.FindProductBySlug(productService.db, parsedSlug)
@@ -255,38 +263,6 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 	return responses, nil
 }
 
-
-func (productService *ProductService) GetCategoryProducts(categoryID uint) ([]productdto.ProductCredential, error) {
-	category, err := productService.categoryService.FindCategoryByID(categoryID)
-	if err != nil {
-		return nil, err
-	}
-	if category == nil {
-		return nil, exception.NotFoundError{Item: productService.constants.Field.Category}
-	}
-	
-	products, err := productService.productRepository.GetCategoryProducts(productService.db, categoryID)
-	if err != nil {
-		return nil, err
-	}
-
-	var responses []productdto.ProductCredential
-	for _, product := range products {
-		response := productService.ParseProduct(*product)
-		if product.ProductPic != "" {
-			productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
-			if err != nil {
-				return nil, err
-			}
-			response.ProductPic = productPic
-		}
-
-		responses = append(responses, response)
-	}
-
-	return responses, nil
-}
-
 func (productService *ProductService) applyProductInitial(product *entity.Product, productInfo productdto.CreateProductRequest) {
 	if productInfo.Description != nil {
 		product.Description = *productInfo.Description
@@ -339,7 +315,7 @@ func (productService *ProductService) applyProductInitial(product *entity.Produc
 	}
 
 	if productInfo.IRRPrice != nil {
-		product.IRRPrice = *productInfo.IRRPrice
+		product.IRRPrice = productService.roundPrice(*productInfo.IRRPrice)
 	} else {
 		product.IRRPrice = 0
 	}
@@ -368,22 +344,34 @@ func (productService *ProductService) applyProductInitial(product *entity.Produc
 		product.Step3Percent = 0
 	}
 
+	if productInfo.Step4Percent != nil {
+		product.Step4Percent = *productInfo.Step4Percent
+	} else {
+		product.Step4Percent = 0
+	}
+
 	if productInfo.Step1Price != nil {
-		product.Step1Price = *productInfo.Step1Price
+		product.Step1Price = productService.roundPrice(*productInfo.Step1Price)
 	} else {
 		product.Step1Price = 0
 	}
 
 	if productInfo.Step2Price != nil {
-		product.Step2Price = *productInfo.Step2Price
+		product.Step2Price = productService.roundPrice(*productInfo.Step2Price)
 	} else {
 		product.Step2Price = 0
 	}
 
 	if productInfo.Step3Price != nil {
-		product.Step3Price = *productInfo.Step3Price
+		product.Step3Price = productService.roundPrice(*productInfo.Step3Price)
 	} else {
 		product.Step3Price = 0
+	}
+
+	if productInfo.Step4Price != nil {
+		product.Step4Price = productService.roundPrice(*productInfo.Step4Price)
+	} else {
+		product.Step4Price = 0
 	}
 }
 
@@ -512,7 +500,7 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 		product.CurrencyID = *productInfo.CurrencyID
 	}
 	if productInfo.IRRPrice != nil {
-		product.IRRPrice = *productInfo.IRRPrice
+		product.IRRPrice = productService.roundPrice(*productInfo.IRRPrice)
 	}
 	if productInfo.ConsumerPrice != nil {
 		product.ConsumerPrice = *productInfo.ConsumerPrice
@@ -526,14 +514,20 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 	if productInfo.Step3Percent != nil {
 		product.Step3Percent = *productInfo.Step3Percent
 	}
+	if productInfo.Step4Percent != nil {
+		product.Step4Percent = *productInfo.Step4Percent
+	}
 	if productInfo.Step1Price != nil {
-		product.Step1Price = *productInfo.Step1Price
+		product.Step1Price = productService.roundPrice(*productInfo.Step1Price)
 	}
 	if productInfo.Step2Price != nil {
-		product.Step2Price = *productInfo.Step2Price
+		product.Step2Price = productService.roundPrice(*productInfo.Step2Price)
 	}
 	if productInfo.Step3Price != nil {
-		product.Step3Price = *productInfo.Step3Price
+		product.Step3Price = productService.roundPrice(*productInfo.Step3Price)
+	}
+	if productInfo.Step4Price != nil {
+		product.Step4Price = productService.roundPrice(*productInfo.Step4Price)
 	}
 	return nil
 }
@@ -637,6 +631,83 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 	return err
 }
 
+func (productService *ProductService) GetCategoryProducts(categoryID uint) ([]productdto.ProductCredential, error) {
+	category, err := productService.categoryService.FindCategoryByID(categoryID)
+	if err != nil {
+		return nil, err
+	}
+	if category == nil {
+		return nil, exception.NotFoundError{Item: productService.constants.Field.Category}
+	}
+	
+	products, err := productService.productRepository.GetCategoryProducts(productService.db, categoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []productdto.ProductCredential
+	for _, product := range products {
+		response := productService.ParseProduct(*product)
+		if product.ProductPic != "" {
+			productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
+			if err != nil {
+				return nil, err
+			}
+			response.ProductPic = productPic
+		}
+
+		responses = append(responses, response)
+	}
+
+	return responses, nil
+}
+
+func (productService *ProductService) UpdateProductsPrice(products []productdto.ProductPriceUpdateCredentials) error {
+	err := productService.db.WithTransaction(func(tx database.Database) error {
+		for _, product := range products {
+			productInfo, err := productService.productRepository.FindProductByID(productService.db, product.ID)
+			if err != nil {
+				return err
+			}
+			if productInfo == nil {
+				return exception.NotFoundError{Item: productService.constants.Field.Product}
+			}
+			productInfo.IRRPrice = product.IRRPrice
+			
+			if productInfo.Step1Origin {
+				productInfo.Step1Price = productService.roundPrice(uint(float64(productInfo.IRRPrice) * (1 + productInfo.Step1Percent / 100)))
+			} else {
+				productInfo.Step1Price = productService.roundPrice(uint(float64(productInfo.IRRPrice) * (1 + productInfo.Step1Percent / 100)))
+			}
+
+			if productInfo.Step2Origin {
+				productInfo.Step2Price = productService.roundPrice(uint(float64(productInfo.IRRPrice) * (1 + productInfo.Step2Percent / 100)))
+			} else {
+				productInfo.Step2Price = productService.roundPrice(uint(float64(productInfo.Step1Price) * (1 + productInfo.Step2Percent / 100)))
+			}
+
+			if productInfo.Step3Origin {
+				productInfo.Step3Price = productService.roundPrice(uint(float64(productInfo.IRRPrice) * (1 + productInfo.Step3Percent / 100)))
+			} else {
+				productInfo.Step3Price = productService.roundPrice(uint(float64(productInfo.Step2Price) * (1 + productInfo.Step3Percent / 100)))
+			}
+
+			if productInfo.Step4Origin {
+				productInfo.Step4Price = productService.roundPrice(uint(float64(productInfo.IRRPrice) * (1 + productInfo.Step4Percent / 100)))
+			} else {
+				productInfo.Step4Price = productService.roundPrice(uint(float64(productInfo.Step3Price) * (1 + productInfo.Step4Percent / 100)))
+			}
+
+			if err := productService.productRepository.UpdateProduct(tx, productInfo); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return err
+}
+
 func (productService *ProductService) DeleteProduct(productID uint) error {
 	product, err := productService.productRepository.FindProductByID(productService.db, productID)
 	if err != nil {
@@ -650,4 +721,29 @@ func (productService *ProductService) DeleteProduct(productID uint) error {
 		return err
 	}
 	return nil
+}
+
+func (productService *ProductService) GetProductPrices() ([]productdto.ProductPrices, error) {
+	products, err := productService.productRepository.GetProducts(productService.db)
+	if err != nil {
+		return nil, err
+	}
+	var responses []productdto.ProductPrices
+	for _, product := range products {
+		response := productdto.ProductPrices{
+			ID:            product.ID,
+			Name:          product.Name,
+			Price:         product.Price,
+			IRRPrice:      product.IRRPrice,
+		}
+		
+		currency, _ := productService.currencyService.ParseCurrency(product.Currency)
+		response.Currency = &currency
+
+		response.NewIRRPrice = productService.roundPrice(uint(product.Price * float64(response.Currency.ConvertRate)))
+
+		responses = append(responses, response)
+	}
+
+	return responses, nil
 }

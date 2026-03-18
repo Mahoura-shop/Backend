@@ -18,9 +18,15 @@ type ProductCredential struct {
 	Step1Percent  float64                         `json:"step1Percent"`
 	Step2Percent  float64                         `json:"step2Percent"`
 	Step3Percent  float64                         `json:"step3Percent"`
+	Step4Percent  float64                         `json:"step4Percent"`
 	Step1Price    uint                            `json:"step1Price"`
 	Step2Price    uint                            `json:"step2Price"`
 	Step3Price    uint                            `json:"step3Price"`
+	Step4Price    uint                            `json:"step4Price"`
+	Step1Origin   uint                            `json:"step1Origin"`
+	Step2Origin   uint                            `json:"step2Origin"`
+	Step3Origin   uint                            `json:"step3Origin"`
+	Step4Origin   uint                            `json:"step4Origin"`
 	Quantity      uint                            `json:"quantity"`
 	QuantityType  string                          `json:"quantityType"`
 	Priority      uint                            `json:"priority"`
@@ -33,4 +39,13 @@ type ProductCredential struct {
 	IsActive      bool                            `json:"isActive"`
 	IsNew         bool                            `json:"isNew"`
 	ProductPic    string                          `json:"productPic"`
+}
+
+type ProductPrices struct {
+	ID            uint                            `json:"id"`
+	Name          string                          `json:"name"`
+	Price         float64                         `json:"price"`
+	IRRPrice      uint                            `json:"irrPrice"`
+	Currency      *currencydto.CurrencyCredential `json:"currency"`
+	NewIRRPrice   uint                            `json:"newIrrPrice"`
 }

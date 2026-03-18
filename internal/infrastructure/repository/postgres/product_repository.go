@@ -14,7 +14,7 @@ func NewProductRepository() *ProductRepository {
 
 func (repo *ProductRepository) FindProductByID(db database.Database, productID uint) (*entity.Product, error) {
 	var product entity.Product
-	result := db.GetDB().Preload("Brand").Preload("Category").Where("id = ?", productID).First(&product)
+	result := db.GetDB().Preload("Brand").Preload("Category").Preload("Currency").Where("id = ?", productID).First(&product)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -23,7 +23,7 @@ func (repo *ProductRepository) FindProductByID(db database.Database, productID u
 
 func (repo *ProductRepository) FindProductBySlug(db database.Database, slug string) (*entity.Product, error) {
 	var product entity.Product
-	result := db.GetDB().Preload("Brand").Preload("Category").Where("slug = ?", slug).First(&product)
+	result := db.GetDB().Preload("Brand").Preload("Category").Preload("Currency").Where("slug = ?", slug).First(&product)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, nil
@@ -35,7 +35,7 @@ func (repo *ProductRepository) FindProductBySlug(db database.Database, slug stri
 
 func (repo *ProductRepository) FindProductByName(db database.Database, name string) (*entity.Product, error) {
 	var product entity.Product
-	result := db.GetDB().Preload("Brand").Preload("Category").Where("name = ?", name).First(&product)
+	result := db.GetDB().Preload("Brand").Preload("Category").Preload("Currency").Where("name = ?", name).First(&product)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, nil
@@ -47,7 +47,7 @@ func (repo *ProductRepository) FindProductByName(db database.Database, name stri
 
 func (repo *ProductRepository) GetProducts(db database.Database) ([]*entity.Product, error) {
 	var products []*entity.Product
-	result := db.GetDB().Preload("Brand").Preload("Category").Find(&products)
+	result := db.GetDB().Preload("Brand").Preload("Category").Preload("Currency").Find(&products)
 	
 	if result.Error != nil {
 		return nil, result.Error
@@ -59,7 +59,7 @@ func (repo *ProductRepository) GetProducts(db database.Database) ([]*entity.Prod
 
 func (repo *ProductRepository) GetCategoryProducts(db database.Database, categoryID uint) ([]*entity.Product, error) {
 	var products []*entity.Product
-	result := db.GetDB().Preload("Brand").Preload("Category").Where("category_id = ?", categoryID).Find(&products)
+	result := db.GetDB().Preload("Brand").Preload("Category").Preload("Currency").Where("category_id = ?", categoryID).Find(&products)
 	
 	if result.Error != nil {
 		return nil, result.Error
