@@ -23,7 +23,7 @@ func registerGeneralRoutes(v1 *gin.RouterGroup, app *wire.Application) {
 }
 
 func registerAdminRoutes(v1 *gin.RouterGroup, app *wire.Application) {
-	admin := v1.Group("/admin")
+	admin := v1.Group("")
 	admin.Use(app.Middlewares.Authentication.AuthRequired)
 	httpv1.SetupAdminRoutes(admin, app)
 }

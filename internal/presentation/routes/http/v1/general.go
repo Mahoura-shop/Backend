@@ -10,4 +10,9 @@ func SetupGeneralRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	{
 		test.POST("", app.Controllers.General.TestController.Test)
 	}
+
+	auth := routerGroup.Group("/auth")
+	{
+		auth.POST("/login", app.Controllers.General.UserController.AdminLogin)
+	}
 }
