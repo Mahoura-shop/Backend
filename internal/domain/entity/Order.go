@@ -6,6 +6,8 @@ import (
 
 type Order struct {
 	database.Model
-	CartID uint
-	Cart   Cart `gorm:"foreignKey:CartID"`
+	CartID    uint
+	Cart      Cart    `gorm:"foreignKey:CartID"`
+	PaymentID uint
+	Payment   Payment `gorm:"foreignKey:PaymentID"`
 }
