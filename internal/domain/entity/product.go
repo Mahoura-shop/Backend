@@ -13,10 +13,10 @@ type Product struct {
 	Currency      Currency  `gorm:"foreignKey:CurrencyID"`
 	IRRPrice      uint      `gorm:"type:int;not null"`
 	ConsumerPrice uint      `gorm:"type:int"`
-	Step1Percent  float64   `gorm:"type:decimal(10,2);check:step1_percent >= -100 AND step1_percent <= 100"`
-	Step2Percent  float64   `gorm:"type:decimal(10,2);check:step2_percent >= -100 AND step2_percent <= 100"`
-	Step3Percent  float64   `gorm:"type:decimal(10,2);check:step3_percent >= -100 AND step3_percent <= 100"`
-	Step4Percent  float64   `gorm:"type:decimal(10,2);check:step4_percent >= -100 AND step4_percent <= 100"`
+	Step1Percent  float64   `gorm:"type:decimal(10,2);check:step1_percent >= -100"`
+	Step2Percent  float64   `gorm:"type:decimal(10,2);check:step2_percent >= -100"`
+	Step3Percent  float64   `gorm:"type:decimal(10,2);check:step3_percent >= -100"`
+	Step4Percent  float64   `gorm:"type:decimal(10,2);check:step4_percent >= -100"`
 	Step1Price    uint      `gorm:"type:int"`
 	Step2Price    uint      `gorm:"type:int"`
 	Step3Price    uint      `gorm:"type:int"`
@@ -34,6 +34,7 @@ type Product struct {
 	BrandID       *uint
 	Brand         *Brand    `gorm:"foreignKey:BrandID"`
 	Description   string    `gorm:"type:text"`
+	Offer         string    `gorm:"type:text"`
 	IsActive      bool      `gorm:"default:true"`
 	IsNew         bool      `gorm:"default:true"`
 	ProductPic    string    `gorm:"type:varchar(255);default:null"`

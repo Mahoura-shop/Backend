@@ -28,6 +28,7 @@ type CreateProductRequest struct {
 	CategoryID    *uint 
 	BrandID       *uint 
 	Description   *string
+	Offer         *string
 	IsActive      *bool
 	IsNew         *bool
 	ProductPic    *multipart.FileHeader 
@@ -49,10 +50,10 @@ type UpdateProductRequest struct {
 	Step2Price    *uint
 	Step3Price    *uint
 	Step4Price    *uint
-	Step1Origin   *uint
-	Step2Origin   *uint
-	Step3Origin   *uint
-	Step4Origin   *uint
+	Step1Origin   *bool
+	Step2Origin   *bool
+	Step3Origin   *bool
+	Step4Origin   *bool
 	Quantity      *uint      
 	QuantityType  *string    
 	Priority      *uint      
@@ -60,6 +61,7 @@ type UpdateProductRequest struct {
 	CategoryID    *uint 
 	BrandID       *uint 
 	Description   *string
+	Offer         *string
 	IsActive      *bool
 	IsNew         *bool
 	ProductPic    *multipart.FileHeader 

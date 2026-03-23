@@ -103,14 +103,21 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 		Step1Percent:  product.Step1Percent,
 		Step2Percent:  product.Step2Percent,
 		Step3Percent:  product.Step3Percent,
+		Step4Percent:  product.Step4Percent,
 		Step1Price:    product.Step1Price,
 		Step2Price:    product.Step2Price,
 		Step3Price:    product.Step3Price,
+		Step4Price:    product.Step4Price,
+		Step1Origin:   product.Step1Origin,
+		Step2Origin:   product.Step2Origin,
+		Step3Origin:   product.Step3Origin,
+		Step4Origin:   product.Step4Origin,
 		Quantity:      product.Quantity,
 		QuantityType:  product.QuantityType,
 		Priority:      product.Priority,
 		MinOrder:      product.MinOrder,
 		Description:   product.Description,
+		Offer:         product.Offer,
 		IsActive:      product.IsActive,
 		IsNew:         product.IsNew,
 		ProductPic:    product.ProductPic,
@@ -270,6 +277,12 @@ func (productService *ProductService) applyProductInitial(product *entity.Produc
 		product.Description = ""
 	}
 
+	if productInfo.Offer != nil {
+		product.Offer = *productInfo.Offer
+	} else {
+		product.Offer = ""
+	}
+
 	if productInfo.IsActive != nil {
 		product.IsActive = *productInfo.IsActive
 	} else {
@@ -373,6 +386,30 @@ func (productService *ProductService) applyProductInitial(product *entity.Produc
 	} else {
 		product.Step4Price = 0
 	}
+
+	if productInfo.Step1Origin != nil {
+		product.Step1Origin = *productInfo.Step1Origin
+	} else {
+		product.Step1Origin = false
+	}
+
+	if productInfo.Step2Origin != nil {
+		product.Step2Origin = *productInfo.Step2Origin
+	} else {
+		product.Step2Origin = false
+	}
+
+	if productInfo.Step3Origin != nil {
+		product.Step3Origin = *productInfo.Step3Origin
+	} else {
+		product.Step3Origin = false
+	}
+
+	if productInfo.Step4Origin != nil {
+		product.Step4Origin = *productInfo.Step4Origin
+	} else {
+		product.Step4Origin = false
+	}
 }
 
 func (productService *ProductService) CreateProduct(productInfo productdto.CreateProductRequest) error {
@@ -469,6 +506,9 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 	if productInfo.Description != nil {
 		product.Description = *productInfo.Description
 	}
+	if productInfo.Offer != nil {
+		product.Offer = *productInfo.Offer
+	}
 	if productInfo.IsActive != nil {
 		product.IsActive = *productInfo.IsActive
 	}
@@ -528,6 +568,18 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 	}
 	if productInfo.Step4Price != nil {
 		product.Step4Price = productService.roundPrice(*productInfo.Step4Price)
+	}
+	if productInfo.Step1Origin != nil {
+		product.Step1Origin = *productInfo.Step1Origin
+	}
+	if productInfo.Step2Origin != nil {
+		product.Step2Origin = *productInfo.Step2Origin
+	}
+	if productInfo.Step3Origin != nil {
+		product.Step3Origin = *productInfo.Step3Origin
+	}
+	if productInfo.Step4Origin != nil {
+		product.Step4Origin = *productInfo.Step4Origin
 	}
 	return nil
 }

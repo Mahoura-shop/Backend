@@ -62,9 +62,15 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		Step1Percent  *float64              `form:"step1Percent"`
 		Step2Percent  *float64              `form:"step2Percent"`
 		Step3Percent  *float64              `form:"step3Percent"`
+		Step4Percent  *float64              `form:"step4Percent"`
 		Step1Price    *uint                 `form:"step1Price"`
 		Step2Price    *uint                 `form:"step2Price"`
 		Step3Price    *uint                 `form:"step3Price"`
+		Step4Price    *uint                 `form:"step4Price"`
+		Step1Origin   *bool                 `form:"step1Origin"`
+		Step2Origin   *bool                 `form:"step2Origin"`
+		Step3Origin   *bool                 `form:"step3Origin"`
+		Step4Origin   *bool                 `form:"step4Origin"`
 		Quantity      *uint                 `form:"quantity"`
 		QuantityType  *string               `form:"quantityType"`
 		Priority      *uint                 `form:"priority"`
@@ -72,6 +78,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		CategoryID    *uint                 `form:"categoryID"`
 		BrandID       *uint                 `form:"brandID"`
 		Description   *string               `form:"description"`
+		Offer         *string               `form:"offer"`
 		IsActive      *bool                 `form:"isActive"`
 		IsNew         *bool                 `form:"isNew"`
 		ProductPic    *multipart.FileHeader `form:"productPic"`
@@ -88,9 +95,15 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		Step1Percent:  params.Step1Percent,
 		Step2Percent:  params.Step2Percent,
 		Step3Percent:  params.Step3Percent,
+		Step4Percent:  params.Step4Percent,
 		Step1Price:    params.Step1Price,
 		Step2Price:    params.Step2Price,
 		Step3Price:    params.Step3Price,
+		Step4Price:    params.Step4Price,
+		Step1Origin:   params.Step1Origin,
+		Step2Origin:   params.Step2Origin,
+		Step3Origin:   params.Step3Origin,
+		Step4Origin:   params.Step4Origin,
 		Quantity:      params.Quantity,
 		QuantityType:  params.QuantityType,
 		Priority:      params.Priority,
@@ -98,6 +111,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		CategoryID:    params.CategoryID,
 		BrandID:       params.BrandID,
 		Description:   params.Description,
+		Offer:         params.Offer,
 		IsActive:      params.IsActive,
 		IsNew:         params.IsNew,
 		ProductPic:    params.ProductPic,
@@ -123,9 +137,15 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		Step1Percent  *float64              `form:"step1Percent"`
 		Step2Percent  *float64              `form:"step2Percent"`
 		Step3Percent  *float64              `form:"step3Percent"`
+		Step4Percent  *float64              `form:"step4Percent"`
 		Step1Price    *uint                 `form:"step1Price"`
 		Step2Price    *uint                 `form:"step2Price"`
 		Step3Price    *uint                 `form:"step3Price"`
+		Step4Price    *uint                 `form:"step4Price"`
+		Step1Origin   *bool                 `form:"step1Origin"`
+		Step2Origin   *bool                 `form:"step2Origin"`
+		Step3Origin   *bool                 `form:"step3Origin"`
+		Step4Origin   *bool                 `form:"step4Origin"`
 		Quantity      *uint                 `form:"quantity"`
 		QuantityType  *string               `form:"quantityType"`
 		Priority      *uint                 `form:"priority"`
@@ -133,6 +153,7 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		CategoryID    *uint                 `form:"categoryID"`
 		BrandID       *uint                 `form:"brandID"`
 		Description   *string               `form:"description"`
+		Offer         *string               `form:"offer"`
 		IsActive      *bool                 `form:"isActive"`
 		IsNew         *bool                 `form:"isNew"`
 		ProductPic    *multipart.FileHeader `form:"productPic"`
@@ -150,9 +171,15 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		Step1Percent:  params.Step1Percent,
 		Step2Percent:  params.Step2Percent,
 		Step3Percent:  params.Step3Percent,
+		Step4Percent:  params.Step4Percent,
 		Step1Price:    params.Step1Price,
 		Step2Price:    params.Step2Price,
 		Step3Price:    params.Step3Price,
+		Step4Price:    params.Step4Price,
+		Step1Origin:   params.Step1Origin,
+		Step2Origin:   params.Step2Origin,
+		Step3Origin:   params.Step3Origin,
+		Step4Origin:   params.Step4Origin,
 		Quantity:      params.Quantity,
 		QuantityType:  params.QuantityType,
 		Priority:      params.Priority,
@@ -160,6 +187,7 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		CategoryID:    params.CategoryID,
 		BrandID:       params.BrandID,
 		Description:   params.Description,
+		Offer:         params.Offer,
 		IsActive:      params.IsActive,
 		IsNew:         params.IsNew,
 		ProductPic:    params.ProductPic,

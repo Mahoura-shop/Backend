@@ -23,10 +23,10 @@ type ProductCredential struct {
 	Step2Price    uint                            `json:"step2Price"`
 	Step3Price    uint                            `json:"step3Price"`
 	Step4Price    uint                            `json:"step4Price"`
-	Step1Origin   uint                            `json:"step1Origin"`
-	Step2Origin   uint                            `json:"step2Origin"`
-	Step3Origin   uint                            `json:"step3Origin"`
-	Step4Origin   uint                            `json:"step4Origin"`
+	Step1Origin   bool                            `json:"step1Origin"`
+	Step2Origin   bool                            `json:"step2Origin"`
+	Step3Origin   bool                            `json:"step3Origin"`
+	Step4Origin   bool                            `json:"step4Origin"`
 	Quantity      uint                            `json:"quantity"`
 	QuantityType  string                          `json:"quantityType"`
 	Priority      uint                            `json:"priority"`
@@ -36,6 +36,7 @@ type ProductCredential struct {
 	Brand         *branddto.BrandCredential       `json:"brand"`
 	BrandID       uint                            `json:"brandID"`
 	Description   string                          `json:"description"`
+	Offer         string                          `json:"offer"`
 	IsActive      bool                            `json:"isActive"`
 	IsNew         bool                            `json:"isNew"`
 	ProductPic    string                          `json:"productPic"`
