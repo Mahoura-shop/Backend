@@ -6,7 +6,7 @@ import (
 
 type Transaction struct {
 	database.Model
-	Amount   int    `gorm:"type:int"`
+	Amount   uint    `gorm:"type:int"`
 	WalletID uint 
 	Wallet   Wallet `gorm:"foreignKey:WalletID"`
 }
