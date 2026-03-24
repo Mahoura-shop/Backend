@@ -27,9 +27,9 @@ func (s *UserServiceMock) GetUserByID(userID uint) (*entity.User, error) {
 	return args.Get(0).(*entity.User), args.Error(1)
 }
 
-func (s *UserServiceMock) GetUserCredential(userID uint) (userdto.CredentialResponse, error) {
+func (s *UserServiceMock) GetUserCredential(userID uint) (userdto.UserCredential, error) {
 	args := s.Called(userID)
-	return args.Get(0).(userdto.CredentialResponse), args.Error(1)
+	return args.Get(0).(userdto.UserCredential), args.Error(1)
 }
 
 func (s *UserServiceMock) BanUser(userID uint) error {

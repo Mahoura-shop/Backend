@@ -6,10 +6,11 @@ import (
 )
 
 type UserService interface {
+	ParseUser(entity.User) (userdto.UserCredential)
 	IsUserActive(uint) error
 	GetUserByID(uint) (*entity.User, error)
 	FindActiveUserByPhone(string) (*entity.User, error)
-	GetUserCredential(uint) (userdto.CredentialResponse, error)
+	GetUserCredential(uint) (userdto.UserCredential, error)
 	BanUser(uint) error
 	UnbanUser(uint) error
 	Auth(userdto.AuthRequest) error

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
@@ -28,6 +27,7 @@ type UserService struct {
 	brandRepository     postgres.BrandRepository
 	productRepository   postgres.ProductRepository
 	walletRepository    postgres.WalletRepository
+	cartRepository      postgres.CartRepository
 	userCacheRepository redis.UserCacheRepository
 	db                  database.Database
 }
@@ -43,6 +43,7 @@ type UserServiceDeps struct {
 	BrandRepository     postgres.BrandRepository
 	ProductRepository   postgres.ProductRepository
 	WalletRepository    postgres.WalletRepository
+	CartRepository      postgres.CartRepository
 	UserCacheRepository redis.UserCacheRepository
 	DB                  database.Database
 }
@@ -59,9 +60,26 @@ func NewUserService(deps UserServiceDeps) *UserService {
 		brandRepository:     deps.BrandRepository,
 		productRepository:   deps.ProductRepository,
 		walletRepository:    deps.WalletRepository,
+		cartRepository:      deps.CartRepository,
 		userCacheRepository: deps.UserCacheRepository,
 		db:                  deps.DB,
 	}
+}
+
+
+func (userService *UserService) ParseUser(user entity.User) (userdto.UserCredential) {
+	response := userdto.UserCredential{
+		ID:            user.ID,
+		FirstName:     user.FirstName,
+		LastName:      user.LastName,
+		Phone:         user.Phone,
+		Email:         user.Email,
+		ProfilePic:    user.ProfilePicPath,
+		Status:        user.Status.String(),
+		Type:          user.Type.String(),
+	}
+
+	return response
 }
 
 func (userService *UserService) IsUserActive(userID uint) error {
@@ -100,21 +118,22 @@ func (userService *UserService) FindActiveUserByPhone(phone string) (*entity.Use
 	return user, nil
 }
 
-func (userService *UserService) GetUserCredential(userID uint) (userdto.CredentialResponse, error) {
+func (userService *UserService) GetUserCredential(userID uint) (userdto.UserCredential, error) {
 	user, err := userService.GetUserByID(userID)
 	if err != nil {
-		return userdto.CredentialResponse{}, err
+		return userdto.UserCredential{}, err
 	}
 
-	return userdto.CredentialResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		Phone:      user.Phone,
-		Email:      user.Email,
-		Status:     user.Status.String(),
-		Type:       user.Type.String(),
-	}, nil
+	// return userdto.UserCredential{
+	// 	ID:         user.ID,
+	// 	FirstName:  user.FirstName,
+	// 	LastName:   user.LastName,
+	// 	Phone:      user.Phone,
+	// 	Email:      user.Email,
+	// 	Status:     user.Status.String(),
+	// 	Type:       user.Type.String(),
+	// },
+	return userService.ParseUser(*user), nil
 }
 
 func (userService *UserService) BanUser(userID uint) error {
@@ -201,6 +220,15 @@ func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequ
 				return err
 			}
 
+			cart := &entity.Cart{
+				UserID: user.ID,
+			}
+
+			err = userService.cartRepository.CreateCart(tx, cart)
+			if err != nil {
+				return err
+			}
+
 			// userService.smsService.SendOTP(registerInfo.Phone, otp)
 			return nil
 		})
@@ -221,6 +249,7 @@ func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequ
 		RefreshToken: refreshToken,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
+		Type:         user.Type.String(),
 	}, nil
 }
 

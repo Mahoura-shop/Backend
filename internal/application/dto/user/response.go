@@ -13,13 +13,12 @@ type UserInfoResponse struct {
 	Type         string `json:"type"`
 }
 
-type CredentialResponse struct {
+type UserCredential struct {
 	ID         uint   `json:"id"`
 	FirstName  string `json:"firstName"`
 	LastName   string `json:"lastName"`
 	Phone      string `json:"phone"`
 	Email      string `json:"email"`
-	NationalID string `json:"nationalID"`
 	ProfilePic string `json:"profilePic"`
 	Status     string `json:"status"`
 	Type       string `json:"type"`

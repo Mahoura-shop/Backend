@@ -49,6 +49,7 @@ var RepositoryProviderSet = wire.NewSet(
 	infraPostgres.NewBrandRepository,
 	infraPostgres.NewProductRepository,
 	infraPostgres.NewWalletRepository,
+	infraPostgres.NewCartRepository,
 	infraRedis.NewUserCacheRepository,
 	wire.Bind(new(domainPostgres.UserRepository), new(*infraPostgres.UserRepository)),
 	wire.Bind(new(domainPostgres.AddressRepository), new(*infraPostgres.AddressRepository)),
@@ -58,6 +59,7 @@ var RepositoryProviderSet = wire.NewSet(
 	wire.Bind(new(domainPostgres.BrandRepository), new(*infraPostgres.BrandRepository)),
 	wire.Bind(new(domainPostgres.ProductRepository), new(*infraPostgres.ProductRepository)),
 	wire.Bind(new(domainPostgres.WalletRepository), new(*infraPostgres.WalletRepository)),
+	wire.Bind(new(domainPostgres.CartRepository), new(*infraPostgres.CartRepository)),
 )
 
 var ServiceProviderSet = wire.NewSet(
