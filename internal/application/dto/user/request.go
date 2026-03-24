@@ -1,15 +1,9 @@
 package userdto
 
-import "mime/multipart"
-
-type BasicRegisterRequest struct {
-	FirstName string
-	LastName  string
-	Phone     string
-	Password  string
+type AuthRequest struct {
+	Phone string
 }
-
-type VerifyPhoneRequest struct {
+type VerifyAuthRequest struct {
 	Phone string
 	OTP   string
 }
@@ -18,46 +12,6 @@ type VerifyEmailRequest struct {
 	UserID uint
 	Email  string
 	OTP    string
-}
-
-type LoginRequest struct {
-	Phone    string
-	Password string
-}
-
-type ForgotPasswordRequest struct {
-	Phone string
-}
-
-type CompleteRegisterRequest struct {
-	UserID       uint
-	Email        string
-	NationalCode string
-	ProfilePic   *multipart.FileHeader
-	TemplateFile string
-	EmailSubject string
-}
-
-type ResetPasswordRequest struct {
-	UserID   uint
-	Password string
-}
-
-type UpdateProfileRequest struct {
-	UserID       uint
-	FirstName    *string
-	LastName     *string
-	Email        *string
-	NationalCode *string
-	ProfilePic   *multipart.FileHeader
-	TemplateFile string
-	EmailSubject string
-}
-
-type GetUsersListRequest struct {
-	Statuses []uint
-	Offset   int
-	Limit    int
 }
 
 type AdminLoginRequest struct {

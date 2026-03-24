@@ -6,10 +6,10 @@ type OTPData struct {
 }
 
 type UserInfoResponse struct {
-	AccessToken  string               `json:"accessToken"`
-	RefreshToken string               `json:"refreshToken"`
-	FirstName    string               `json:"firstName"`
-	LastName     string               `json:"lastName"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+	FirstName    string `json:"firstName"`
+	LastName     string `json:"lastName"`
 }
 
 type CredentialResponse struct {

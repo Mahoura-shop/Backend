@@ -10,7 +10,6 @@ type User struct {
 	FirstName      string          `gorm:"type:varchar(50);index:idx_user_name"`
 	LastName       string          `gorm:"type:varchar(50);index:idx_user_name"`
 	Phone          string          `gorm:"type:varchar(20);uniqueIndex"`
-	PhoneVerified  bool            `gorm:"default:false"`
 	Email          string          `gorm:"type:varchar(100);Index"`
 	EmailVerified  bool            `gorm:"default:false"`
 	ProfilePicPath string          `gorm:"type:varchar(255);default:null"`

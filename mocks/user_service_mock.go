@@ -42,52 +42,12 @@ func (s *UserServiceMock) UnbanUser(userID uint) error {
 	return args.Error(0)
 }
 
-func (s *UserServiceMock) Register(registerInfo userdto.BasicRegisterRequest) error {
-	args := s.Called(registerInfo)
-	return args.Error(0)
-}
-
-func (s *UserServiceMock) VerifyPhone(verifyInfo userdto.VerifyPhoneRequest) error {
-	args := s.Called(verifyInfo)
-	return args.Error(0)
-}
-
-func (s *UserServiceMock) Login(loginInfo userdto.LoginRequest) (userdto.UserInfoResponse, error) {
-	args := s.Called(loginInfo)
-	return args.Get(0).(userdto.UserInfoResponse), args.Error(1)
-}
-
-func (s *UserServiceMock) ForgotPassword(forgotPasswordInfo userdto.ForgotPasswordRequest) error {
-	args := s.Called(forgotPasswordInfo)
-	return args.Error(0)
-}
-
-func (s *UserServiceMock) VerifyOTP(verifyInfo userdto.VerifyPhoneRequest) (userdto.UserInfoResponse, error) {
-	args := s.Called(verifyInfo)
-	return args.Get(0).(userdto.UserInfoResponse), args.Error(1)
-}
-
-func (s *UserServiceMock) CompleteRegister(completeRegisterInfo userdto.CompleteRegisterRequest) error {
-	args := s.Called(completeRegisterInfo)
-	return args.Error(0)
-}
-
 func (s *UserServiceMock) VerifyEmail(verifyOTPInfo userdto.VerifyEmailRequest) error {
 	args := s.Called(verifyOTPInfo)
-	return args.Error(0)
-}
-
-func (s *UserServiceMock) ResetPassword(resetPassInfo userdto.ResetPasswordRequest) error {
-	args := s.Called(resetPassInfo)
 	return args.Error(0)
 }
 
 func (s *UserServiceMock) FindActiveUserByPhone(phone string) (*entity.User, error) {
 	args := s.Called(phone)
 	return args.Get(0).(*entity.User), args.Error(1)
-}
-
-func (s *UserServiceMock) UpdateProfile(profileInfo userdto.UpdateProfileRequest) error {
-	args := s.Called(profileInfo)
-	return args.Error(0)
 }
