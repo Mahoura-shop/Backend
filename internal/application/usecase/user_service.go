@@ -19,4 +19,7 @@ type UserService interface {
 	VerifyEmail(userdto.VerifyEmailRequest) error
 	AdminLogin(userdto.AdminLoginRequest) (userdto.AdminInfoResponse, error)
 	GetDashboard() (userdto.DashboardResponse, error)
+	GetUserWalletBalance(uint) (userdto.UserWalletBalance, error)
+	DepositWallet(userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error)
+	WithdrawWallet(userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error)
 }

@@ -19,3 +19,8 @@ type AdminLoginRequest struct {
 	Phone    string
 	Password string
 }
+
+type UserBalanceUpdate struct {
+	UserID uint
+	Amount uint
+}

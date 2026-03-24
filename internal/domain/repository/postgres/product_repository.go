@@ -6,7 +6,7 @@ import (
 )
 
 type ProductRepository interface {
-	CreateProduct(database.Database, *entity.Product) (*entity.Product, error)
+	CreateProduct(database.Database, entity.Product) (*entity.Product, error)
 	FindProductByID(database.Database, uint) (*entity.Product, error)
 	FindProductBySlug(database.Database, string) (*entity.Product, error)
 	FindProductByName(database.Database, string) (*entity.Product, error)
@@ -14,5 +14,5 @@ type ProductRepository interface {
 	GetCategoryProducts(database.Database, uint) ([]*entity.Product, error)
 	GetProductsCount(database.Database) (uint, error)
 	DeleteProductByID(database.Database, uint) error
-	UpdateProduct(database.Database, *entity.Product) error
+	UpdateProduct(database.Database, entity.Product) error
 }

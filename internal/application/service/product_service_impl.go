@@ -466,7 +466,7 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 	}
 
 	err = productService.db.WithTransaction(func(tx database.Database) error {
-		createdProduct, err := productService.productRepository.CreateProduct(tx, &product)
+		createdProduct, err := productService.productRepository.CreateProduct(tx, product)
 		if err != nil {
 			return err
 		}
@@ -478,7 +478,7 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 				return networkErr
 			}
 		
-			if err := productService.productRepository.UpdateProduct(tx, &product); err != nil {
+			if err := productService.productRepository.UpdateProduct(tx, product); err != nil {
 				return err
 			}
 		}
@@ -674,7 +674,7 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 			product.ProductPic = ""
 		}
 		
-		if err := productService.productRepository.UpdateProduct(tx, product); err != nil {
+		if err := productService.productRepository.UpdateProduct(tx, *product); err != nil {
 			return err
 		}
 		return nil
@@ -750,7 +750,7 @@ func (productService *ProductService) UpdateProductsPrice(products []productdto.
 				productInfo.Step4Price = productService.roundPrice(uint(float64(productInfo.Step3Price) * (1 + productInfo.Step4Percent / 100)))
 			}
 
-			if err := productService.productRepository.UpdateProduct(tx, productInfo); err != nil {
+			if err := productService.productRepository.UpdateProduct(tx, *productInfo); err != nil {
 				return err
 			}
 		}

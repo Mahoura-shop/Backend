@@ -38,3 +38,7 @@ type DashboardResponse struct {
 	CategoriesCount uint `json:"categoriesCount"`
 	BrandsCount     uint `json:"brandsCount"`
 }
+
+type UserWalletBalance struct {
+	Balance uint `json:"balance"`
+}

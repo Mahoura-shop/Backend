@@ -181,6 +181,8 @@ var English = map[string]interface{}{
 		"buyProducts":                "Buying products has been registered successfully.",
 		"auth":                       "Please check your messages to verify your account and complete the registration process.",
 		"verifyAuth":                 "Logged in successfully.",
+		"deposit":                    "Deposit was successful.",
+		"withdraw":                   "Withdraw was successful.",
 	},
 	"emailSubject": map[string]interface{}{
 		"emailConfirmation": "Verify Your Email Address",

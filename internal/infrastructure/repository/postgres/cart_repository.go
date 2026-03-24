@@ -24,7 +24,7 @@ func (repo *CartRepository) FindCartByID(db database.Database, id uint) (*entity
 	return &cart, nil
 }
 
-func (repo *CartRepository) CreateCart(db database.Database, cart *entity.Cart) error {
+func (repo *CartRepository) CreateCart(db database.Database, cart entity.Cart) error {
 	return db.GetDB().Create(&cart).Error
 }
 
@@ -32,6 +32,6 @@ func (repo *CartRepository) DeleteCartByID(db database.Database, id uint) error 
 	return db.GetDB().Where("id = ?", id).Unscoped().Delete(&entity.Cart{}).Error
 }
 
-func (repo *CartRepository) UpdateCart(db database.Database, cart *entity.Cart) error {
+func (repo *CartRepository) UpdateCart(db database.Database, cart entity.Cart) error {
 	return db.GetDB().Save(&cart).Error
 }

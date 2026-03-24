@@ -53,7 +53,7 @@ func (seeder *CurrencySeeder) SeedCurrencies() {
 			continue
 		}
 
-		err = seeder.currencyRepository.CreateCurrency(seeder.db, &currency)
+		err = seeder.currencyRepository.CreateCurrency(seeder.db, currency)
 		if err != nil {
 			panic(fmt.Errorf("error creating currency %s: %w", currency.Code, err))
 		}

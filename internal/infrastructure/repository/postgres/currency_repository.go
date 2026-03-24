@@ -36,7 +36,7 @@ func (repo *CurrencyRepository) FindCurrencyByCode(db database.Database, code st
 	return &currency, nil
 }
 
-func (repo *CurrencyRepository) CreateCurrency(db database.Database, currency *entity.Currency) error {
+func (repo *CurrencyRepository) CreateCurrency(db database.Database, currency entity.Currency) error {
 	result := db.GetDB().Create(&currency)
 	if result.Error != nil {
         return result.Error
@@ -56,6 +56,6 @@ func (repo *CurrencyRepository) GetCurrencies(db database.Database) ([]*entity.C
 	return currencies, nil
 }
 
-func (repo *CurrencyRepository) UpdateCurrency(db database.Database, currency *entity.Currency) error {
+func (repo *CurrencyRepository) UpdateCurrency(db database.Database, currency entity.Currency) error {
 	return db.GetDB().Save(&currency).Error
 }

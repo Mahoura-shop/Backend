@@ -68,16 +68,16 @@ func (repo *ProductRepository) GetCategoryProducts(db database.Database, categor
 	return products, nil
 }
 
-func (repo *ProductRepository) CreateProduct(db database.Database, product *entity.Product) (*entity.Product, error) {
+func (repo *ProductRepository) CreateProduct(db database.Database, product entity.Product) (*entity.Product, error) {
     result := db.GetDB().Create(product)
     if result.Error != nil {
         return nil, result.Error
     }
     
-    return product, nil
+    return &product, nil
 }
 
-func (repo *ProductRepository) UpdateProduct(db database.Database, product *entity.Product) error {
+func (repo *ProductRepository) UpdateProduct(db database.Database, product entity.Product) error {
 	return db.GetDB().Save(&product).Error
 }
 

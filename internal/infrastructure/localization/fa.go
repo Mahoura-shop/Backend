@@ -179,6 +179,8 @@ var Persian = map[string]interface{}{
 		"buyProducts":               "خرید محصولات با موفقیت ثبت شد.",
 		"auth":                      "لطفاً پیامک های خود را بررسی کنید تا حساب خود را تأیید کرده و فرآیند ثبت نام را تکمیل نمایید.",
 		"verifyAuth":                "شما با موفقیت وارد شدید.",
+		"deposit":                   "واریز با موفقیت انجام شد.",
+		"withdraw":                  "برداشت با موفقیت انجام شد.",
 	},
 	"emailSubject": map[string]interface{}{
 		"emailConfirmation": "تأیید آدرس ایمیل شما",

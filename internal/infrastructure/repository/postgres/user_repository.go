@@ -75,7 +75,7 @@ func (repo *UserRepository) FindUserByPhone(db database.Database, phone string) 
 	return &user, nil
 }
 
-func (repo *UserRepository) CreateUser(db database.Database, user *entity.User) error {
+func (repo *UserRepository) CreateUser(db database.Database, user entity.User) error {
 	return db.GetDB().Create(&user).Error
 }
 
@@ -83,6 +83,6 @@ func (repo *UserRepository) DeleteUserByPhone(db database.Database, phone string
 	return db.GetDB().Where("phone = ?", phone).Unscoped().Delete(&entity.User{}).Error
 }
 
-func (repo *UserRepository) UpdateUser(db database.Database, user *entity.User) error {
+func (repo *UserRepository) UpdateUser(db database.Database, user entity.User) error {
 	return db.GetDB().Save(&user).Error
 }

@@ -119,7 +119,7 @@ func (currencyService *CurrencyService) UpdateCurrency(currencyInfo currencydto.
 	currencyService.applyCurrencyUpdates(currency, currencyInfo.Name, currencyInfo.Code, currencyInfo.ConvertRate)
 
 	err = currencyService.db.WithTransaction(func(tx database.Database) error {
-		if err := currencyService.currencyRepository.UpdateCurrency(tx, currency); err != nil {
+		if err := currencyService.currencyRepository.UpdateCurrency(tx, *currency); err != nil {
 			return err
 		}
 		return nil

@@ -6,7 +6,7 @@ import (
 
 type Wallet struct {
 	database.Model
-	Balance   uint `gorm:"type:int"`
-	UserID    uint
-	User      User `gorm:"foreignKey:UserID"`
+	Balance uint `gorm:"type:int"`
+	UserID  uint
+	User    User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }

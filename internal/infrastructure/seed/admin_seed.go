@@ -45,7 +45,7 @@ func (adminSeeder *AdminSeeder) getOrCreateAdmin(admin bootstrap.AdminAccount) *
 			IsAdmin:       true,
 		}
 
-		if err := adminSeeder.userRepository.CreateUser(adminSeeder.db, user); err != nil {
+		if err := adminSeeder.userRepository.CreateUser(adminSeeder.db, *user); err != nil {
 			panic(err)
 		}
 
@@ -54,7 +54,7 @@ func (adminSeeder *AdminSeeder) getOrCreateAdmin(admin bootstrap.AdminAccount) *
 
 	user.IsAdmin = true
 
-	if err := adminSeeder.userRepository.UpdateUser(adminSeeder.db, user); err != nil {
+	if err := adminSeeder.userRepository.UpdateUser(adminSeeder.db, *user); err != nil {
 		panic(err)
 	}
 

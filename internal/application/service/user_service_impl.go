@@ -148,7 +148,7 @@ func (userService *UserService) BanUser(userID uint) error {
 		return conflictErrors
 	}
 	user.Status = enum.UserStatusBlock
-	err = userService.userRepository.UpdateUser(userService.db, user)
+	err = userService.userRepository.UpdateUser(userService.db, *user)
 	if err != nil {
 		return err
 	}
@@ -167,7 +167,7 @@ func (userService *UserService) UnbanUser(userID uint) error {
 		return conflictErrors
 	}
 	user.Status = enum.UserStatusActive
-	err = userService.userRepository.UpdateUser(userService.db, user)
+	err = userService.userRepository.UpdateUser(userService.db, *user)
 	if err != nil {
 		return err
 	}
@@ -205,12 +205,12 @@ func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequ
 				Type:          enum.UserTypeCustomer,
 			}
 
-			err = userService.userRepository.CreateUser(tx, user)
+			err = userService.userRepository.CreateUser(tx, *user)
 			if err != nil {
 				return err
 			}
 
-			wallet := &entity.Wallet{
+			wallet := entity.Wallet{
 				Balance: 0,
 				UserID:  user.ID,
 			}
@@ -220,7 +220,7 @@ func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequ
 				return err
 			}
 
-			cart := &entity.Cart{
+			cart := entity.Cart{
 				UserID: user.ID,
 			}
 
@@ -283,7 +283,7 @@ func (userService *UserService) VerifyEmail(verifyInfo userdto.VerifyEmailReques
 		return err
 	}
 	user.EmailVerified = true
-	err = userService.userRepository.UpdateUser(userService.db, user)
+	err = userService.userRepository.UpdateUser(userService.db, *user)
 	if err != nil {
 		return err
 	}
@@ -332,4 +332,36 @@ func (userService *UserService) GetDashboard() (userdto.DashboardResponse, error
 		CategoriesCount: categoriesCount,
 		ProductsCount: productsCount,
 		}, nil
+}
+
+func (userService *UserService) GetUserWalletBalance(userID uint) (userdto.UserWalletBalance, error) {
+	wallet, err := userService.walletRepository.FindWalletByUserID(userService.db, userID)
+	if err != nil {
+		return userdto.UserWalletBalance{}, err
+	}
+	return userdto.UserWalletBalance{
+		Balance: wallet.Balance,
+	}, nil
+}
+
+func (userService *UserService) DepositWallet(balanceUpdateInfo userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error) {
+	newBalance, err := userService.walletRepository.DepositWallet(userService.db, balanceUpdateInfo.UserID, balanceUpdateInfo.Amount)
+
+	if err != nil {
+		return userdto.UserWalletBalance{}, err
+	}
+	return userdto.UserWalletBalance{
+		Balance: newBalance,
+	}, nil
+}
+
+func (userService *UserService) WithdrawWallet(balanceUpdateInfo userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error) {
+	newBalance, err := userService.walletRepository.WithdrawWallet(userService.db, balanceUpdateInfo.UserID, balanceUpdateInfo.Amount)
+
+	if err != nil {
+		return userdto.UserWalletBalance{}, err
+	}
+	return userdto.UserWalletBalance{
+		Balance: newBalance,
+	}, nil
 }

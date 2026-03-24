@@ -10,7 +10,7 @@ type UserRepository interface {
 	FindUserByID(database.Database, uint) (*entity.User, error)
 	FindUserByPhone(database.Database, string) (*entity.User, error)
 	FindUserByEmail(database.Database, string) (*entity.User, error)
-	CreateUser(database.Database, *entity.User) error
+	CreateUser(database.Database, entity.User) error
 	DeleteUserByPhone(database.Database, string) error
-	UpdateUser(database.Database, *entity.User) error
+	UpdateUser(database.Database, entity.User) error
 }
