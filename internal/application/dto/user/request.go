@@ -3,6 +3,7 @@ package userdto
 type AuthRequest struct {
 	Phone string
 }
+
 type VerifyAuthRequest struct {
 	Phone string
 	OTP   string

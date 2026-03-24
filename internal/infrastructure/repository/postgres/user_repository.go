@@ -74,6 +74,7 @@ func (repo *UserRepository) FindUserByPhone(db database.Database, phone string) 
 	}
 	return &user, nil
 }
+
 func (repo *UserRepository) CreateUser(db database.Database, user *entity.User) error {
 	return db.GetDB().Create(&user).Error
 }

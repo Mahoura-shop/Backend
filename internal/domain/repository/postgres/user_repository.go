@@ -6,11 +6,11 @@ import (
 )
 
 type UserRepository interface {
-	FindUsers(db database.Database) ([]*entity.User, error)
-	FindUserByID(db database.Database, id uint) (*entity.User, error)
-	FindUserByPhone(db database.Database, phone string) (*entity.User, error)
-	FindUserByEmail(db database.Database, email string) (*entity.User, error)
-	CreateUser(db database.Database, user *entity.User) error
-	DeleteUserByPhone(db database.Database, phone string) error
-	UpdateUser(db database.Database, user *entity.User) error
+	FindUsers(database.Database) ([]*entity.User, error)
+	FindUserByID(database.Database, uint) (*entity.User, error)
+	FindUserByPhone(database.Database, string) (*entity.User, error)
+	FindUserByEmail(database.Database, string) (*entity.User, error)
+	CreateUser(database.Database, *entity.User) error
+	DeleteUserByPhone(database.Database, string) error
+	UpdateUser(database.Database, *entity.User) error
 }

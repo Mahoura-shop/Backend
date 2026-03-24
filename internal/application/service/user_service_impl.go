@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
@@ -26,6 +27,7 @@ type UserService struct {
 	categoryRepository  postgres.CategoryRepository
 	brandRepository     postgres.BrandRepository
 	productRepository   postgres.ProductRepository
+	walletRepository    postgres.WalletRepository
 	userCacheRepository redis.UserCacheRepository
 	db                  database.Database
 }
@@ -40,6 +42,7 @@ type UserServiceDeps struct {
 	CategoryRepository  postgres.CategoryRepository
 	BrandRepository     postgres.BrandRepository
 	ProductRepository   postgres.ProductRepository
+	WalletRepository    postgres.WalletRepository
 	UserCacheRepository redis.UserCacheRepository
 	DB                  database.Database
 }
@@ -55,33 +58,10 @@ func NewUserService(deps UserServiceDeps) *UserService {
 		categoryRepository:  deps.CategoryRepository,
 		brandRepository:     deps.BrandRepository,
 		productRepository:   deps.ProductRepository,
+		walletRepository:    deps.WalletRepository,
 		userCacheRepository: deps.UserCacheRepository,
 		db:                  deps.DB,
 	}
-}
-
-func (userService *UserService) validateDuplicateEmail(email string) error {
-	var conflictErrors exception.ConflictErrors
-	redisKey := userService.constants.RedisKey.GenerateOTPKey(email)
-	data, err := userService.userCacheRepository.Get(context.Background(), redisKey)
-	if err != nil {
-		return err
-	}
-	if data != nil {
-		conflictErrors.Add(userService.constants.Field.Email, userService.constants.Tag.AlreadyRegistered)
-		return conflictErrors
-	}
-
-	user, err := userService.userRepository.FindUserByEmail(userService.db, email)
-	if err != nil {
-		return err
-	}
-	if user != nil && user.EmailVerified {
-		conflictErrors.Add(userService.constants.Field.Email, userService.constants.Tag.AlreadyRegistered)
-		return conflictErrors
-	}
-
-	return nil
 }
 
 func (userService *UserService) IsUserActive(userID uint) error {
@@ -188,11 +168,8 @@ func (userService *UserService) Auth(authInfo userdto.AuthRequest) error {
 }
 
 func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequest) (userdto.UserInfoResponse, error) {
-	user, err := userService.FindUserByPhone(verifyAuthInfo.Phone)
-	if err != nil {
-		return userdto.UserInfoResponse{}, err
-	}
-
+	user, err := userService.userRepository.FindUserByPhone(userService.db, verifyAuthInfo.Phone)
+	
 	redisKey := userService.constants.RedisKey.GenerateOTPKey(verifyAuthInfo.Phone)
 	err = userService.otpService.VerifyOTP(redisKey, verifyAuthInfo.OTP)
 	if err != nil {
@@ -206,14 +183,32 @@ func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequ
 				EmailVerified: false,
 				Status:        enum.UserStatusActive,
 			}
+
 			err = userService.userRepository.CreateUser(tx, user)
 			if err != nil {
 				return err
 			}
 
+			wallet := &entity.Wallet{
+				Balance: 0,
+				UserID:  user.ID,
+			}
+
+			err = userService.walletRepository.CreateWallet(tx, wallet)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("meow")
+
 			// userService.smsService.SendOTP(registerInfo.Phone, otp)
 			return nil
 		})
+	}
+	
+	user, err = userService.userRepository.FindUserByPhone(userService.db, verifyAuthInfo.Phone)
+	if err != nil {
+		return userdto.UserInfoResponse{}, err
 	}
 
 	accessToken, refreshToken, err := userService.jwtService.GenerateToken(user.ID)
