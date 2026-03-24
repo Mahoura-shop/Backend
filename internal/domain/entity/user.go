@@ -16,4 +16,5 @@ type User struct {
 	Status         enum.UserStatus `gorm:"index"`
 	Addresses      []Address       `gorm:"polymorphic:Owner;polymorphicValue:users"`
 	IsAdmin        bool            `gorm:"default:false"`
+	Type           enum.UserType   `gorm:"index"`
 }

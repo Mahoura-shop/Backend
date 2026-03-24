@@ -10,6 +10,7 @@ type UserInfoResponse struct {
 	RefreshToken string `json:"refreshToken"`
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`
+	Type         string `json:"type"`
 }
 
 type CredentialResponse struct {
@@ -21,6 +22,7 @@ type CredentialResponse struct {
 	NationalID string `json:"nationalID"`
 	ProfilePic string `json:"profilePic"`
 	Status     string `json:"status"`
+	Type       string `json:"type"`
 }
 
 type UserResponse struct {

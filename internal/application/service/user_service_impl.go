@@ -113,6 +113,7 @@ func (userService *UserService) GetUserCredential(userID uint) (userdto.Credenti
 		Phone:      user.Phone,
 		Email:      user.Email,
 		Status:     user.Status.String(),
+		Type:       user.Type.String(),
 	}, nil
 }
 
@@ -182,6 +183,7 @@ func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequ
 				Phone:         verifyAuthInfo.Phone,
 				EmailVerified: false,
 				Status:        enum.UserStatusActive,
+				Type:          enum.UserTypeCustomer,
 			}
 
 			err = userService.userRepository.CreateUser(tx, user)
@@ -198,8 +200,6 @@ func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequ
 			if err != nil {
 				return err
 			}
-
-			fmt.Println("meow")
 
 			// userService.smsService.SendOTP(registerInfo.Phone, otp)
 			return nil
