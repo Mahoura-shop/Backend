@@ -53,15 +53,15 @@ func (repo *WalletRepository) FindWalletByPhone(db database.Database, phone stri
 	return &wallet, nil
 }
 
-func (repo *WalletRepository) CreateWallet(db database.Database, wallet entity.Wallet) error {
+func (repo *WalletRepository) CreateWallet(db database.Database, wallet entity.Wallet) (error) {
 	return db.GetDB().Create(&wallet).Error
 }
 
-func (repo *WalletRepository) DeleteWalletByPhone(db database.Database, phone string) error {
+func (repo *WalletRepository) DeleteWalletByPhone(db database.Database, phone string) (error) {
 	return db.GetDB().Where("phone = ?", phone).Unscoped().Delete(&entity.Wallet{}).Error
 }
 
-func (repo *WalletRepository) UpdateWallet(db database.Database, wallet entity.Wallet) error {
+func (repo *WalletRepository) UpdateWallet(db database.Database, wallet entity.Wallet) (error) {
 	return db.GetDB().Save(&wallet).Error
 }
 

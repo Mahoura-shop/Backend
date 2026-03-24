@@ -32,6 +32,7 @@ func main() {
 		&entity.Currency{},
 		&entity.Wallet{},
 		&entity.Cart{},
+		&entity.Transaction{},
 	)
 	
 	app.Seeds.AddressSeeder.SeedProvincesAndCities()

@@ -69,7 +69,7 @@ func (repo *ProductRepository) GetCategoryProducts(db database.Database, categor
 }
 
 func (repo *ProductRepository) CreateProduct(db database.Database, product entity.Product) (*entity.Product, error) {
-    result := db.GetDB().Create(product)
+    result := db.GetDB().Create(&product)
     if result.Error != nil {
         return nil, result.Error
     }

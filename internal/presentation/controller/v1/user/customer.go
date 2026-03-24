@@ -52,7 +52,6 @@ func (userController *CustomerUserController) DepositWallet(ctx *gin.Context) {
 		UserID: userID.(uint),
 		Amount: params.Amount,
 	}
-
 	newBalance, err := userController.userService.DepositWallet(balanceUpdateInfo); 
 	if err != nil {
 		panic(err)

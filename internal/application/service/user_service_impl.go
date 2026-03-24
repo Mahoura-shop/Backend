@@ -17,52 +17,55 @@ import (
 )
 
 type UserService struct {
-	constants           *bootstrap.Constants
-	otpService          usecase.OTPService
-	jwtService          usecase.JWTService
-	smsService          communication.SMSService
-	emailService        communication.EmailService
-	userRepository      postgres.UserRepository
-	categoryRepository  postgres.CategoryRepository
-	brandRepository     postgres.BrandRepository
-	productRepository   postgres.ProductRepository
-	walletRepository    postgres.WalletRepository
-	cartRepository      postgres.CartRepository
-	userCacheRepository redis.UserCacheRepository
-	db                  database.Database
+	constants             *bootstrap.Constants
+	otpService            usecase.OTPService
+	jwtService            usecase.JWTService
+	smsService            communication.SMSService
+	emailService          communication.EmailService
+	userRepository        postgres.UserRepository
+	categoryRepository    postgres.CategoryRepository
+	brandRepository       postgres.BrandRepository
+	productRepository     postgres.ProductRepository
+	walletRepository      postgres.WalletRepository
+	cartRepository        postgres.CartRepository
+	transactionRepository postgres.TransactionRepository
+	userCacheRepository   redis.UserCacheRepository
+	db                    database.Database
 }
 
 type UserServiceDeps struct {
-	Constants           *bootstrap.Constants
-	OTPService          usecase.OTPService
-	JWTService          usecase.JWTService
-	SMSService          communication.SMSService
-	EmailService        communication.EmailService
-	UserRepository      postgres.UserRepository
-	CategoryRepository  postgres.CategoryRepository
-	BrandRepository     postgres.BrandRepository
-	ProductRepository   postgres.ProductRepository
-	WalletRepository    postgres.WalletRepository
-	CartRepository      postgres.CartRepository
-	UserCacheRepository redis.UserCacheRepository
-	DB                  database.Database
+	Constants             *bootstrap.Constants
+	OTPService            usecase.OTPService
+	JWTService            usecase.JWTService
+	SMSService            communication.SMSService
+	EmailService          communication.EmailService
+	UserRepository        postgres.UserRepository
+	CategoryRepository    postgres.CategoryRepository
+	BrandRepository       postgres.BrandRepository
+	ProductRepository     postgres.ProductRepository
+	WalletRepository      postgres.WalletRepository
+	CartRepository        postgres.CartRepository
+	TransactionRepository postgres.TransactionRepository
+	UserCacheRepository   redis.UserCacheRepository
+	DB                    database.Database
 }
 
 func NewUserService(deps UserServiceDeps) *UserService {
 	return &UserService{
-		constants:           deps.Constants,
-		otpService:          deps.OTPService,
-		jwtService:          deps.JWTService,
-		smsService:          deps.SMSService,
-		emailService:        deps.EmailService,
-		userRepository:      deps.UserRepository,
-		categoryRepository:  deps.CategoryRepository,
-		brandRepository:     deps.BrandRepository,
-		productRepository:   deps.ProductRepository,
-		walletRepository:    deps.WalletRepository,
-		cartRepository:      deps.CartRepository,
-		userCacheRepository: deps.UserCacheRepository,
-		db:                  deps.DB,
+		constants:             deps.Constants,
+		otpService:            deps.OTPService,
+		jwtService:            deps.JWTService,
+		smsService:            deps.SMSService,
+		emailService:          deps.EmailService,
+		userRepository:        deps.UserRepository,
+		categoryRepository:    deps.CategoryRepository,
+		brandRepository:       deps.BrandRepository,
+		productRepository:     deps.ProductRepository,
+		walletRepository:      deps.WalletRepository,
+		cartRepository:        deps.CartRepository,
+		transactionRepository: deps.TransactionRepository,
+		userCacheRepository:   deps.UserCacheRepository,
+		db:                    deps.DB,
 	}
 }
 
@@ -345,23 +348,67 @@ func (userService *UserService) GetUserWalletBalance(userID uint) (userdto.UserW
 }
 
 func (userService *UserService) DepositWallet(balanceUpdateInfo userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error) {
-	newBalance, err := userService.walletRepository.DepositWallet(userService.db, balanceUpdateInfo.UserID, balanceUpdateInfo.Amount)
+	var newBalance uint
+	err := userService.db.WithTransaction(func(tx database.Database) error {
+		wallet, err := userService.walletRepository.FindWalletByUserID(tx, balanceUpdateInfo.UserID)
+		if err != nil {
+			return err
+		}
+
+		transaction := entity.Transaction{
+			Amount:   balanceUpdateInfo.Amount,
+			WalletID: wallet.ID,
+			Type:     enum.TransactionTypeDeposit,
+		}
+		if err = userService.transactionRepository.CreateTransaction(tx, transaction); err != nil {
+			return err
+		}
+		
+		newBalance, err = userService.walletRepository.DepositWallet(tx, balanceUpdateInfo.UserID, balanceUpdateInfo.Amount)
+		if err != nil {
+			return err
+		}
+		
+		return nil
+	})
 
 	if err != nil {
 		return userdto.UserWalletBalance{}, err
 	}
+
 	return userdto.UserWalletBalance{
 		Balance: newBalance,
 	}, nil
 }
 
 func (userService *UserService) WithdrawWallet(balanceUpdateInfo userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error) {
-	newBalance, err := userService.walletRepository.WithdrawWallet(userService.db, balanceUpdateInfo.UserID, balanceUpdateInfo.Amount)
+	var newBalance uint
+	var err error
+	userService.db.WithTransaction(func(tx database.Database) error {
+		wallet, err := userService.walletRepository.FindWalletByUserID(userService.db, balanceUpdateInfo.UserID)
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
-		return userdto.UserWalletBalance{}, err
-	}
+		transaction := entity.Transaction{
+			Amount:   balanceUpdateInfo.Amount,
+			WalletID: wallet.ID,
+			Type:     enum.TransactionTypeWithDraw,
+		}
+		err = userService.transactionRepository.CreateTransaction(userService.db, transaction)
+		if err != nil {
+			return err
+		}
+
+		newBalance, err = userService.walletRepository.WithdrawWallet(userService.db, balanceUpdateInfo.UserID, balanceUpdateInfo.Amount)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	return userdto.UserWalletBalance{
 		Balance: newBalance,
-	}, nil
+	}, err
 }

@@ -66,20 +66,22 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	productRepository := postgres.NewProductRepository()
 	walletRepository := postgres.NewWalletRepository()
 	cartRepository := postgres.NewCartRepository()
+	transactionRepository := postgres.NewTransactionRepository()
 	userServiceDeps := service.UserServiceDeps{
-		Constants:           constants,
-		OTPService:          otpService,
-		JWTService:          jwtService,
-		SMSService:          smsService,
-		EmailService:        emailService,
-		UserRepository:      userRepository,
-		CategoryRepository:  categoryRepository,
-		BrandRepository:     brandRepository,
-		ProductRepository:   productRepository,
-		WalletRepository:    walletRepository,
-		CartRepository:      cartRepository,
-		UserCacheRepository: userCacheRepository,
-		DB:                  postgresDatabase,
+		Constants:             constants,
+		OTPService:            otpService,
+		JWTService:            jwtService,
+		SMSService:            smsService,
+		EmailService:          emailService,
+		UserRepository:        userRepository,
+		CategoryRepository:    categoryRepository,
+		BrandRepository:       brandRepository,
+		ProductRepository:     productRepository,
+		WalletRepository:      walletRepository,
+		CartRepository:        cartRepository,
+		TransactionRepository: transactionRepository,
+		UserCacheRepository:   userCacheRepository,
+		DB:                    postgresDatabase,
 	}
 	userService := service.NewUserService(userServiceDeps)
 	generalUserController := user.NewGeneralUserController(constants, userService, jwtService)
@@ -189,7 +191,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 
 var DatabaseProviderSet = wire.NewSet(database.NewPostgresDatabase, database.NewRedisDatabase, wire.Bind(new(database.Database), new(*database.PostgresDatabase)), wire.Bind(new(database.Cache), new(*database.RedisDatabase)), wire.Struct(new(Database), "*"))
 
-var RepositoryProviderSet = wire.NewSet(postgres.NewUserRepository, postgres.NewAddressRepository, postgres.NewCategoryRepository, postgres.NewCurrencyRepository, postgres.NewBrandRepository, postgres.NewProductRepository, postgres.NewWalletRepository, postgres.NewCartRepository, redis.NewUserCacheRepository, wire.Bind(new(postgres2.UserRepository), new(*postgres.UserRepository)), wire.Bind(new(postgres2.AddressRepository), new(*postgres.AddressRepository)), wire.Bind(new(redis2.UserCacheRepository), new(*redis.UserCacheRepository)), wire.Bind(new(postgres2.CategoryRepository), new(*postgres.CategoryRepository)), wire.Bind(new(postgres2.CurrencyRepository), new(*postgres.CurrencyRepository)), wire.Bind(new(postgres2.BrandRepository), new(*postgres.BrandRepository)), wire.Bind(new(postgres2.ProductRepository), new(*postgres.ProductRepository)), wire.Bind(new(postgres2.WalletRepository), new(*postgres.WalletRepository)), wire.Bind(new(postgres2.CartRepository), new(*postgres.CartRepository)))
+var RepositoryProviderSet = wire.NewSet(postgres.NewUserRepository, postgres.NewAddressRepository, postgres.NewCategoryRepository, postgres.NewCurrencyRepository, postgres.NewBrandRepository, postgres.NewProductRepository, postgres.NewWalletRepository, postgres.NewCartRepository, postgres.NewTransactionRepository, redis.NewUserCacheRepository, wire.Bind(new(postgres2.UserRepository), new(*postgres.UserRepository)), wire.Bind(new(postgres2.AddressRepository), new(*postgres.AddressRepository)), wire.Bind(new(redis2.UserCacheRepository), new(*redis.UserCacheRepository)), wire.Bind(new(postgres2.CategoryRepository), new(*postgres.CategoryRepository)), wire.Bind(new(postgres2.CurrencyRepository), new(*postgres.CurrencyRepository)), wire.Bind(new(postgres2.BrandRepository), new(*postgres.BrandRepository)), wire.Bind(new(postgres2.ProductRepository), new(*postgres.ProductRepository)), wire.Bind(new(postgres2.WalletRepository), new(*postgres.WalletRepository)), wire.Bind(new(postgres2.CartRepository), new(*postgres.CartRepository)), wire.Bind(new(postgres2.TransactionRepository), new(*postgres.TransactionRepository)))
 
 var ServiceProviderSet = wire.NewSet(wire.Struct(new(service.UserServiceDeps), "*"), wire.Struct(new(service.CategoryServiceDeps), "*"), wire.Struct(new(service.CurrencyServiceDeps), "*"), wire.Struct(new(service.BrandServiceDeps), "*"), wire.Struct(new(service.ProductServiceDeps), "*"), service.NewUserService, service.NewOTPService, sms.NewSMSService, email.NewEmailService, service.NewJWTService, service.NewAddressService, service.NewTestService, service.NewCategoryService, service.NewCurrencyService, service.NewBrandService, service.NewProductService, wire.Bind(new(usecase.UserService), new(*service.UserService)), wire.Bind(new(usecase.OTPService), new(*service.OTPService)), wire.Bind(new(communication.SMSService), new(*sms.SMSService)), wire.Bind(new(communication.EmailService), new(*email.EmailService)), wire.Bind(new(usecase.JWTService), new(*service.JWTService)), wire.Bind(new(usecase.AddressService), new(*service.AddressService)), wire.Bind(new(usecase.TestService), new(*service.TestService)), wire.Bind(new(usecase.CategoryService), new(*service.CategoryService)), wire.Bind(new(usecase.CurrencyService), new(*service.CurrencyService)), wire.Bind(new(usecase.BrandService), new(*service.BrandService)), wire.Bind(new(usecase.ProductService), new(*service.ProductService)))
 
