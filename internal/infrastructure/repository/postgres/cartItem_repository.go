@@ -60,3 +60,16 @@ func (repo *CartItemRepository) IncreaseCartItemCount(db database.Database, cart
 	err := db.GetDB().Save(&cartItem).Error
 	return err
 }
+
+func (repo *CartItemRepository) DecreaseCartItemCount(db database.Database, cartItemID uint) (error) {
+	var cartItem entity.CartItem
+	result := db.GetDB().First(&cartItem, cartItemID)
+	if result.Error != nil {
+		if result.Error != gorm.ErrRecordNotFound {
+			return result.Error
+		}
+	}
+	cartItem.Count--;
+	err := db.GetDB().Save(&cartItem).Error
+	return err
+}

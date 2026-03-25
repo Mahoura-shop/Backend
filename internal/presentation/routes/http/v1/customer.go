@@ -24,7 +24,7 @@ func SetupCustomerRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		productActionsSubgroup := cart.Group("/:productID") 
 		{
 			productActionsSubgroup.POST("/add", app.Controllers.Customer.UserController.AddProductToCart)
-			// productActionsSubgroup.POST("/remove", app.Controllers.Customer.UserController.DepositWallet)
+			productActionsSubgroup.POST("/remove", app.Controllers.Customer.UserController.RemoveProductFromCart)
 		}
 	}
 }

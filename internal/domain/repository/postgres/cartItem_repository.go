@@ -12,4 +12,5 @@ type CartItemRepository interface {
 	DeleteCartItemByID(database.Database, uint) (error)
 	UpdateCartItem(database.Database, entity.CartItem) (error)
 	IncreaseCartItemCount(database.Database, uint) (error)
+	DecreaseCartItemCount(database.Database, uint) (error)
 }

@@ -78,6 +78,7 @@ type ErrorField struct {
 	ProductPic          string
 	Currency            string
 	Cart                string
+	CartItem            string
 }
 
 type ErrorTag struct {
@@ -207,6 +208,7 @@ func NewConstants() *Constants {
 			ProductPic:          "productPic",
 			Currency:            "currency",
 			Cart:                "cart",
+			CartItem:            "cartItem",
 		},
 		Tag: ErrorTag{
 			AlreadyRegistered:      "alreadyRegistered",

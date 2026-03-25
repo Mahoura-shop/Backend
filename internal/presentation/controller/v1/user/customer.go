@@ -90,7 +90,7 @@ func (userController *CustomerUserController) AddProductToCart(ctx *gin.Context)
 		ProductID uint `uri:"productID" validate:"required"`
 	}
 	params := controller.Validated[addProductToCartParams](ctx)
-	addProductToCartInfo := userdto.AddProductToCartRequest{
+	addProductToCartInfo := userdto.UpdateProductCountInCart{
 		UserID: userID.(uint),
 		ProductID: params.ProductID,
 	}
@@ -102,5 +102,26 @@ func (userController *CustomerUserController) AddProductToCart(ctx *gin.Context)
 	
 	trans := controller.GetTranslator(ctx, userController.constants.Context.Translator)
 	message, _ := trans.Translate("successMessage.addProductToCart")
+	controller.Response(ctx, 200, message, nil)
+}
+
+func (userController *CustomerUserController) RemoveProductFromCart(ctx *gin.Context) {
+	userID, _ := ctx.Get(userController.constants.Context.ID)
+	type removeProductFromCartParams struct {
+		ProductID uint `uri:"productID" validate:"required"`
+	}
+	params := controller.Validated[removeProductFromCartParams](ctx)
+	addProductToCartInfo := userdto.UpdateProductCountInCart{
+		UserID: userID.(uint),
+		ProductID: params.ProductID,
+	}
+
+	err := userController.userService.RemoveProductFromCart(addProductToCartInfo); 
+	if err != nil {
+		panic(err)
+	}
+	
+	trans := controller.GetTranslator(ctx, userController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.removeProductFromCart")
 	controller.Response(ctx, 200, message, nil)
 }

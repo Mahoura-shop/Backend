@@ -25,7 +25,7 @@ type UserBalanceUpdate struct {
 	Amount uint
 }
 
-type AddProductToCartRequest struct {
+type UpdateProductCountInCart struct {
 	ProductID uint
 	UserID    uint
 }
