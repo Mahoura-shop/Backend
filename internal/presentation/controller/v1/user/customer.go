@@ -83,3 +83,24 @@ func (userController *CustomerUserController) WithdrawWallet(ctx *gin.Context) {
 	message, _ := trans.Translate("successMessage.withdraw")
 	controller.Response(ctx, 200, message, newBalance)
 }
+
+func (userController *CustomerUserController) AddProductToCart(ctx *gin.Context) {
+	userID, _ := ctx.Get(userController.constants.Context.ID)
+	type addProductToCartParams struct {
+		ProductID uint `uri:"productID" validate:"required"`
+	}
+	params := controller.Validated[addProductToCartParams](ctx)
+	addProductToCartInfo := userdto.AddProductToCartRequest{
+		UserID: userID.(uint),
+		ProductID: params.ProductID,
+	}
+
+	err := userController.userService.AddProductToCart(addProductToCartInfo); 
+	if err != nil {
+		panic(err)
+	}
+	
+	trans := controller.GetTranslator(ctx, userController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.addProductToCart")
+	controller.Response(ctx, 200, message, nil)
+}

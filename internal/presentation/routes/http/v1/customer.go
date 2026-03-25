@@ -17,4 +17,14 @@ func SetupCustomerRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		wallet.POST("/deposit", app.Controllers.Customer.UserController.DepositWallet)
 		wallet.POST("/withdraw", app.Controllers.Customer.UserController.WithdrawWallet)
 	}
+
+	cart := routerGroup.Group("/cart")
+	{
+		// cart.GET("", app.Controllers.Customer.UserController.GetUserWalletBalance)x	
+		productActionsSubgroup := cart.Group("/:productID") 
+		{
+			productActionsSubgroup.POST("/add", app.Controllers.Customer.UserController.AddProductToCart)
+			// productActionsSubgroup.POST("/remove", app.Controllers.Customer.UserController.DepositWallet)
+		}
+	}
 }

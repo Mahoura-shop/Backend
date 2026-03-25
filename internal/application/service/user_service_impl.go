@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
@@ -411,4 +412,32 @@ func (userService *UserService) WithdrawWallet(balanceUpdateInfo userdto.UserBal
 	return userdto.UserWalletBalance{
 		Balance: newBalance,
 	}, err
+}
+
+func (userService *UserService) AddProductToCart(addProductToCartInfo userdto.AddProductToCartRequest) (error) {
+	cart, err := userService.cartRepository.FindCartByUserID(userService.db, addProductToCartInfo.UserID)
+	if err != nil {
+		return err
+	}
+	if cart == nil {
+		return exception.NotFoundError{Item: userService.constants.Field.Cart}
+	}
+
+	fmt.Println("meow1", cart.ID)
+	
+	product, err := userService.productRepository.FindProductByID(userService.db, addProductToCartInfo.ProductID)
+	if err != nil {
+		return err
+	}
+	if product == nil {
+		return exception.NotFoundError{Item: userService.constants.Field.Product}
+	}
+	fmt.Println("meow2", product.ID)
+	
+	err = userService.cartRepository.AddProductToCart(userService.db, addProductToCartInfo.ProductID, cart.ID)
+	fmt.Println("meow3")
+	if err != nil {
+		return err
+	}
+	return nil
 }

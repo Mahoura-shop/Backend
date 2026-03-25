@@ -7,6 +7,6 @@ import (
 type Cart struct {
 	database.Model
 	UserID uint
-	User   User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
-	Items  []Product `gorm:"many2many:cart_items;constraint:OnDelete:CASCADE;"`
+	User   User       `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Items  []CartItem `gorm:"constraint:OnDelete:CASCADE;"`
 }
