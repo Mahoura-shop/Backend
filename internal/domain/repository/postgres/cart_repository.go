@@ -12,4 +12,5 @@ type CartRepository interface {
 	DeleteCartByID(database.Database, uint) (error)
 	UpdateCart(database.Database, entity.Cart) (error)
 	AddProductToCart(db database.Database, productID uint, cartID uint) (error)
+	RemoveProductToCart(db database.Database, productID uint, cartID uint) (error)
 }

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
@@ -29,6 +28,7 @@ type UserService struct {
 	productRepository     postgres.ProductRepository
 	walletRepository      postgres.WalletRepository
 	cartRepository        postgres.CartRepository
+	cartItemRepository    postgres.CartItemRepository
 	transactionRepository postgres.TransactionRepository
 	userCacheRepository   redis.UserCacheRepository
 	db                    database.Database
@@ -46,6 +46,7 @@ type UserServiceDeps struct {
 	ProductRepository     postgres.ProductRepository
 	WalletRepository      postgres.WalletRepository
 	CartRepository        postgres.CartRepository
+	CartItemRepository    postgres.CartItemRepository
 	TransactionRepository postgres.TransactionRepository
 	UserCacheRepository   redis.UserCacheRepository
 	DB                    database.Database
@@ -64,6 +65,7 @@ func NewUserService(deps UserServiceDeps) *UserService {
 		productRepository:     deps.ProductRepository,
 		walletRepository:      deps.WalletRepository,
 		cartRepository:        deps.CartRepository,
+		cartItemRepository:    deps.CartItemRepository,
 		transactionRepository: deps.TransactionRepository,
 		userCacheRepository:   deps.UserCacheRepository,
 		db:                    deps.DB,
@@ -415,16 +417,6 @@ func (userService *UserService) WithdrawWallet(balanceUpdateInfo userdto.UserBal
 }
 
 func (userService *UserService) AddProductToCart(addProductToCartInfo userdto.AddProductToCartRequest) (error) {
-	cart, err := userService.cartRepository.FindCartByUserID(userService.db, addProductToCartInfo.UserID)
-	if err != nil {
-		return err
-	}
-	if cart == nil {
-		return exception.NotFoundError{Item: userService.constants.Field.Cart}
-	}
-
-	fmt.Println("meow1", cart.ID)
-	
 	product, err := userService.productRepository.FindProductByID(userService.db, addProductToCartInfo.ProductID)
 	if err != nil {
 		return err
@@ -432,12 +424,32 @@ func (userService *UserService) AddProductToCart(addProductToCartInfo userdto.Ad
 	if product == nil {
 		return exception.NotFoundError{Item: userService.constants.Field.Product}
 	}
-	fmt.Println("meow2", product.ID)
-	
-	err = userService.cartRepository.AddProductToCart(userService.db, addProductToCartInfo.ProductID, cart.ID)
-	fmt.Println("meow3")
+
+	cart, err := userService.cartRepository.FindCartByUserID(userService.db, addProductToCartInfo.UserID)
 	if err != nil {
 		return err
 	}
-	return nil
+	if cart == nil {
+		cart := entity.Cart{
+			UserID: addProductToCartInfo.UserID,
+		}
+		if err = userService.cartRepository.CreateCart(userService.db, cart); err != nil {
+			return err;
+		}
+	}
+	
+	cartItem, err := userService.cartItemRepository.FindCartItemByProductID(userService.db, product.ID)
+	if err != nil {
+		return err
+	}
+	if cartItem == nil {
+		cartItem := entity.CartItem{
+            CartID:    cart.ID,
+            ProductID: product.ID,
+            Count:     1,
+        }
+		return userService.cartItemRepository.CreateCartItem(userService.db, cartItem);
+	} else {
+		return userService.cartItemRepository.IncreaseCartItemCount(userService.db, cartItem.ID)
+	}
 }

@@ -75,3 +75,26 @@ func (repo *CartRepository) AddProductToCart(db database.Database, productID uin
 
     return err
 }
+
+func (repo *CartRepository) RemoveProductToCart(db database.Database, productID uint, cartID uint) (error) {
+    var item entity.CartItem
+    err := db.GetDB().
+        Where("cart_id = ? AND product_id = ?", cartID, productID).
+        First(&item).Error
+
+    if err == nil {
+        item.Count--
+        return db.GetDB().Save(&item).Error
+    }
+
+    if errors.Is(err, gorm.ErrRecordNotFound) {
+        item = entity.CartItem{
+            CartID:    cartID,
+            ProductID: productID,
+            Count:     1,
+        }
+        return db.GetDB().Create(&item).Error
+    }
+
+    return err
+}
