@@ -6,8 +6,7 @@ import (
 
 type Order struct {
 	database.Model
-	CartID    uint
-	Cart      Cart    `gorm:"foreignKey:CartID"`
+	Items     []OrderItem `gorm:"constraint:OnDelete:CASCADE;"`
 	PaymentID uint
-	Payment   Payment `gorm:"foreignKey:PaymentID"`
+	Payment   Payment     `gorm:"foreignKey:PaymentID"`
 }

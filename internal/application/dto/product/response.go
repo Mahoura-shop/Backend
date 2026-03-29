@@ -40,6 +40,7 @@ type ProductCredential struct {
 	IsActive      bool                            `json:"isActive"`
 	IsNew         bool                            `json:"isNew"`
 	ProductPic    string                          `json:"productPic"`
+	Size          string                          `json:"size"`
 }
 
 type ProductPrices struct {

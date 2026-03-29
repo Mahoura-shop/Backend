@@ -27,4 +27,9 @@ func SetupCustomerRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 			productActionsSubgroup.POST("/remove", app.Controllers.Customer.UserController.RemoveProductFromCart)
 		}
 	}
+
+	order := routerGroup.Group("/order")
+	{
+		// order.POST("", app.Controllers.Customer.UserController.GetUserWalletBalance)
+	}
 }

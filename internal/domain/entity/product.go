@@ -38,4 +38,5 @@ type Product struct {
 	IsActive      bool      `gorm:"default:true"`
 	IsNew         bool      `gorm:"default:true"`
 	ProductPic    string    `gorm:"type:varchar(255);default:null"`
+	Size          string    `gorm:"type:varchar(255);default:null"`
 }

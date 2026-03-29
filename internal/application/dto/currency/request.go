@@ -1,4 +1,4 @@
-package categorydto
+package currencydto
 
 type CreateCurrencyRequest struct {
 	Name        string

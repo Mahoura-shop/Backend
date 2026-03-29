@@ -32,6 +32,7 @@ type CreateProductRequest struct {
 	IsActive      *bool
 	IsNew         *bool
 	ProductPic    *multipart.FileHeader 
+	Size          *string
 }
 
 type UpdateProductRequest struct {
@@ -65,6 +66,7 @@ type UpdateProductRequest struct {
 	IsActive      *bool
 	IsNew         *bool
 	ProductPic    *multipart.FileHeader 
+	Size          *string
 }
 
 type ProductPriceUpdateCredentials struct {

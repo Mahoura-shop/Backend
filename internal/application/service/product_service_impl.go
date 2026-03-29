@@ -121,6 +121,7 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 		IsActive:      product.IsActive,
 		IsNew:         product.IsNew,
 		ProductPic:    product.ProductPic,
+		Size:          product.Size,
 	}
 	if product.Category != nil {
 		category, _ := productService.categoryService.ParseCategory(*product.Category)
@@ -410,6 +411,12 @@ func (productService *ProductService) applyProductInitial(product *entity.Produc
 	} else {
 		product.Step4Origin = false
 	}
+
+	if productInfo.Size != nil {
+		product.Size = *productInfo.Size
+	} else {
+		product.Size = ""
+	}
 }
 
 func (productService *ProductService) CreateProduct(productInfo productdto.CreateProductRequest) error {
@@ -580,6 +587,9 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 	}
 	if productInfo.Step4Origin != nil {
 		product.Step4Origin = *productInfo.Step4Origin
+	}
+	if productInfo.Size != nil {
+		product.Size = *productInfo.Size
 	}
 	return nil
 }

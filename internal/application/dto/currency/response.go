@@ -1,4 +1,4 @@
-package categorydto
+package currencydto
 
 type CurrencyCredential struct {
 	ID          uint   `json:"id"`
