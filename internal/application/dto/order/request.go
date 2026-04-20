@@ -1,5 +1,11 @@
 package orderdto
 
 type CreateOrderRequest struct {
-	CartID uint
+	UserID uint
+}
+
+type CreateOrderItemRequest struct {
+	ProductID     uint
+	Count         uint
+	PriceSnapshot uint
 }

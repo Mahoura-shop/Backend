@@ -6,7 +6,9 @@ import (
 
 type OrderItem struct {
 	database.Model
-    ProductID uint
+	OrderID       uint 
+	Order         Order   `gorm:"foreignKey:OrderID"`
+    ProductID     uint
     Product       Product `gorm:"foreignKey:ProductID"`
     Count         uint    `gorm:"type:int"`
 	PriceSnapshot uint    `gorm:"type:int"`

@@ -29,6 +29,8 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/product"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/test"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/user"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/cart"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/order"
 	"github.com/Mahoura-shop/Backend/internal/presentation/middleware"
 	"github.com/google/wire"
 )
@@ -50,7 +52,7 @@ var RepositoryProviderSet = wire.NewSet(
 	infraPostgres.NewProductRepository,
 	infraPostgres.NewWalletRepository,
 	infraPostgres.NewCartRepository,
-	infraPostgres.NewCartItemRepository,
+	infraPostgres.NewOrderRepository,
 	infraPostgres.NewTransactionRepository,
 	infraRedis.NewUserCacheRepository,
 	wire.Bind(new(domainPostgres.UserRepository), new(*infraPostgres.UserRepository)),
@@ -62,7 +64,7 @@ var RepositoryProviderSet = wire.NewSet(
 	wire.Bind(new(domainPostgres.ProductRepository), new(*infraPostgres.ProductRepository)),
 	wire.Bind(new(domainPostgres.WalletRepository), new(*infraPostgres.WalletRepository)),
 	wire.Bind(new(domainPostgres.CartRepository), new(*infraPostgres.CartRepository)),
-	wire.Bind(new(domainPostgres.CartItemRepository), new(*infraPostgres.CartItemRepository)),
+	wire.Bind(new(domainPostgres.OrderRepository), new(*infraPostgres.OrderRepository)),
 	wire.Bind(new(domainPostgres.TransactionRepository), new(*infraPostgres.TransactionRepository)),
 )
 
@@ -72,6 +74,8 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Struct(new(service.CurrencyServiceDeps), "*"),
 	wire.Struct(new(service.BrandServiceDeps), "*"),
 	wire.Struct(new(service.ProductServiceDeps), "*"),
+	wire.Struct(new(service.CartServiceDeps), "*"),
+	wire.Struct(new(service.OrderServiceDeps), "*"),
 	service.NewUserService,
 	service.NewOTPService,
 	sms.NewSMSService,
@@ -83,6 +87,8 @@ var ServiceProviderSet = wire.NewSet(
 	service.NewCurrencyService,
 	service.NewBrandService,
 	service.NewProductService,
+	service.NewCartService,
+	service.NewOrderService,
 	wire.Bind(new(usecase.UserService), new(*service.UserService)),
 	wire.Bind(new(usecase.OTPService), new(*service.OTPService)),
 	wire.Bind(new(communication.SMSService), new(*sms.SMSService)),
@@ -94,6 +100,8 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Bind(new(usecase.CurrencyService), new(*service.CurrencyService)),
 	wire.Bind(new(usecase.BrandService), new(*service.BrandService)),
 	wire.Bind(new(usecase.ProductService), new(*service.ProductService)),
+	wire.Bind(new(usecase.CartService), new(*service.CartService)),
+	wire.Bind(new(usecase.OrderService), new(*service.OrderService)),
 )
 
 var AdapterProviderSet = wire.NewSet(
@@ -115,6 +123,8 @@ var GeneralControllerProviderSet = wire.NewSet(
 var CustomerControllerProviderSet = wire.NewSet(
 	user.NewCustomerUserController,
 	address.NewCustomerAddressController,
+	cart.NewCustomerCartController,
+	order.NewCustomerOrderController,
 	wire.Struct(new(CustomerControllers), "*"),
 )
 
@@ -252,6 +262,8 @@ type GeneralControllers struct {
 type CustomerControllers struct {
 	UserController    *user.CustomerUserController
 	AddressController *address.CustomerAddressController
+	CartController    *cart.CustomerCartController
+	OrderController   *order.CustomerOrderController
 }
 
 type AdminControllers struct {

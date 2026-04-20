@@ -4,12 +4,12 @@ import productdto "github.com/Mahoura-shop/Backend/internal/application/dto/prod
 
 type OrderCredential struct {
 	ID    uint                  `json:"id"`
-	itmes []OrderItemCredential `json:"items"`
+	Itmes []OrderItemCredential `json:"items"`
 }
 
 type OrderItemCredential struct {
-	ID      uint                         `json:"id"`
-	Product productdto.ProductCredential `json:"product"`
-	Count   uint                         `json:"count"`
-	PriceSnapshot                        `json:"priceSnapshot"`
+	ID            uint                         `json:"id"`
+	Product       productdto.ProductCredential `json:"product"`
+	Count         uint                         `json:"count"`
+	PriceSnapshot uint                         `json:"priceSnapshot"`
 }

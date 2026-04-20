@@ -184,6 +184,7 @@ var English = map[string]interface{}{
 		"withdraw":                  "Withdraw was successful.",
 		"addProductToCart":          "Product was added to cart successfully.",
 		"removeProductFromCart":     "Product was removed from cart successfully.",
+		"registerOrder":             "Registered order successfully.",
 	},
 	"emailSubject": map[string]interface{}{
 		"emailConfirmation": "Verify Your Email Address",

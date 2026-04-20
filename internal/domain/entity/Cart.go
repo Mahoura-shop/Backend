@@ -8,5 +8,5 @@ type Cart struct {
 	database.Model
 	UserID uint
 	User   User       `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
-	Items  []CartItem `gorm:"constraint:OnDelete:CASCADE;"`
+	Items  []CartItem `gorm:"foreignKey:CartID"`
 }

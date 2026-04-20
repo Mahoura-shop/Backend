@@ -183,6 +183,7 @@ var Persian = map[string]interface{}{
 		"withdraw":                  "برداشت با موفقیت انجام شد.",
 		"addProductToCart":          "محصول با موفقیت به سبد خرید افزوده شد.",
 		"removeProductFromCart":     "محصول با موفقیت از سبد خرید حذف شد.",
+		"registerOrder":             "سفارش با موفقیت ثبت شد.",
 	},
 	"emailSubject": map[string]interface{}{
 		"emailConfirmation": "تأیید آدرس ایمیل شما",

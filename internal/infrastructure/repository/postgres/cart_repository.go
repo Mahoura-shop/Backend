@@ -18,6 +18,8 @@ func (repo *CartRepository) FindCartByUserID(db database.Database, userID uint) 
     var cart entity.Cart
     result := db.GetDB().
         Preload("User").
+        Preload("Items").
+        Preload("Items.Product").
         Where("user_id = ?", userID).
         First(&cart)
     if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -29,9 +31,9 @@ func (repo *CartRepository) FindCartByUserID(db database.Database, userID uint) 
     return &cart, nil
 }
 
-func (repo *CartRepository) FindCartByID(db database.Database, id uint) (*entity.Cart, error) {
+func (repo *CartRepository) FindCartByID(db database.Database, cartID uint) (*entity.Cart, error) {
 	var cart entity.Cart
-	result := db.GetDB().First(&cart, id)
+	result := db.GetDB().First(&cart, cartID)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, nil
@@ -45,8 +47,12 @@ func (repo *CartRepository) CreateCart(db database.Database, cart entity.Cart) (
 	return db.GetDB().Create(&cart).Error
 }
 
-func (repo *CartRepository) DeleteCartByID(db database.Database, id uint) (error) {
-	return db.GetDB().Where("id = ?", id).Unscoped().Delete(&entity.Cart{}).Error
+func (repo *CartRepository) DeleteCart(db database.Database, cartID uint) (error) {
+	return db.GetDB().Where("id = ?", cartID).Delete(&entity.Cart{}).Error
+}
+
+func (repo *CartRepository) DeleteCartItems(db database.Database, cartID uint) (error) {
+    return db.GetDB().Where("cart_id = ?", cartID).Delete(&entity.CartItem{}).Error;
 }
 
 func (repo *CartRepository) UpdateCart(db database.Database, cart entity.Cart) (error) {
@@ -97,4 +103,66 @@ func (repo *CartRepository) RemoveProductToCart(db database.Database, productID 
     }
 
     return err
+}
+
+func (repo *CartRepository) FindCartItemByID(db database.Database, cartItemID uint) (*entity.CartItem, error) {
+	var cartItem entity.CartItem
+	result := db.GetDB().First(&cartItem, cartItemID)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+	return &cartItem, nil
+}
+
+func (repo *CartRepository) FindCartItemByProductID(db database.Database, productID uint) (*entity.CartItem, error) {
+	var cartItem entity.CartItem
+	result := db.GetDB().Where("product_id = ?", productID).First(&cartItem)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+	return &cartItem, nil
+}
+
+func (repo *CartRepository) CreateCartItem(db database.Database, cartItem entity.CartItem) (error) {
+	return db.GetDB().Create(&cartItem).Error
+}
+
+func (repo *CartRepository) DeleteCartItemByID(db database.Database, cartItemID uint) (error) {
+	return db.GetDB().Where("id = ?", cartItemID).Unscoped().Delete(&entity.CartItem{}).Error
+}
+
+func (repo *CartRepository) UpdateCartItem(db database.Database, cartItem entity.CartItem) (error) {
+	return db.GetDB().Save(&cartItem).Error
+}
+
+func (repo *CartRepository) IncreaseCartItemCount(db database.Database, cartItemID uint) (error) {
+	var cartItem entity.CartItem
+	result := db.GetDB().First(&cartItem, cartItemID)
+	if result.Error != nil {
+		if result.Error != gorm.ErrRecordNotFound {
+			return result.Error
+		}
+	}
+	cartItem.Count++;
+	err := db.GetDB().Save(&cartItem).Error
+	return err
+}
+
+func (repo *CartRepository) DecreaseCartItemCount(db database.Database, cartItemID uint) (error) {
+	var cartItem entity.CartItem
+	result := db.GetDB().First(&cartItem, cartItemID)
+	if result.Error != nil {
+		if result.Error != gorm.ErrRecordNotFound {
+			return result.Error
+		}
+	}
+	cartItem.Count--;
+	err := db.GetDB().Save(&cartItem).Error
+	return err
 }

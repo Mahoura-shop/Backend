@@ -137,6 +137,14 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 	currency, _ := productService.currencyService.ParseCurrency(product.Currency)
 	response.Currency = &currency
 	response.CurrencyID = product.CurrencyID
+
+	if product.ProductPic != "" {
+		productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
+		if err != nil {
+			return productdto.ProductCredential{}
+		}
+		response.ProductPic = productPic
+	}
 	
 	return response
 }
@@ -157,13 +165,6 @@ func (productService *ProductService) FindProductBySlug(slug string) (*productdt
 	if product == nil {
 		notFoundError := exception.NotFoundError{Item: productService.constants.Field.Product}
 		return nil, notFoundError
-	}
-	
-	if product.ProductPic != "" {
-		_, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	parsedProduct := productService.ParseProduct(*product)
@@ -213,14 +214,6 @@ func (productService *ProductService) GetProductBySlug(slug string) (*productdto
 	if product == nil {
 		return nil, exception.NotFoundError{Item: productService.constants.Field.Product}
 	}
-
-	if product.ProductPic != "" {
-		productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
-		if err != nil {
-			return nil, err
-		}
-		product.ProductPic = productPic
-	}
 	
 	parsedProduct := productService.ParseProduct(*product)
 	return &parsedProduct, nil
@@ -234,14 +227,6 @@ func (productService *ProductService) GetProduct(productID uint) (*productdto.Pr
 	
 	if product == nil {
 		return nil, exception.NotFoundError{Item: productService.constants.Field.Product}
-	}
-
-	if product.ProductPic != "" {
-		productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
-		if err != nil {
-			return nil, err
-		}
-		product.ProductPic = productPic
 	}
 	
 	parsedProduct := productService.ParseProduct(*product)
@@ -257,14 +242,6 @@ func (productService *ProductService) GetProducts() ([]productdto.ProductCredent
 	var responses []productdto.ProductCredential
 	for _, product := range products {
 		response := productService.ParseProduct(*product)
-		if product.ProductPic != "" {
-			productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
-			if err != nil {
-				return nil, err
-			}
-			response.ProductPic = productPic
-		}
-
 		responses = append(responses, response)
 	}
 
@@ -710,14 +687,6 @@ func (productService *ProductService) GetCategoryProducts(categoryID uint) ([]pr
 	var responses []productdto.ProductCredential
 	for _, product := range products {
 		response := productService.ParseProduct(*product)
-		if product.ProductPic != "" {
-			productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
-			if err != nil {
-				return nil, err
-			}
-			response.ProductPic = productPic
-		}
-
 		responses = append(responses, response)
 	}
 
