@@ -5,7 +5,9 @@ type UserType uint
 const (
 	UserTypeGuest UserType = iota + 1
 	UserTypeCustomer
-	UserTypeCorporation
+	UserTypeShopkeeperCheque
+	UserTypeShopkeeperCash
+	UserTypeFellow
 	UserTypeAdmin
 )
 
@@ -14,9 +16,13 @@ func (userType UserType) String() string {
 	case UserTypeGuest:
 		return "guest"
 	case UserTypeCustomer:
-		return "customer"
-	case UserTypeCorporation:
-		return "corporation"
+		return "regular"
+	case UserTypeShopkeeperCheque:
+		return "shopkeeperCheque"
+	case UserTypeShopkeeperCash:
+		return "shopkeeperCash"
+	case UserTypeFellow:
+		return "fellow"
 	case UserTypeAdmin:
 		return "admin"
 	}
@@ -27,7 +33,9 @@ func GetAllUserTypes() []UserType {
 	return []UserType{
 		UserTypeGuest,
 		UserTypeCustomer,
-		UserTypeCorporation,
+		UserTypeShopkeeperCheque,
+		UserTypeShopkeeperCash,
+		UserTypeFellow,
 		UserTypeAdmin,
 	}
 }

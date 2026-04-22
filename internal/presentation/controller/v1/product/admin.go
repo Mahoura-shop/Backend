@@ -11,8 +11,8 @@ import (
 )
 
 type AdminProductController struct {
-	constants       *bootstrap.Constants
-	pagination      *bootstrap.Pagination
+	constants      *bootstrap.Constants
+	pagination     *bootstrap.Pagination
 	productService usecase.ProductService
 }
 
@@ -30,11 +30,11 @@ func NewAdminProductController(
 
 func (productController *AdminProductController) GetProduct(ctx *gin.Context) {
 	type getProductParams struct {
-		ProductID uint `uri:"productID" validate:"required"`
+		Slug string `uri:"slug" validate:"required"`
 	}
 	params := controller.Validated[getProductParams](ctx)
 	
-	product, err := productController.productService.GetProduct(params.ProductID); 
+	product, err := productController.productService.GetProductBySlug(params.Slug); 
 	if (err != nil) {
 		panic(err)
 	}
@@ -56,15 +56,21 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		Name          string                `form:"name" validate:"required"`
 		Slug          string                `form:"slug" validate:"required"`
 		Price         float64               `form:"price" validate:"required"`
-		CurrencyCode  *string               `form:"currencyCode"`
-		IRRPrice      *float64              `form:"irrPrice"`
-		ConsumerPrice *float64              `form:"consumerPrice"`
+		CurrencyID    uint                  `form:"currencyID"`
+		IRRPrice      *uint                 `form:"irrPrice"`
+		ConsumerPrice *uint                 `form:"consumerPrice"`
 		Step1Percent  *float64              `form:"step1Percent"`
 		Step2Percent  *float64              `form:"step2Percent"`
 		Step3Percent  *float64              `form:"step3Percent"`
-		Step1Price    *float64              `form:"step1Price"`
-		Step2Price    *float64              `form:"step2Price"`
-		Step3Price    *float64              `form:"step3Price"`
+		Step4Percent  *float64              `form:"step4Percent"`
+		Step1Price    *uint                 `form:"step1Price"`
+		Step2Price    *uint                 `form:"step2Price"`
+		Step3Price    *uint                 `form:"step3Price"`
+		Step4Price    *uint                 `form:"step4Price"`
+		Step1Origin   *bool                 `form:"step1Origin"`
+		Step2Origin   *bool                 `form:"step2Origin"`
+		Step3Origin   *bool                 `form:"step3Origin"`
+		Step4Origin   *bool                 `form:"step4Origin"`
 		Quantity      *uint                 `form:"quantity"`
 		QuantityType  *string               `form:"quantityType"`
 		Priority      *uint                 `form:"priority"`
@@ -72,6 +78,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		CategoryID    *uint                 `form:"categoryID"`
 		BrandID       *uint                 `form:"brandID"`
 		Description   *string               `form:"description"`
+		Offer         *string               `form:"offer"`
 		IsActive      *bool                 `form:"isActive"`
 		IsNew         *bool                 `form:"isNew"`
 		ProductPic    *multipart.FileHeader `form:"productPic"`
@@ -82,15 +89,21 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		Name:          params.Name,
 		Slug:          params.Slug,
 		Price:         params.Price,
-		CurrencyCode:  params.CurrencyCode,
+		CurrencyID:    params.CurrencyID,
 		IRRPrice:      params.IRRPrice,
 		ConsumerPrice: params.ConsumerPrice,
 		Step1Percent:  params.Step1Percent,
 		Step2Percent:  params.Step2Percent,
 		Step3Percent:  params.Step3Percent,
+		Step4Percent:  params.Step4Percent,
 		Step1Price:    params.Step1Price,
 		Step2Price:    params.Step2Price,
 		Step3Price:    params.Step3Price,
+		Step4Price:    params.Step4Price,
+		Step1Origin:   params.Step1Origin,
+		Step2Origin:   params.Step2Origin,
+		Step3Origin:   params.Step3Origin,
+		Step4Origin:   params.Step4Origin,
 		Quantity:      params.Quantity,
 		QuantityType:  params.QuantityType,
 		Priority:      params.Priority,
@@ -98,6 +111,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		CategoryID:    params.CategoryID,
 		BrandID:       params.BrandID,
 		Description:   params.Description,
+		Offer:         params.Offer,
 		IsActive:      params.IsActive,
 		IsNew:         params.IsNew,
 		ProductPic:    params.ProductPic,
@@ -117,15 +131,21 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		Name          *string               `form:"name"`
 		Slug          *string               `form:"slug"`
 		Price         *float64              `form:"price"`
-		CurrencyCode  *string               `form:"currencyCode"`
-		IRRPrice      *float64              `form:"irrPrice"`
-		ConsumerPrice *float64              `form:"consumerPrice"`
+		CurrencyID    *uint                 `form:"currencyID"`
+		IRRPrice      *uint                 `form:"irrPrice"`
+		ConsumerPrice *uint                 `form:"consumerPrice"`
 		Step1Percent  *float64              `form:"step1Percent"`
 		Step2Percent  *float64              `form:"step2Percent"`
 		Step3Percent  *float64              `form:"step3Percent"`
-		Step1Price    *float64              `form:"step1Price"`
-		Step2Price    *float64              `form:"step2Price"`
-		Step3Price    *float64              `form:"step3Price"`
+		Step4Percent  *float64              `form:"step4Percent"`
+		Step1Price    *uint                 `form:"step1Price"`
+		Step2Price    *uint                 `form:"step2Price"`
+		Step3Price    *uint                 `form:"step3Price"`
+		Step4Price    *uint                 `form:"step4Price"`
+		Step1Origin   *bool                 `form:"step1Origin"`
+		Step2Origin   *bool                 `form:"step2Origin"`
+		Step3Origin   *bool                 `form:"step3Origin"`
+		Step4Origin   *bool                 `form:"step4Origin"`
 		Quantity      *uint                 `form:"quantity"`
 		QuantityType  *string               `form:"quantityType"`
 		Priority      *uint                 `form:"priority"`
@@ -133,6 +153,7 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		CategoryID    *uint                 `form:"categoryID"`
 		BrandID       *uint                 `form:"brandID"`
 		Description   *string               `form:"description"`
+		Offer         *string               `form:"offer"`
 		IsActive      *bool                 `form:"isActive"`
 		IsNew         *bool                 `form:"isNew"`
 		ProductPic    *multipart.FileHeader `form:"productPic"`
@@ -144,15 +165,21 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		Name:          params.Name,
 		Slug:          params.Slug,
 		Price:         params.Price,
-		CurrencyCode:  params.CurrencyCode,
+		CurrencyID:    params.CurrencyID,
 		IRRPrice:      params.IRRPrice,
 		ConsumerPrice: params.ConsumerPrice,
 		Step1Percent:  params.Step1Percent,
 		Step2Percent:  params.Step2Percent,
 		Step3Percent:  params.Step3Percent,
+		Step4Percent:  params.Step4Percent,
 		Step1Price:    params.Step1Price,
 		Step2Price:    params.Step2Price,
 		Step3Price:    params.Step3Price,
+		Step4Price:    params.Step4Price,
+		Step1Origin:   params.Step1Origin,
+		Step2Origin:   params.Step2Origin,
+		Step3Origin:   params.Step3Origin,
+		Step4Origin:   params.Step4Origin,
 		Quantity:      params.Quantity,
 		QuantityType:  params.QuantityType,
 		Priority:      params.Priority,
@@ -160,6 +187,7 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 		CategoryID:    params.CategoryID,
 		BrandID:       params.BrandID,
 		Description:   params.Description,
+		Offer:         params.Offer,
 		IsActive:      params.IsActive,
 		IsNew:         params.IsNew,
 		ProductPic:    params.ProductPic,
@@ -187,4 +215,53 @@ func (productController *AdminProductController) DeleteProduct(ctx *gin.Context)
 	trans := controller.GetTranslator(ctx, productController.constants.Context.Translator)
 	message, _ := trans.Translate("successMessage.deleteProduct")
 	controller.Response(ctx, 200, message, nil)
+}
+
+func (productController *AdminProductController) GetCategoryProducts(ctx *gin.Context) {
+	type getCategoryProductsParams struct {
+		ID uint `uri:"categoryID" validate:"required"`
+	}
+	params := controller.Validated[getCategoryProductsParams](ctx)
+	products, err := productController.productService.GetCategoryProducts(params.ID);
+	if (err != nil) {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", products)
+}
+
+func (productController *AdminProductController) UpdateProductPrices(ctx *gin.Context) {
+	type productPrice struct {
+		ID       uint `json:"id" validate:"required"`
+		IRRPrice uint `json:"irrPrice" validate:"required"`
+	}
+
+	type updateProductPricesParams struct {
+		ProductPrices []productPrice `json:"productPrices" validate:"required"`
+		// ProductPrices []productPrice `json:"productPrices" validate:"required,dive"`
+	}
+	params := controller.Validated[updateProductPricesParams](ctx)
+
+	products := make([]productdto.ProductPriceUpdateCredentials, len(params.ProductPrices))
+	for i, product := range params.ProductPrices {
+		products[i] = productdto.ProductPriceUpdateCredentials{
+			ID: product.ID,
+			IRRPrice: product.IRRPrice,
+		}
+	}
+
+	if err := productController.productService.UpdateProductsPrice(products); err != nil {
+		panic(err)
+	}
+	
+	trans := controller.GetTranslator(ctx, productController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.updateProducts")
+	controller.Response(ctx, 200, message, nil)
+}
+
+func (productController *AdminProductController) GetProductPrices(ctx *gin.Context) {
+	productPrices, err := productController.productService.GetProductPrices();
+	if (err != nil) {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", productPrices)
 }

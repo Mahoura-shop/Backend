@@ -160,7 +160,7 @@ func (brandService *BrandService) CreateBrand(brandInfo branddto.CreateBrandRequ
 		} else {
 			brand.Description = ""
 		}
-		createdBrand, err := brandService.brandRepository.CreateBrand(tx, brand)
+		createdBrand, err := brandService.brandRepository.CreateBrand(tx, *brand)
 		if err != nil {
 			return err
 		}
@@ -172,7 +172,7 @@ func (brandService *BrandService) CreateBrand(brandInfo branddto.CreateBrandRequ
 				return networkErr
 			}
 		
-			if err := brandService.brandRepository.UpdateBrand(tx, brand); err != nil {
+			if err := brandService.brandRepository.UpdateBrand(tx, *brand); err != nil {
 				return err
 			}
 		}
@@ -248,7 +248,7 @@ func (brandService *BrandService) UpdateBrand(brandInfo branddto.UpdateBrandRequ
 			}
 			brand.BrandPic = brandPicPath
 		}
-		if err := brandService.brandRepository.UpdateBrand(tx, brand); err != nil {
+		if err := brandService.brandRepository.UpdateBrand(tx, *brand); err != nil {
 			return err
 		}
 		return nil

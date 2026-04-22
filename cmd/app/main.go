@@ -29,10 +29,18 @@ func main() {
 		&entity.Category{},
 		&entity.Brand{},
 		&entity.Product{},
+		&entity.Currency{},
+		&entity.Wallet{},
+		&entity.Cart{},
+		&entity.CartItem{},
+		&entity.Transaction{},
+		&entity.Order{},
+		&entity.OrderItem{},
 	)
 	
 	app.Seeds.AddressSeeder.SeedProvincesAndCities()
 	app.Seeds.AdminSeeder.SeedAdmins()
+	app.Seeds.CurrencySeeder.SeedCurrencies()
 
 	routes.Run(ginEngine, app)
 

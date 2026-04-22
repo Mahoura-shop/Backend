@@ -26,105 +26,41 @@ func NewGeneralUserController(
 	}
 }
 
-func (userController *GeneralUserController) BasicRegister(ctx *gin.Context) {
-	type registerParams struct {
-		FirstName       string `json:"firstName" validate:"required"`
-		LastName        string `json:"lastName" validate:"required"`
+func (userController *GeneralUserController) Auth(ctx *gin.Context) {
+	type authParams struct {
 		Phone           string `json:"phone" validate:"required,e164"`
-		Password        string `json:"password" validate:"required"`
-		ConfirmPassword string `json:"confirmPassword" validate:"required,eqfield=Password"`
-		AcceptedTerms   bool   `json:"acceptedTerms" validate:"required,eq=true"`
 	}
-	params := controller.Validated[registerParams](ctx)
-	registerInfo := userdto.BasicRegisterRequest{
-		FirstName: params.FirstName,
-		LastName:  params.LastName,
+	params := controller.Validated[authParams](ctx)
+	registerInfo := userdto.AuthRequest{
 		Phone:     params.Phone,
-		Password:  params.Password,
 	}
-	if err := userController.userService.Register(registerInfo); err != nil {
+	if err := userController.userService.Auth(registerInfo); err != nil {
 		panic(err)
 	}
-
+	
 	trans := controller.GetTranslator(ctx, userController.constants.Context.Translator)
-	message, _ := trans.Translate("successMessage.userRegister")
+	message, _ := trans.Translate("successMessage.auth")
 	controller.Response(ctx, 200, message, nil)
 }
 
-func (userController *GeneralUserController) VerifyPhone(ctx *gin.Context) {
+func (userController *GeneralUserController) VerifyAuth(ctx *gin.Context) {
 	type verifyPhoneParams struct {
 		Phone string `json:"phone" validate:"required,e164"`
 		OTP   string `json:"otp" validate:"required"`
 	}
 	params := controller.Validated[verifyPhoneParams](ctx)
-	verifyOTPInfo := userdto.VerifyPhoneRequest{
+	verifyOTPInfo := userdto.VerifyAuthRequest{
 		Phone: params.Phone,
 		OTP:   params.OTP,
 	}
-	if err := userController.userService.VerifyPhone(verifyOTPInfo); err != nil {
-		panic(err)
-	}
-
-	trans := controller.GetTranslator(ctx, userController.constants.Context.Translator)
-	message, _ := trans.Translate("successMessage.phoneVerification")
-	controller.Response(ctx, 200, message, nil)
-}
-
-func (userController *GeneralUserController) Login(ctx *gin.Context) {
-	type verifyPhoneParams struct {
-		Phone    string `json:"phone" validate:"required,e164"`
-		Password string `json:"password" validate:"required"`
-	}
-	params := controller.Validated[verifyPhoneParams](ctx)
-	loginInfo := userdto.LoginRequest{
-		Phone:    params.Phone,
-		Password: params.Password,
-	}
-	userInfo, err := userController.userService.Login(loginInfo)
+	user, err := userController.userService.VerifyAuth(verifyOTPInfo); 
 	if err != nil {
 		panic(err)
 	}
 
 	trans := controller.GetTranslator(ctx, userController.constants.Context.Translator)
-	message, _ := trans.Translate("successMessage.login")
-	controller.Response(ctx, 200, message, userInfo)
-}
-
-func (userController *GeneralUserController) ForgotPassword(ctx *gin.Context) {
-	type forgotPasswordParams struct {
-		Phone string `json:"phone" validate:"required,e164"`
-	}
-	params := controller.Validated[forgotPasswordParams](ctx)
-	forgotPasswordInfo := userdto.ForgotPasswordRequest{
-		Phone: params.Phone,
-	}
-	if err := userController.userService.ForgotPassword(forgotPasswordInfo); err != nil {
-		panic(err)
-	}
-
-	trans := controller.GetTranslator(ctx, userController.constants.Context.Translator)
-	message, _ := trans.Translate("successMessage.forgotPassword")
-	controller.Response(ctx, 200, message, nil)
-}
-
-func (userController *GeneralUserController) ConfirmOTP(ctx *gin.Context) {
-	type verifyOTPParams struct {
-		Phone string `json:"phone" validate:"required,e164"`
-		OTP   string `json:"otp" validate:"required"`
-	}
-	params := controller.Validated[verifyOTPParams](ctx)
-	verifyPhoneInfo := userdto.VerifyPhoneRequest{
-		Phone: params.Phone,
-		OTP:   params.OTP,
-	}
-	userInfo, err := userController.userService.VerifyOTP(verifyPhoneInfo)
-	if err != nil {
-		panic(err)
-	}
-
-	trans := controller.GetTranslator(ctx, userController.constants.Context.Translator)
-	message, _ := trans.Translate("successMessage.phoneVerification")
-	controller.Response(ctx, 200, message, userInfo)
+	message, _ := trans.Translate("successMessage.verifyAuth")
+	controller.Response(ctx, 200, message, user)
 }
 
 func (userController *GeneralUserController) RefreshToken(ctx *gin.Context) {
@@ -166,4 +102,13 @@ func (userController *GeneralUserController) AdminLogin(ctx *gin.Context) {
 	trans := controller.GetTranslator(ctx, userController.constants.Context.Translator)
 	message, _ := trans.Translate("successMessage.login")
 	controller.Response(ctx, 200, message, adminInfo)
+}
+
+func (userController *AdminUserController) GetDashboard(ctx *gin.Context) {
+	dashboard, err := userController.userService.GetDashboard();
+	if err != nil {
+		panic(err)
+	}
+
+	controller.Response(ctx, 200, "", dashboard)
 }

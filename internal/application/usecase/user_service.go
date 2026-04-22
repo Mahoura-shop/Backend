@@ -6,20 +6,20 @@ import (
 )
 
 type UserService interface {
-	IsUserActive(userID uint) error
-	GetUserByID(userID uint) (*entity.User, error)
-	GetUserCredential(userID uint) (userdto.CredentialResponse, error)
-	BanUser(userID uint) error
-	UnbanUser(userID uint) error
-	Register(registerInfo userdto.BasicRegisterRequest) error
-	VerifyPhone(verifyInfo userdto.VerifyPhoneRequest) error
-	Login(loginInfo userdto.LoginRequest) (userdto.UserInfoResponse, error)
-	ForgotPassword(forgotPasswordInfo userdto.ForgotPasswordRequest) error
-	VerifyOTP(verifyInfo userdto.VerifyPhoneRequest) (userdto.UserInfoResponse, error)
-	CompleteRegister(completeRegisterInfo userdto.CompleteRegisterRequest) error
-	VerifyEmail(verifyOTPInfo userdto.VerifyEmailRequest) error
-	ResetPassword(resetPassInfo userdto.ResetPasswordRequest) error
-	FindActiveUserByPhone(phone string) (*entity.User, error)
-	UpdateProfile(profileInfo userdto.UpdateProfileRequest) error
-	AdminLogin(adminInfo userdto.AdminLoginRequest) (userdto.AdminInfoResponse, error)
+	ParseUser(entity.User) (userdto.UserCredential)
+	IsUserActive(uint) error
+	GetUserByID(uint) (*entity.User, error)
+	FindActiveUserByPhone(string) (*entity.User, error)
+	GetUserCredential(uint) (userdto.UserCredential, error)
+	BanUser(uint) error
+	UnbanUser(uint) error
+	Auth(userdto.AuthRequest) error
+	VerifyAuth(userdto.VerifyAuthRequest) (userdto.UserInfoResponse, error)
+	FindUserByPhone(phone string) (*entity.User, error)
+	VerifyEmail(userdto.VerifyEmailRequest) error
+	AdminLogin(userdto.AdminLoginRequest) (userdto.AdminInfoResponse, error)
+	GetDashboard() (userdto.DashboardResponse, error)
+	GetUserWalletBalance(uint) (userdto.UserWalletBalance, error)
+	DepositWallet(userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error)
+	WithdrawWallet(userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error)
 }

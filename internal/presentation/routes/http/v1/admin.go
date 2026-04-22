@@ -16,6 +16,15 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 			categoriesSubGroup.DELETE("", app.Controllers.Admin.CategoryController.DeleteCategory)
 		}
 	}
+
+	currencies := routerGroup.Group("/currency")
+	{
+		currencies.GET("", app.Controllers.Admin.CurrencyController.GetCurrencies)
+		currenciesSubGroup := currencies.Group("/:currencyID") 
+		{
+			currenciesSubGroup.PUT("", app.Controllers.Admin.CurrencyController.UpdateCurrency)
+		}
+	}
 	
 	brands := routerGroup.Group("/brand")
 	{
@@ -34,14 +43,23 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		products.GET("", app.Controllers.Admin.ProductController.GetProducts)
 		productsSubGroup := products.Group("/:productID") 
 		{
-			productsSubGroup.GET("", app.Controllers.Admin.ProductController.GetProduct)
 			productsSubGroup.PUT("", app.Controllers.Admin.ProductController.UpdateProduct)
 			productsSubGroup.DELETE("", app.Controllers.Admin.ProductController.DeleteProduct)
 		}
+		productsSlugSubgroup := products.Group("/:slug") 
+		{
+			productsSlugSubgroup.GET("", app.Controllers.Admin.ProductController.GetProduct)
+		}
+		categoryProductsSubGroup := products.Group("/category")
+		{
+			categoryProductsSubGroup.GET("/:categoryID", app.Controllers.Admin.ProductController.GetCategoryProducts)
+		}
+		products.GET("/prices", app.Controllers.Admin.ProductController.GetProductPrices)
+		products.PATCH("/prices", app.Controllers.Admin.ProductController.UpdateProductPrices)
 	}
 
 	admin := routerGroup.Group("/admin")
 	{
-		admin.POST("/login", app.Controllers.General.UserController.AdminLogin)
+		admin.GET("/dashboard", app.Controllers.Admin.UserController.GetDashboard)
 	}
 }

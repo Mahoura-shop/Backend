@@ -157,7 +157,7 @@ func (categoryService *CategoryService) CreateCategory(categoryInfo categorydto.
 		} else {
 			category.Description = ""
 		}
-		createdCategory, err := categoryService.categoryRepository.CreateCategory(tx, category)
+		createdCategory, err := categoryService.categoryRepository.CreateCategory(tx, *category)
 		if err != nil {
 			return err
 		}
@@ -169,7 +169,7 @@ func (categoryService *CategoryService) CreateCategory(categoryInfo categorydto.
 				return networkErr
 			}
 		
-			if err := categoryService.categoryRepository.UpdateCategory(tx, category); err != nil {
+			if err := categoryService.categoryRepository.UpdateCategory(tx, *category); err != nil {
 				return err
 			}
 		}
@@ -246,7 +246,7 @@ func (categoryService *CategoryService) UpdateCategory(categoryInfo categorydto.
 		
 			category.CategoryPic = categoryPicPath
 		}
-		if err := categoryService.categoryRepository.UpdateCategory(tx, category); err != nil {
+		if err := categoryService.categoryRepository.UpdateCategory(tx, *category); err != nil {
 			return err
 		}
 		return nil
