@@ -54,6 +54,8 @@ var RepositoryProviderSet = wire.NewSet(
 	infraPostgres.NewCartRepository,
 	infraPostgres.NewOrderRepository,
 	infraPostgres.NewTransactionRepository,
+	infraPostgres.NewPaymentRepository,
+	infraPostgres.NewInstalmentRepository,
 	infraRedis.NewUserCacheRepository,
 	wire.Bind(new(domainPostgres.UserRepository), new(*infraPostgres.UserRepository)),
 	wire.Bind(new(domainPostgres.AddressRepository), new(*infraPostgres.AddressRepository)),
@@ -66,6 +68,8 @@ var RepositoryProviderSet = wire.NewSet(
 	wire.Bind(new(domainPostgres.CartRepository), new(*infraPostgres.CartRepository)),
 	wire.Bind(new(domainPostgres.OrderRepository), new(*infraPostgres.OrderRepository)),
 	wire.Bind(new(domainPostgres.TransactionRepository), new(*infraPostgres.TransactionRepository)),
+	wire.Bind(new(domainPostgres.PaymentRepository), new(*infraPostgres.PaymentRepository)),
+	wire.Bind(new(domainPostgres.InstalmentRepository), new(*infraPostgres.InstalmentRepository)),
 )
 
 var ServiceProviderSet = wire.NewSet(
@@ -89,6 +93,7 @@ var ServiceProviderSet = wire.NewSet(
 	service.NewProductService,
 	service.NewCartService,
 	service.NewOrderService,
+	service.NewPaymentService,
 	wire.Bind(new(usecase.UserService), new(*service.UserService)),
 	wire.Bind(new(usecase.OTPService), new(*service.OTPService)),
 	wire.Bind(new(communication.SMSService), new(*sms.SMSService)),
@@ -102,6 +107,7 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Bind(new(usecase.ProductService), new(*service.ProductService)),
 	wire.Bind(new(usecase.CartService), new(*service.CartService)),
 	wire.Bind(new(usecase.OrderService), new(*service.OrderService)),
+	wire.Bind(new(usecase.PaymentService), new(*service.PaymentService)),
 )
 
 var AdapterProviderSet = wire.NewSet(
@@ -134,6 +140,7 @@ var AdminControllerProviderSet = wire.NewSet(
 	brand.NewAdminBrandController,
 	product.NewAdminProductController,
 	user.NewAdminUserController,
+	order.NewAdminOrderController,
 	wire.Struct(new(AdminControllers), "*"),
 )
 
@@ -218,6 +225,10 @@ func ProvideSuperAdminCredential(container *bootstrap.Config) *bootstrap.AdminCr
 	return &container.Env.Admins
 }
 
+func ProvideZarinpalConfig(container *bootstrap.Config) *bootstrap.Zarinpal {
+	return &container.Env.Zarinpal
+}
+
 var ProviderSet = wire.NewSet(
 	DatabaseProviderSet,
 	RepositoryProviderSet,
@@ -246,6 +257,7 @@ var ProviderSet = wire.NewSet(
 	ProvideWebsocketSetting,
 	ProvideEmailSenderAccount,
 	ProvideSuperAdminCredential,
+	ProvideZarinpalConfig,
 )
 
 type Database struct {
@@ -256,7 +268,7 @@ type Database struct {
 type GeneralControllers struct {
 	UserController    *user.GeneralUserController
 	AddressController *address.GeneralAddressController
-	TestController	  *test.GeneralTestController
+	TestController    *test.GeneralTestController
 }
 
 type CustomerControllers struct {
@@ -272,6 +284,7 @@ type AdminControllers struct {
 	BrandController    *brand.AdminBrandController
 	ProductController  *product.AdminProductController
 	UserController     *user.AdminUserController
+	OrderController    *order.AdminOrderController
 }
 
 type Controllers struct {

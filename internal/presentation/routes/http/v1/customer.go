@@ -20,8 +20,8 @@ func SetupCustomerRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 
 	cart := routerGroup.Group("/cart")
 	{
-		cart.GET("", app.Controllers.Customer.CartController.GetUserCart)	
-		productActionsSubgroup := cart.Group("/:productID") 
+		cart.GET("", app.Controllers.Customer.CartController.GetUserCart)
+		productActionsSubgroup := cart.Group("/:productID")
 		{
 			productActionsSubgroup.POST("/add", app.Controllers.Customer.CartController.AddProductToCart)
 			productActionsSubgroup.POST("/remove", app.Controllers.Customer.CartController.RemoveProductFromCart)
@@ -31,5 +31,20 @@ func SetupCustomerRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	order := routerGroup.Group("/order")
 	{
 		order.POST("", app.Controllers.Customer.OrderController.RegisterOrder)
+		order.GET("", app.Controllers.Customer.OrderController.GetMyOrders)
+		order.GET("/pay/verify", app.Controllers.Customer.OrderController.VerifyPayment)
+		orderSub := order.Group("/:orderID")
+		{
+			orderSub.GET("", app.Controllers.Customer.OrderController.GetMyOrderDetail)
+			orderSub.POST("/pay/wallet", app.Controllers.Customer.OrderController.PayByWallet)
+			orderSub.POST("/pay/gateway", app.Controllers.Customer.OrderController.InitiatePayment)
+			orderSub.GET("/instalments", app.Controllers.Customer.OrderController.GetMyOrderInstalments)
+		}
+	}
+
+	address := routerGroup.Group("/address")
+	{
+		address.GET("", app.Controllers.Customer.AddressController.GetCustomerAddresses)
+		address.POST("", app.Controllers.Customer.AddressController.CreateUserAddress)
 	}
 }

@@ -94,12 +94,7 @@ func (repo *CartRepository) RemoveProductToCart(db database.Database, productID 
     }
 
     if errors.Is(err, gorm.ErrRecordNotFound) {
-        item = entity.CartItem{
-            CartID:    cartID,
-            ProductID: productID,
-            Count:     1,
-        }
-        return db.GetDB().Create(&item).Error
+        return nil
     }
 
     return err
@@ -117,9 +112,9 @@ func (repo *CartRepository) FindCartItemByID(db database.Database, cartItemID ui
 	return &cartItem, nil
 }
 
-func (repo *CartRepository) FindCartItemByProductID(db database.Database, productID uint) (*entity.CartItem, error) {
+func (repo *CartRepository) FindCartItemByProductID(db database.Database, productID uint, cartID uint) (*entity.CartItem, error) {
 	var cartItem entity.CartItem
-	result := db.GetDB().Where("product_id = ?", productID).First(&cartItem)
+	result := db.GetDB().Where("product_id = ? AND cart_id = ?", productID, cartID).First(&cartItem)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, nil

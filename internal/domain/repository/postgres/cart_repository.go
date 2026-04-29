@@ -16,7 +16,7 @@ type CartRepository interface {
 	RemoveProductToCart(db database.Database, productID uint, cartID uint) (error)
 
 	FindCartItemByID(db database.Database, cartItemID uint) (*entity.CartItem, error)
-	FindCartItemByProductID(db database.Database, productID uint) (*entity.CartItem, error)
+	FindCartItemByProductID(db database.Database, productID uint, cartID uint) (*entity.CartItem, error)
 	CreateCartItem(db database.Database, cartItem entity.CartItem) (error)
 	DeleteCartItemByID(db database.Database, cartItemID uint) (error)
 	UpdateCartItem(db database.Database, cartItem entity.CartItem) (error)

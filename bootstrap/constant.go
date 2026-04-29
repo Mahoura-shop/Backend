@@ -81,6 +81,8 @@ type ErrorField struct {
 	CartItem            string
 	Order               string
 	OrderItem           string
+	Payment             string
+	Instalment          string
 }
 
 type ErrorTag struct {
@@ -213,6 +215,8 @@ func NewConstants() *Constants {
 			CartItem:            "cartItem",
 			Order:               "order",
 			OrderItem:           "orderItem",
+			Payment:             "payment",
+			Instalment:          "instalment",
 		},
 		Tag: ErrorTag{
 			AlreadyRegistered:      "alreadyRegistered",

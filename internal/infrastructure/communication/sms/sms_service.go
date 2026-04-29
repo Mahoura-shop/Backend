@@ -29,3 +29,9 @@ func (smsService *SMSService) SendOTP(receptor, token string) error {
 	}
 	return nil
 }
+
+func (smsService *SMSService) SendMessage(receptor, message string) error {
+	api := kavenegar.New(smsService.providerConfig.APIKey)
+	_, err := api.Message.Send(smsService.providerConfig.Sender, []string{receptor}, message, nil)
+	return err
+}
