@@ -32,10 +32,6 @@ func (smsService *SMSService) SendOTP(receptor, token string) error {
 
 func (smsService *SMSService) SendMessage(receptor, message string) error {
 	api := kavenegar.New(smsService.providerConfig.APIKey)
-	params := &kavenegar.MessageSendParam{
-		Receptor: receptor,
-		Message:  message,
-	}
-	_, err := api.Message.Send(smsService.providerConfig.Sender, params, nil)
+	_, err := api.Message.Send(smsService.providerConfig.Sender, []string{receptor}, message, nil)
 	return err
 }

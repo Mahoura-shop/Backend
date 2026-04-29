@@ -11,7 +11,7 @@ type OrderService interface {
 	GetOrder(uint) (*orderdto.OrderCredential, error)
 	GetOrders() ([]orderdto.OrderCredential, error)
 	GetUserOrders(userID uint) ([]orderdto.OrderCredential, error)
-	RegisterOrder(userID uint, req orderdto.CreateOrderRequest) error
+	RegisterOrder(userID uint, req orderdto.CreateOrderRequest) (uint, error)
 	UpdateOrderStatus(orderID uint, req orderdto.UpdateOrderStatusRequest) error
 	PayOrderByWallet(userID, orderID uint) error
 	InitiateGatewayPayment(userID, orderID uint) (*orderdto.PaymentGatewayResponse, error)

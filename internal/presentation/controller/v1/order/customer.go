@@ -32,13 +32,14 @@ func (c *CustomerOrderController) RegisterOrder(ctx *gin.Context) {
 	userID, _ := ctx.Get(c.constants.Context.ID)
 	req.UserID = userID.(uint)
 
-	if err := c.orderService.RegisterOrder(userID.(uint), req); err != nil {
+	orderID, err := c.orderService.RegisterOrder(userID.(uint), req)
+	if err != nil {
 		panic(err)
 	}
 
 	trans := controller.GetTranslator(ctx, c.constants.Context.Translator)
 	message, _ := trans.Translate("successMessage.registerOrder")
-	controller.Response(ctx, 200, message, nil)
+	controller.Response(ctx, 200, message, map[string]uint{"orderID": orderID})
 }
 
 func (c *CustomerOrderController) GetMyOrders(ctx *gin.Context) {

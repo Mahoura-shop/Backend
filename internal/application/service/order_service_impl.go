@@ -172,39 +172,40 @@ func validatePaymentMethod(userType enum.UserType, paymentMethod enum.PaymentMet
 	return nil
 }
 
-func (s *OrderService) RegisterOrder(userID uint, req orderdto.CreateOrderRequest) error {
+func (s *OrderService) RegisterOrder(userID uint, req orderdto.CreateOrderRequest) (uint, error) {
 	user, err := s.userService.GetUserByID(userID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if user == nil {
-		return exception.NotFoundError{Item: s.constants.Field.User}
+		return 0, exception.NotFoundError{Item: s.constants.Field.User}
 	}
 
 	if err := validatePaymentMethod(user.Type, req.PaymentMethod); err != nil {
-		return err
+		return 0, err
 	}
 
 	cart, err := s.cartService.GetUserCart(userID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if len(cart.Items) == 0 {
-		return exception.NotFoundError{Item: s.constants.Field.CartItem}
+		return 0, exception.NotFoundError{Item: s.constants.Field.CartItem}
 	}
 
 	var shippingCost uint
 	if req.AddressID != nil {
 		addr, err := s.addressRepository.GetAddressByID(s.db, *req.AddressID)
 		if err != nil {
-			return err
+			return 0, err
 		}
 		if addr != nil {
 			shippingCost = shipping.CalculateShipping(addr.ProvinceID)
 		}
 	}
 
-	return s.db.WithTransaction(func(tx database.Database) error {
+	var createdOrderID uint
+	err = s.db.WithTransaction(func(tx database.Database) error {
 		var totalAmount uint
 
 		order := entity.Order{
@@ -218,6 +219,7 @@ func (s *OrderService) RegisterOrder(userID uint, req orderdto.CreateOrderReques
 		if err != nil {
 			return err
 		}
+		createdOrderID = createdOrder.ID
 
 		for _, cartItem := range cart.Items {
 			product, err := s.productRepository.FindProductByID(tx, cartItem.Product.ID)
@@ -296,6 +298,7 @@ func (s *OrderService) RegisterOrder(userID uint, req orderdto.CreateOrderReques
 
 		return nil
 	})
+	return createdOrderID, err
 }
 
 func (s *OrderService) UpdateOrderStatus(orderID uint, req orderdto.UpdateOrderStatusRequest) error {
