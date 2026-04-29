@@ -145,15 +145,26 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	cartService := service.NewCartService(cartServiceDeps)
 	customerCartController := cart.NewCustomerCartController(constants, cartService)
 	orderRepository := postgres.NewOrderRepository()
+	paymentRepository := postgres.NewPaymentRepository()
+	instalmentRepository := postgres.NewInstalmentRepository()
+	zarinpal := ProvideZarinpalConfig(container)
+	paymentService := service.NewPaymentService(zarinpal)
 	orderServiceDeps := service.OrderServiceDeps{
-		Constants:         constants,
-		OrderRepository:   orderRepository,
-		ProductRepository: productRepository,
-		CurrencyService:   currencyService,
-		ProductService:    productService,
-		UserService:       userService,
-		CartService:       cartService,
-		DB:                postgresDatabase,
+		Constants:             constants,
+		OrderRepository:       orderRepository,
+		ProductRepository:     productRepository,
+		WalletRepository:      walletRepository,
+		TransactionRepository: transactionRepository,
+		PaymentRepository:     paymentRepository,
+		InstalmentRepository:  instalmentRepository,
+		AddressRepository:     addressRepository,
+		CurrencyService:       currencyService,
+		ProductService:        productService,
+		UserService:           userService,
+		CartService:           cartService,
+		PaymentService:        paymentService,
+		SMSService:            smsService,
+		DB:                    postgresDatabase,
 	}
 	orderService := service.NewOrderService(orderServiceDeps)
 	customerOrderController := order.NewCustomerOrderController(constants, orderService)
@@ -169,12 +180,14 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	adminBrandController := brand.NewAdminBrandController(constants, pagination, brandService)
 	adminProductController := product.NewAdminProductController(constants, pagination, productService)
 	adminUserController := user.NewAdminUserController(constants, pagination, userService)
+	adminOrderController := order.NewAdminOrderController(constants, orderService)
 	adminControllers := &AdminControllers{
 		CategoryController: adminCategoryController,
 		CurrencyController: adminCurrencyController,
 		BrandController:    adminBrandController,
 		ProductController:  adminProductController,
 		UserController:     adminUserController,
+		OrderController:    adminOrderController,
 	}
 	controllers := &Controllers{
 		General:  generalControllers,
@@ -219,9 +232,9 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 
 var DatabaseProviderSet = wire.NewSet(database.NewPostgresDatabase, database.NewRedisDatabase, wire.Bind(new(database.Database), new(*database.PostgresDatabase)), wire.Bind(new(database.Cache), new(*database.RedisDatabase)), wire.Struct(new(Database), "*"))
 
-var RepositoryProviderSet = wire.NewSet(postgres.NewUserRepository, postgres.NewAddressRepository, postgres.NewCategoryRepository, postgres.NewCurrencyRepository, postgres.NewBrandRepository, postgres.NewProductRepository, postgres.NewWalletRepository, postgres.NewCartRepository, postgres.NewOrderRepository, postgres.NewTransactionRepository, redis.NewUserCacheRepository, wire.Bind(new(postgres2.UserRepository), new(*postgres.UserRepository)), wire.Bind(new(postgres2.AddressRepository), new(*postgres.AddressRepository)), wire.Bind(new(redis2.UserCacheRepository), new(*redis.UserCacheRepository)), wire.Bind(new(postgres2.CategoryRepository), new(*postgres.CategoryRepository)), wire.Bind(new(postgres2.CurrencyRepository), new(*postgres.CurrencyRepository)), wire.Bind(new(postgres2.BrandRepository), new(*postgres.BrandRepository)), wire.Bind(new(postgres2.ProductRepository), new(*postgres.ProductRepository)), wire.Bind(new(postgres2.WalletRepository), new(*postgres.WalletRepository)), wire.Bind(new(postgres2.CartRepository), new(*postgres.CartRepository)), wire.Bind(new(postgres2.OrderRepository), new(*postgres.OrderRepository)), wire.Bind(new(postgres2.TransactionRepository), new(*postgres.TransactionRepository)))
+var RepositoryProviderSet = wire.NewSet(postgres.NewUserRepository, postgres.NewAddressRepository, postgres.NewCategoryRepository, postgres.NewCurrencyRepository, postgres.NewBrandRepository, postgres.NewProductRepository, postgres.NewWalletRepository, postgres.NewCartRepository, postgres.NewOrderRepository, postgres.NewTransactionRepository, postgres.NewPaymentRepository, postgres.NewInstalmentRepository, redis.NewUserCacheRepository, wire.Bind(new(postgres2.UserRepository), new(*postgres.UserRepository)), wire.Bind(new(postgres2.AddressRepository), new(*postgres.AddressRepository)), wire.Bind(new(redis2.UserCacheRepository), new(*redis.UserCacheRepository)), wire.Bind(new(postgres2.CategoryRepository), new(*postgres.CategoryRepository)), wire.Bind(new(postgres2.CurrencyRepository), new(*postgres.CurrencyRepository)), wire.Bind(new(postgres2.BrandRepository), new(*postgres.BrandRepository)), wire.Bind(new(postgres2.ProductRepository), new(*postgres.ProductRepository)), wire.Bind(new(postgres2.WalletRepository), new(*postgres.WalletRepository)), wire.Bind(new(postgres2.CartRepository), new(*postgres.CartRepository)), wire.Bind(new(postgres2.OrderRepository), new(*postgres.OrderRepository)), wire.Bind(new(postgres2.TransactionRepository), new(*postgres.TransactionRepository)), wire.Bind(new(postgres2.PaymentRepository), new(*postgres.PaymentRepository)), wire.Bind(new(postgres2.InstalmentRepository), new(*postgres.InstalmentRepository)))
 
-var ServiceProviderSet = wire.NewSet(wire.Struct(new(service.UserServiceDeps), "*"), wire.Struct(new(service.CategoryServiceDeps), "*"), wire.Struct(new(service.CurrencyServiceDeps), "*"), wire.Struct(new(service.BrandServiceDeps), "*"), wire.Struct(new(service.ProductServiceDeps), "*"), wire.Struct(new(service.CartServiceDeps), "*"), wire.Struct(new(service.OrderServiceDeps), "*"), service.NewUserService, service.NewOTPService, sms.NewSMSService, email.NewEmailService, service.NewJWTService, service.NewAddressService, service.NewTestService, service.NewCategoryService, service.NewCurrencyService, service.NewBrandService, service.NewProductService, service.NewCartService, service.NewOrderService, wire.Bind(new(usecase.UserService), new(*service.UserService)), wire.Bind(new(usecase.OTPService), new(*service.OTPService)), wire.Bind(new(communication.SMSService), new(*sms.SMSService)), wire.Bind(new(communication.EmailService), new(*email.EmailService)), wire.Bind(new(usecase.JWTService), new(*service.JWTService)), wire.Bind(new(usecase.AddressService), new(*service.AddressService)), wire.Bind(new(usecase.TestService), new(*service.TestService)), wire.Bind(new(usecase.CategoryService), new(*service.CategoryService)), wire.Bind(new(usecase.CurrencyService), new(*service.CurrencyService)), wire.Bind(new(usecase.BrandService), new(*service.BrandService)), wire.Bind(new(usecase.ProductService), new(*service.ProductService)), wire.Bind(new(usecase.CartService), new(*service.CartService)), wire.Bind(new(usecase.OrderService), new(*service.OrderService)))
+var ServiceProviderSet = wire.NewSet(wire.Struct(new(service.UserServiceDeps), "*"), wire.Struct(new(service.CategoryServiceDeps), "*"), wire.Struct(new(service.CurrencyServiceDeps), "*"), wire.Struct(new(service.BrandServiceDeps), "*"), wire.Struct(new(service.ProductServiceDeps), "*"), wire.Struct(new(service.CartServiceDeps), "*"), wire.Struct(new(service.OrderServiceDeps), "*"), service.NewUserService, service.NewOTPService, sms.NewSMSService, email.NewEmailService, service.NewJWTService, service.NewAddressService, service.NewTestService, service.NewCategoryService, service.NewCurrencyService, service.NewBrandService, service.NewProductService, service.NewCartService, service.NewOrderService, service.NewPaymentService, wire.Bind(new(usecase.UserService), new(*service.UserService)), wire.Bind(new(usecase.OTPService), new(*service.OTPService)), wire.Bind(new(communication.SMSService), new(*sms.SMSService)), wire.Bind(new(communication.EmailService), new(*email.EmailService)), wire.Bind(new(usecase.JWTService), new(*service.JWTService)), wire.Bind(new(usecase.AddressService), new(*service.AddressService)), wire.Bind(new(usecase.TestService), new(*service.TestService)), wire.Bind(new(usecase.CategoryService), new(*service.CategoryService)), wire.Bind(new(usecase.CurrencyService), new(*service.CurrencyService)), wire.Bind(new(usecase.BrandService), new(*service.BrandService)), wire.Bind(new(usecase.ProductService), new(*service.ProductService)), wire.Bind(new(usecase.CartService), new(*service.CartService)), wire.Bind(new(usecase.OrderService), new(*service.OrderService)), wire.Bind(new(usecase.PaymentService), new(*service.PaymentService)))
 
 var AdapterProviderSet = wire.NewSet(localization.NewTranslationService, logger.NewLogger, storage.NewS3Storage, jwt.NewJWTKeyManager, wire.Bind(new(logger2.Logger), new(*logger.Logger)), wire.Bind(new(s3.S3Storage), new(*storage.S3Storage)))
 
@@ -229,7 +242,7 @@ var GeneralControllerProviderSet = wire.NewSet(user.NewGeneralUserController, ad
 
 var CustomerControllerProviderSet = wire.NewSet(user.NewCustomerUserController, address.NewCustomerAddressController, cart.NewCustomerCartController, order.NewCustomerOrderController, wire.Struct(new(CustomerControllers), "*"))
 
-var AdminControllerProviderSet = wire.NewSet(currency.NewAdminCurrencyController, category.NewAdminCategoryController, brand.NewAdminBrandController, product.NewAdminProductController, user.NewAdminUserController, wire.Struct(new(AdminControllers), "*"))
+var AdminControllerProviderSet = wire.NewSet(currency.NewAdminCurrencyController, category.NewAdminCategoryController, brand.NewAdminBrandController, product.NewAdminProductController, user.NewAdminUserController, order.NewAdminOrderController, wire.Struct(new(AdminControllers), "*"))
 
 var ControllersProviderSet = wire.NewSet(wire.Struct(new(Controllers), "*"))
 
@@ -297,35 +310,9 @@ func ProvideSuperAdminCredential(container *bootstrap.Config) *bootstrap.AdminCr
 	return &container.Env.Admins
 }
 
-var ProviderSet = wire.NewSet(
-	DatabaseProviderSet,
-	RepositoryProviderSet,
-	ServiceProviderSet,
-	AdapterProviderSet,
-
-	GeneralControllerProviderSet,
-	CustomerControllerProviderSet,
-	AdminControllerProviderSet,
-	ControllersProviderSet,
-
-	MiddlewareProviderSet,
-	SeederProviderSet,
-	ProvideConstants,
-	ProvideLoggerConfig,
-	ProvideStorageConfig,
-	ProvideRateLimitConfig,
-	ProvideDBConfig,
-	ProvideRDBConfig,
-	ProvideOTPConfig,
-	ProvideSMSGatewayConfig,
-	ProvideSMSTemplates,
-	ProvideEmailTemplates,
-	ProvideJWTKeysPath,
-	ProvidePaginationConfig,
-	ProvideWebsocketSetting,
-	ProvideEmailSenderAccount,
-	ProvideSuperAdminCredential,
-)
+func ProvideZarinpalConfig(container *bootstrap.Config) *bootstrap.Zarinpal {
+	return &container.Env.Zarinpal
+}
 
 type Database struct {
 	DB  database.Database
@@ -351,6 +338,7 @@ type AdminControllers struct {
 	BrandController    *brand.AdminBrandController
 	ProductController  *product.AdminProductController
 	UserController     *user.AdminUserController
+	OrderController    *order.AdminOrderController
 }
 
 type Controllers struct {

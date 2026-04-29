@@ -10,5 +10,14 @@ type OrderService interface {
 	ParseOrder(entity.Order) orderdto.OrderCredential
 	GetOrder(uint) (*orderdto.OrderCredential, error)
 	GetOrders() ([]orderdto.OrderCredential, error)
-	RegisterOrder(userID uint, paymentMethod enum.PaymentMethod) error
+	GetUserOrders(userID uint) ([]orderdto.OrderCredential, error)
+	RegisterOrder(userID uint, req orderdto.CreateOrderRequest) error
+	UpdateOrderStatus(orderID uint, req orderdto.UpdateOrderStatusRequest) error
+	PayOrderByWallet(userID, orderID uint) error
+	InitiateGatewayPayment(userID, orderID uint) (*orderdto.PaymentGatewayResponse, error)
+	VerifyGatewayPayment(authority string, status string) error
+	CancelOrder(orderID uint) error
+	FlagOrderRefund(orderID uint) error
+	GetOrderInstalments(orderID uint) ([]orderdto.InstalmentCredential, error)
+	GetOrdersByStatus(status enum.OrderStatus) ([]orderdto.OrderCredential, error)
 }

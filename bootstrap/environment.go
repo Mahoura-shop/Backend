@@ -22,6 +22,7 @@ type Env struct {
 	WebsocketSetting   WebsocketSetting
 	EmailSenderAccount EmailAccount
 	Admins	           AdminCredentials
+	Zarinpal          Zarinpal
 }
 
 type Server struct {
@@ -77,6 +78,13 @@ type OTP struct {
 
 type SMSGateway struct {
 	APIKey string
+	Sender string
+}
+
+type Zarinpal struct {
+	MerchantID  string
+	CallbackURL string
+	Sandbox     bool
 }
 
 type Pagination struct {
@@ -156,6 +164,12 @@ func NewEnvironments() *Env {
 		},
 		SMSGateway: SMSGateway{
 			APIKey: os.Getenv("SMS_GATEWAY_API_KEY"),
+			Sender: os.Getenv("SMS_GATEWAY_SENDER"),
+		},
+		Zarinpal: Zarinpal{
+			MerchantID:  os.Getenv("ZARINPAL_MERCHANT_ID"),
+			CallbackURL: os.Getenv("ZARINPAL_CALLBACK_URL"),
+			Sandbox:     os.Getenv("ZARINPAL_SANDBOX") == "true",
 		},
 		Pagination: Pagination{
 			DefaultPage:     getEnvInt("DEFAULT_PAGE", 6),

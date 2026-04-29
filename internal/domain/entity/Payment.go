@@ -7,6 +7,11 @@ import (
 
 type Payment struct {
 	database.Model
-	Amount uint               `gorm:"type:int"`
-	Status enum.PaymentStatus `gorm:"index"`
+	OrderID    uint
+	Order      Order              `gorm:"foreignKey:OrderID"`
+	Amount     uint               `gorm:"type:int"`
+	Status     enum.PaymentStatus `gorm:"index"`
+	Authority  string             `gorm:"type:varchar(100);uniqueIndex"`
+	RefCode    string             `gorm:"type:varchar(100)"`
+	GatewayURL string             `gorm:"type:varchar(255)"`
 }

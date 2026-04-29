@@ -3,12 +3,15 @@ package orderdto
 import "github.com/Mahoura-shop/Backend/internal/domain/enum"
 
 type CreateOrderRequest struct {
-	UserID        uint
-	PaymentMethod enum.PaymentMethod `json:"paymentMethod"`
+	UserID              uint
+	AddressID           *uint              `json:"addressID"`
+	PaymentMethod       enum.PaymentMethod `json:"paymentMethod"`
+	InstalmentCount     uint               `json:"instalmentCount"`
+	InstalmentIntervalDays uint            `json:"instalmentIntervalDays"`
 }
 
-type CreateOrderItemRequest struct {
-	ProductID     uint
-	Count         uint
-	PriceSnapshot uint
+type UpdateOrderStatusRequest struct {
+	Status      enum.OrderStatus `json:"status" validate:"required"`
+	Note        string           `json:"note"`
+	ChangedByID uint
 }
