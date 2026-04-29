@@ -50,7 +50,7 @@ func (cartService *CartService) ParseCart(cart entity.Cart) (cartdto.CartCredent
 	
 	response.User = cartService.userService.ParseUser(cart.User)
 
-	var responses []cartdto.CartItemCredential
+	responses := []cartdto.CartItemCredential{}
 	for _, item := range cart.Items {
 		parsedItem := cartService.ParseCartItem(item)
 		responses = append(responses, parsedItem)
@@ -67,8 +67,7 @@ func (cartService *CartService) GetUserCart(userID uint) (cartdto.CartCredential
 	}
 
 	if cart == nil {
-		notFoundError := exception.NotFoundError{Item: cartService.constants.Field.Category}
-		return cartdto.CartCredential{}, notFoundError
+		return cartdto.CartCredential{Items: []cartdto.CartItemCredential{}}, nil
 	}
 
 	return cartService.ParseCart(*cart), nil
@@ -88,28 +87,17 @@ func (cartService *CartService) AddProductToCart(addProductToCartInfo cartdto.Up
 		return err
 	}
 	if cart == nil {
-		cart := entity.Cart{
-			UserID: addProductToCartInfo.UserID,
+		newCart := entity.Cart{UserID: addProductToCartInfo.UserID}
+		if err = cartService.cartRepository.CreateCart(cartService.db, newCart); err != nil {
+			return err
 		}
-		if err = cartService.cartRepository.CreateCart(cartService.db, cart); err != nil {
-			return err;
+		cart, err = cartService.cartRepository.FindCartByUserID(cartService.db, addProductToCartInfo.UserID)
+		if err != nil {
+			return err
 		}
 	}
-	
-	cartItem, err := cartService.cartRepository.FindCartItemByProductID(cartService.db, product.ID)
-	if err != nil {
-		return err
-	}
-	if cartItem == nil {
-		cartItem := entity.CartItem{
-            CartID:    cart.ID,
-            ProductID: product.ID,
-            Count:     1,
-        }
-		return cartService.cartRepository.CreateCartItem(cartService.db, cartItem);
-	} else {
-		return cartService.cartRepository.IncreaseCartItemCount(cartService.db, cartItem.ID)
-	}
+
+	return cartService.cartRepository.AddProductToCart(cartService.db, product.ID, cart.ID)
 }
 
 func (cartService *CartService) RemoveProductFromCart(removeProductFromCartInfo cartdto.UpdateProductCountInCart) (error) {
@@ -126,15 +114,10 @@ func (cartService *CartService) RemoveProductFromCart(removeProductFromCartInfo 
 		return err
 	}
 	if cart == nil {
-		cart := entity.Cart{
-			UserID: removeProductFromCartInfo.UserID,
-		}
-		if err = cartService.cartRepository.CreateCart(cartService.db, cart); err != nil {
-			return err;
-		}
+		return exception.NotFoundError{Item: cartService.constants.Field.CartItem}
 	}
-	
-	cartItem, err := cartService.cartRepository.FindCartItemByProductID(cartService.db, product.ID)
+
+	cartItem, err := cartService.cartRepository.FindCartItemByProductID(cartService.db, product.ID, cart.ID)
 	if err != nil {
 		return err
 	}
@@ -142,10 +125,9 @@ func (cartService *CartService) RemoveProductFromCart(removeProductFromCartInfo 
 		return exception.NotFoundError{Item: cartService.constants.Field.CartItem}
 	}
 	if cartItem.Count == 1 {
-		return cartService.cartRepository.DeleteCartItemByID(cartService.db, cartItem.ID);
-	} else {
-		return cartService.cartRepository.DecreaseCartItemCount(cartService.db, cartItem.ID)
+		return cartService.cartRepository.DeleteCartItemByID(cartService.db, cartItem.ID)
 	}
+	return cartService.cartRepository.DecreaseCartItemCount(cartService.db, cartItem.ID)
 }
 
 func (cartService *CartService) ParseCartItem(cartItem entity.CartItem) (cartdto.CartItemCredential) {

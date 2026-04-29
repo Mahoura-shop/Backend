@@ -31,14 +31,12 @@ func (repo *OrderRepository) GetOrders(db database.Database) ([]*entity.Order, e
 	return orders, nil
 }
 
-func (repo *OrderRepository) CreateOrder(db database.Database) (*entity.Order, error) {
-	order := entity.Order{}
-    result := db.GetDB().Create(&order)
-    if result.Error != nil {
-        return nil, result.Error
-    }
-    
-    return &order, nil
+func (repo *OrderRepository) CreateOrder(db database.Database, order entity.Order) (*entity.Order, error) {
+	result := db.GetDB().Create(&order)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &order, nil
 }
 
 func (repo *OrderRepository) DeleteOrderByID(db database.Database, orderID uint) (error) {

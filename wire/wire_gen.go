@@ -146,13 +146,14 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	customerCartController := cart.NewCustomerCartController(constants, cartService)
 	orderRepository := postgres.NewOrderRepository()
 	orderServiceDeps := service.OrderServiceDeps{
-		Constants:       constants,
-		OrderRepository: orderRepository,
-		CurrencyService: currencyService,
-		ProductService:  productService,
-		UserService:     userService,
-		CartService:     cartService,
-		DB:              postgresDatabase,
+		Constants:         constants,
+		OrderRepository:   orderRepository,
+		ProductRepository: productRepository,
+		CurrencyService:   currencyService,
+		ProductService:    productService,
+		UserService:       userService,
+		CartService:       cartService,
+		DB:                postgresDatabase,
 	}
 	orderService := service.NewOrderService(orderServiceDeps)
 	customerOrderController := order.NewCustomerOrderController(constants, orderService)

@@ -396,6 +396,26 @@ func (productService *ProductService) applyProductInitial(product *entity.Produc
 	}
 }
 
+func validatePriceOrdering(product entity.Product) error {
+	var ve exception.ValidationErrors
+	if product.Step1Price > 0 && product.Step2Price > 0 && product.Step1Price > product.Step2Price {
+		ve.Add("step1Price", "must be less than or equal to step2Price")
+	}
+	if product.Step2Price > 0 && product.Step3Price > 0 && product.Step2Price > product.Step3Price {
+		ve.Add("step2Price", "must be less than or equal to step3Price")
+	}
+	if product.Step3Price > 0 && product.Step4Price > 0 && product.Step3Price > product.Step4Price {
+		ve.Add("step3Price", "must be less than or equal to step4Price")
+	}
+	if product.Step4Price > 0 && product.ConsumerPrice > 0 && product.Step4Price > product.ConsumerPrice {
+		ve.Add("step4Price", "must be less than or equal to consumerPrice")
+	}
+	if len(ve.Errors) > 0 {
+		return ve
+	}
+	return nil
+}
+
 func (productService *ProductService) CreateProduct(productInfo productdto.CreateProductRequest) error {
 	parsedSlug, err := productService.ParseSlug(productInfo.Slug)
 	if err != nil {
@@ -417,6 +437,10 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 	}
 
 	productService.applyProductInitial(&product, productInfo)
+
+	if err := validatePriceOrdering(product); err != nil {
+		return err
+	}
 
 	if productInfo.CategoryID != nil {
 		category, err := productService.categoryService.FindCategoryByID(*productInfo.CategoryID)
@@ -602,6 +626,10 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 
 	err = productService.applyProductUpdates(product, productInfo)
 	if err != nil {
+		return err
+	}
+
+	if err := validatePriceOrdering(*product); err != nil {
 		return err
 	}
 
