@@ -83,6 +83,10 @@ type ErrorField struct {
 	OrderItem           string
 	Payment             string
 	Instalment          string
+	Review              string
+	Wishlist            string
+	Coupon              string
+	ProductImage        string
 }
 
 type ErrorTag struct {
@@ -217,6 +221,10 @@ func NewConstants() *Constants {
 			OrderItem:           "orderItem",
 			Payment:             "payment",
 			Instalment:          "instalment",
+			Review:              "review",
+			Wishlist:            "wishlist",
+			Coupon:              "coupon",
+			ProductImage:        "productImage",
 		},
 		Tag: ErrorTag{
 			AlreadyRegistered:      "alreadyRegistered",
@@ -295,6 +303,10 @@ func (path *BucketPath) GetUserProfilePath(userID uint, pictureFileName string) 
 
 func (path *BucketPath) GetProductPicPath(productID uint, productPicFileName string) string {
 	return fmt.Sprintf("product/%d/picture/%s", productID, productPicFileName)
+}
+
+func (path *BucketPath) GetProductImagePath(productID uint, imageFileName string) string {
+	return fmt.Sprintf("product/%d/images/%s", productID, imageFileName)
 }
 
 func (path *BucketPath) GetCategoryPicPath(categoryID uint, categoryPicFileName string) string {

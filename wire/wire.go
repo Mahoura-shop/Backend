@@ -24,13 +24,17 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/address"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/category"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/coupon"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/currency"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/brand"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/product"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/review"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/test"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/user"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/cart"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/order"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/wishlist"
+	upgraderequest "github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/upgrade_request"
 	"github.com/Mahoura-shop/Backend/internal/presentation/middleware"
 	"github.com/google/wire"
 )
@@ -50,12 +54,18 @@ var RepositoryProviderSet = wire.NewSet(
 	infraPostgres.NewCurrencyRepository,
 	infraPostgres.NewBrandRepository,
 	infraPostgres.NewProductRepository,
+	infraPostgres.NewProductImageRepository,
+	infraPostgres.NewReviewRepository,
+	infraPostgres.NewCouponRepository,
+	infraPostgres.NewWishlistRepository,
 	infraPostgres.NewWalletRepository,
 	infraPostgres.NewCartRepository,
 	infraPostgres.NewOrderRepository,
 	infraPostgres.NewTransactionRepository,
 	infraPostgres.NewPaymentRepository,
 	infraPostgres.NewInstalmentRepository,
+	infraPostgres.NewUpgradeRequestRepository,
+	infraPostgres.NewUserAuditLogRepository,
 	infraRedis.NewUserCacheRepository,
 	wire.Bind(new(domainPostgres.UserRepository), new(*infraPostgres.UserRepository)),
 	wire.Bind(new(domainPostgres.AddressRepository), new(*infraPostgres.AddressRepository)),
@@ -64,12 +74,18 @@ var RepositoryProviderSet = wire.NewSet(
 	wire.Bind(new(domainPostgres.CurrencyRepository), new(*infraPostgres.CurrencyRepository)),
 	wire.Bind(new(domainPostgres.BrandRepository), new(*infraPostgres.BrandRepository)),
 	wire.Bind(new(domainPostgres.ProductRepository), new(*infraPostgres.ProductRepository)),
+	wire.Bind(new(domainPostgres.ProductImageRepository), new(*infraPostgres.ProductImageRepository)),
+	wire.Bind(new(domainPostgres.ReviewRepository), new(*infraPostgres.ReviewRepository)),
+	wire.Bind(new(domainPostgres.CouponRepository), new(*infraPostgres.CouponRepository)),
+	wire.Bind(new(domainPostgres.WishlistRepository), new(*infraPostgres.WishlistRepository)),
 	wire.Bind(new(domainPostgres.WalletRepository), new(*infraPostgres.WalletRepository)),
 	wire.Bind(new(domainPostgres.CartRepository), new(*infraPostgres.CartRepository)),
 	wire.Bind(new(domainPostgres.OrderRepository), new(*infraPostgres.OrderRepository)),
 	wire.Bind(new(domainPostgres.TransactionRepository), new(*infraPostgres.TransactionRepository)),
 	wire.Bind(new(domainPostgres.PaymentRepository), new(*infraPostgres.PaymentRepository)),
 	wire.Bind(new(domainPostgres.InstalmentRepository), new(*infraPostgres.InstalmentRepository)),
+	wire.Bind(new(domainPostgres.UpgradeRequestRepository), new(*infraPostgres.UpgradeRequestRepository)),
+	wire.Bind(new(domainPostgres.UserAuditLogRepository), new(*infraPostgres.UserAuditLogRepository)),
 )
 
 var ServiceProviderSet = wire.NewSet(
@@ -78,8 +94,12 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Struct(new(service.CurrencyServiceDeps), "*"),
 	wire.Struct(new(service.BrandServiceDeps), "*"),
 	wire.Struct(new(service.ProductServiceDeps), "*"),
+	wire.Struct(new(service.ReviewServiceDeps), "*"),
+	wire.Struct(new(service.CouponServiceDeps), "*"),
+	wire.Struct(new(service.WishlistServiceDeps), "*"),
 	wire.Struct(new(service.CartServiceDeps), "*"),
 	wire.Struct(new(service.OrderServiceDeps), "*"),
+	wire.Struct(new(service.UpgradeRequestServiceDeps), "*"),
 	service.NewUserService,
 	service.NewOTPService,
 	sms.NewSMSService,
@@ -91,9 +111,13 @@ var ServiceProviderSet = wire.NewSet(
 	service.NewCurrencyService,
 	service.NewBrandService,
 	service.NewProductService,
+	service.NewReviewService,
+	service.NewCouponService,
+	service.NewWishlistService,
 	service.NewCartService,
 	service.NewOrderService,
 	service.NewPaymentService,
+	service.NewUpgradeRequestService,
 	wire.Bind(new(usecase.UserService), new(*service.UserService)),
 	wire.Bind(new(usecase.OTPService), new(*service.OTPService)),
 	wire.Bind(new(communication.SMSService), new(*sms.SMSService)),
@@ -105,9 +129,13 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Bind(new(usecase.CurrencyService), new(*service.CurrencyService)),
 	wire.Bind(new(usecase.BrandService), new(*service.BrandService)),
 	wire.Bind(new(usecase.ProductService), new(*service.ProductService)),
+	wire.Bind(new(usecase.ReviewService), new(*service.ReviewService)),
+	wire.Bind(new(usecase.CouponService), new(*service.CouponService)),
+	wire.Bind(new(usecase.WishlistService), new(*service.WishlistService)),
 	wire.Bind(new(usecase.CartService), new(*service.CartService)),
 	wire.Bind(new(usecase.OrderService), new(*service.OrderService)),
 	wire.Bind(new(usecase.PaymentService), new(*service.PaymentService)),
+	wire.Bind(new(usecase.UpgradeRequestService), new(*service.UpgradeRequestService)),
 )
 
 var AdapterProviderSet = wire.NewSet(
@@ -122,6 +150,8 @@ var AdapterProviderSet = wire.NewSet(
 var GeneralControllerProviderSet = wire.NewSet(
 	user.NewGeneralUserController,
 	address.NewGeneralAddressController,
+	product.NewGeneralProductController,
+	review.NewGeneralReviewController,
 	test.NewGeneralTestController,
 	wire.Struct(new(GeneralControllers), "*"),
 )
@@ -130,7 +160,11 @@ var CustomerControllerProviderSet = wire.NewSet(
 	user.NewCustomerUserController,
 	address.NewCustomerAddressController,
 	cart.NewCustomerCartController,
+	coupon.NewCustomerCouponController,
 	order.NewCustomerOrderController,
+	review.NewCustomerReviewController,
+	upgraderequest.NewCustomerUpgradeRequestController,
+	wishlist.NewCustomerWishlistController,
 	wire.Struct(new(CustomerControllers), "*"),
 )
 
@@ -141,6 +175,7 @@ var AdminControllerProviderSet = wire.NewSet(
 	product.NewAdminProductController,
 	user.NewAdminUserController,
 	order.NewAdminOrderController,
+	upgraderequest.NewAdminUpgradeRequestController,
 	wire.Struct(new(AdminControllers), "*"),
 )
 
@@ -266,25 +301,32 @@ type Database struct {
 }
 
 type GeneralControllers struct {
-	UserController    *user.GeneralUserController
-	AddressController *address.GeneralAddressController
-	TestController    *test.GeneralTestController
+	UserController      *user.GeneralUserController
+	AddressController   *address.GeneralAddressController
+	ProductController   *product.GeneralProductController
+	ReviewController    *review.GeneralReviewController
+	TestController      *test.GeneralTestController
 }
 
 type CustomerControllers struct {
-	UserController    *user.CustomerUserController
-	AddressController *address.CustomerAddressController
-	CartController    *cart.CustomerCartController
-	OrderController   *order.CustomerOrderController
+	UserController           *user.CustomerUserController
+	AddressController        *address.CustomerAddressController
+	CartController           *cart.CustomerCartController
+	CouponController         *coupon.CustomerCouponController
+	OrderController          *order.CustomerOrderController
+	ReviewController         *review.CustomerReviewController
+	UpgradeRequestController *upgraderequest.CustomerUpgradeRequestController
+	WishlistController       *wishlist.CustomerWishlistController
 }
 
 type AdminControllers struct {
-	CategoryController *category.AdminCategoryController
-	CurrencyController *currency.AdminCurrencyController
-	BrandController    *brand.AdminBrandController
-	ProductController  *product.AdminProductController
-	UserController     *user.AdminUserController
-	OrderController    *order.AdminOrderController
+	CategoryController       *category.AdminCategoryController
+	CurrencyController       *currency.AdminCurrencyController
+	BrandController          *brand.AdminBrandController
+	ProductController        *product.AdminProductController
+	UserController           *user.AdminUserController
+	OrderController          *order.AdminOrderController
+	UpgradeRequestController *upgraderequest.AdminUpgradeRequestController
 }
 
 type Controllers struct {

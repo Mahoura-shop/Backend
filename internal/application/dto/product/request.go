@@ -73,3 +73,13 @@ type ProductPriceUpdateCredentials struct {
 	ID       uint
 	IRRPrice uint
 }
+
+type ProductFilterRequest struct {
+	Query      string `form:"q"`
+	CategoryID *uint  `form:"categoryID"`
+	BrandID    *uint  `form:"brandID"`
+	MinPrice   *uint  `form:"minPrice"`
+	MaxPrice   *uint  `form:"maxPrice"`
+	InStock    *bool  `form:"inStock"`
+	SortBy     string `form:"sortBy"`
+}

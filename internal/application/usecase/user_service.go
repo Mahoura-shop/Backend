@@ -11,6 +11,7 @@ type UserService interface {
 	GetUserByID(uint) (*entity.User, error)
 	FindActiveUserByPhone(string) (*entity.User, error)
 	GetUserCredential(uint) (userdto.UserCredential, error)
+	GetUsers() ([]userdto.UserCredential, error)
 	BanUser(uint) error
 	UnbanUser(uint) error
 	Auth(userdto.AuthRequest) error

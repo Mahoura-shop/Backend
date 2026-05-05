@@ -259,9 +259,41 @@ func (productController *AdminProductController) UpdateProductPrices(ctx *gin.Co
 }
 
 func (productController *AdminProductController) GetProductPrices(ctx *gin.Context) {
-	productPrices, err := productController.productService.GetProductPrices();
-	if (err != nil) {
+	productPrices, err := productController.productService.GetProductPrices()
+	if err != nil {
 		panic(err)
 	}
 	controller.Response(ctx, 200, "", productPrices)
+}
+
+func (productController *AdminProductController) AddProductImage(ctx *gin.Context) {
+	type params struct {
+		ProductID uint                  `uri:"productID" validate:"required"`
+		Image     *multipart.FileHeader `form:"image" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+
+	if err := productController.productService.AddProductImage(p.ProductID, p.Image); err != nil {
+		panic(err)
+	}
+
+	trans := controller.GetTranslator(ctx, productController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.uploadImage")
+	controller.Response(ctx, 201, message, nil)
+}
+
+func (productController *AdminProductController) DeleteProductImage(ctx *gin.Context) {
+	type params struct {
+		ProductID uint `uri:"productID" validate:"required"`
+		ImageID   uint `uri:"imageID" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+
+	if err := productController.productService.DeleteProductImage(p.ProductID, p.ImageID); err != nil {
+		panic(err)
+	}
+
+	trans := controller.GetTranslator(ctx, productController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.deleteImage")
+	controller.Response(ctx, 200, message, nil)
 }

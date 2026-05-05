@@ -25,6 +25,14 @@ func NewAdminUserController(
 	}
 }
 
+func (userController *AdminUserController) GetUsers(ctx *gin.Context) {
+	users, err := userController.userService.GetUsers()
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", users)
+}
+
 func (userController *AdminUserController) BanUser(ctx *gin.Context) {
 	type banParams struct {
 		UserID uint `uri:"userID"`

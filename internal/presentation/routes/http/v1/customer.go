@@ -47,4 +47,33 @@ func SetupCustomerRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		address.GET("", app.Controllers.Customer.AddressController.GetCustomerAddresses)
 		address.POST("", app.Controllers.Customer.AddressController.CreateUserAddress)
 	}
+
+	upgradeRequests := routerGroup.Group("/upgrade-requests")
+	{
+		upgradeRequests.POST("", app.Controllers.Customer.UpgradeRequestController.SubmitUpgradeRequest)
+		upgradeRequests.GET("", app.Controllers.Customer.UpgradeRequestController.GetMyUpgradeRequests)
+	}
+
+	wishlist := routerGroup.Group("/wishlist")
+	{
+		wishlist.GET("", app.Controllers.Customer.WishlistController.GetMyWishlist)
+		wishlistSub := wishlist.Group("/:productID")
+		{
+			wishlistSub.POST("", app.Controllers.Customer.WishlistController.AddToWishlist)
+			wishlistSub.DELETE("", app.Controllers.Customer.WishlistController.RemoveFromWishlist)
+		}
+	}
+
+	products := routerGroup.Group("/products")
+	{
+		productSub := products.Group("/:productID")
+		{
+			productSub.POST("/review", app.Controllers.Customer.ReviewController.SubmitReview)
+		}
+	}
+
+	coupon := routerGroup.Group("/coupon")
+	{
+		coupon.POST("/validate", app.Controllers.Customer.CouponController.ValidateCoupon)
+	}
 }

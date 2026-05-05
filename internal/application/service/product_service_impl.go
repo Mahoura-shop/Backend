@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"mime/multipart"
 	"strings"
 	"time"
 	"unicode"
@@ -13,41 +14,44 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
 	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 	"github.com/Mahoura-shop/Backend/internal/domain/exception"
-	"github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
+	domainPostgres "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
 	"github.com/Mahoura-shop/Backend/internal/domain/s3"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 	"gorm.io/gorm"
 )
 
 type ProductService struct {
-	constants         *bootstrap.Constants
-	productRepository postgres.ProductRepository
-	categoryService   usecase.CategoryService
-	brandService      usecase.BrandService
-	currencyService   usecase.CurrencyService
-	s3Storage         s3.S3Storage
-	db                database.Database
+	constants              *bootstrap.Constants
+	productRepository      domainPostgres.ProductRepository
+	productImageRepository domainPostgres.ProductImageRepository
+	categoryService        usecase.CategoryService
+	brandService           usecase.BrandService
+	currencyService        usecase.CurrencyService
+	s3Storage              s3.S3Storage
+	db                     database.Database
 }
 
 type ProductServiceDeps struct {
-	Constants         *bootstrap.Constants
-	ProductRepository postgres.ProductRepository
-	CategoryService   usecase.CategoryService
-	BrandService      usecase.BrandService
-	CurrencyService   usecase.CurrencyService
-	S3Storage         s3.S3Storage
-	DB                database.Database
+	Constants              *bootstrap.Constants
+	ProductRepository      domainPostgres.ProductRepository
+	ProductImageRepository domainPostgres.ProductImageRepository
+	CategoryService        usecase.CategoryService
+	BrandService           usecase.BrandService
+	CurrencyService        usecase.CurrencyService
+	S3Storage              s3.S3Storage
+	DB                     database.Database
 }
 
 func NewProductService(deps ProductServiceDeps) *ProductService {
 	return &ProductService{
-		constants:         deps.Constants,
-		productRepository: deps.ProductRepository,
-		categoryService:   deps.CategoryService,
-		brandService:      deps.BrandService,
-		currencyService:   deps.CurrencyService,
-		s3Storage:         deps.S3Storage,
-		db:                deps.DB,
+		constants:              deps.Constants,
+		productRepository:      deps.ProductRepository,
+		productImageRepository: deps.ProductImageRepository,
+		categoryService:        deps.CategoryService,
+		brandService:           deps.BrandService,
+		currencyService:        deps.CurrencyService,
+		s3Storage:              deps.S3Storage,
+		db:                     deps.DB,
 	}
 }
 
@@ -145,7 +149,16 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 		}
 		response.ProductPic = productPic
 	}
-	
+
+	response.Images = []string{}
+	for _, img := range product.Images {
+		url, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, img.Path, 8*time.Hour)
+		if err != nil {
+			continue
+		}
+		response.Images = append(response.Images, url)
+	}
+
 	return response
 }
 
@@ -805,4 +818,96 @@ func (productService *ProductService) GetProductPrices() ([]productdto.ProductPr
 	}
 
 	return responses, nil
+}
+
+func (productService *ProductService) SearchProducts(filter productdto.ProductFilterRequest) ([]productdto.ProductCredential, error) {
+	domainFilter := domainPostgres.ProductFilter{
+		Query:      filter.Query,
+		CategoryID: filter.CategoryID,
+		BrandID:    filter.BrandID,
+		MinPrice:   filter.MinPrice,
+		MaxPrice:   filter.MaxPrice,
+		InStock:    filter.InStock,
+		SortBy:     filter.SortBy,
+	}
+	products, err := productService.productRepository.SearchProducts(productService.db, domainFilter)
+	if err != nil {
+		return nil, err
+	}
+	var responses []productdto.ProductCredential
+	for _, p := range products {
+		responses = append(responses, productService.ParseProduct(*p))
+	}
+	return responses, nil
+}
+
+func (productService *ProductService) GetRelatedProducts(productID uint, limit int) ([]productdto.ProductCredential, error) {
+	product, err := productService.productRepository.FindProductByID(productService.db, productID)
+	if err != nil {
+		return nil, err
+	}
+	if product == nil {
+		return nil, exception.NotFoundError{Item: productService.constants.Field.Product}
+	}
+
+	var categoryID, brandID uint
+	if product.CategoryID != nil {
+		categoryID = *product.CategoryID
+	}
+	if product.BrandID != nil {
+		brandID = *product.BrandID
+	}
+
+	products, err := productService.productRepository.GetRelatedProducts(productService.db, productID, categoryID, brandID, limit)
+	if err != nil {
+		return nil, err
+	}
+	var responses []productdto.ProductCredential
+	for _, p := range products {
+		responses = append(responses, productService.ParseProduct(*p))
+	}
+	return responses, nil
+}
+
+func (productService *ProductService) AddProductImage(productID uint, file *multipart.FileHeader) error {
+	product, err := productService.productRepository.FindProductByID(productService.db, productID)
+	if err != nil {
+		return err
+	}
+	if product == nil {
+		return exception.NotFoundError{Item: productService.constants.Field.Product}
+	}
+
+	imagePath := productService.constants.S3BucketPath.GetProductImagePath(productID, file.Filename)
+	if err := productService.s3Storage.UploadObject(enum.ProductPic, imagePath, file); err != nil {
+		return exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+	}
+
+	existingImages, err := productService.productImageRepository.GetProductImages(productService.db, productID)
+	if err != nil {
+		return err
+	}
+
+	img := entity.ProductImage{
+		ProductID: productID,
+		Path:      imagePath,
+		Position:  uint(len(existingImages)),
+	}
+	_, err = productService.productImageRepository.CreateProductImage(productService.db, img)
+	return err
+}
+
+func (productService *ProductService) DeleteProductImage(productID, imageID uint) error {
+	img, err := productService.productImageRepository.FindProductImageByID(productService.db, imageID)
+	if err != nil {
+		return err
+	}
+	if img == nil || img.ProductID != productID {
+		return exception.NotFoundError{Item: productService.constants.Field.ProductImage}
+	}
+
+	if err := productService.s3Storage.DeleteObject(enum.ProductPic, img.Path); err != nil {
+		return exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
+	}
+	return productService.productImageRepository.DeleteProductImageByID(productService.db, imageID)
 }

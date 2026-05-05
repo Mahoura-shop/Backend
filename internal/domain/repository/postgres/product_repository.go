@@ -5,12 +5,24 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 )
 
+type ProductFilter struct {
+	Query      string
+	CategoryID *uint
+	BrandID    *uint
+	MinPrice   *uint
+	MaxPrice   *uint
+	InStock    *bool
+	SortBy     string
+}
+
 type ProductRepository interface {
 	CreateProduct(database.Database, entity.Product) (*entity.Product, error)
 	FindProductByID(database.Database, uint) (*entity.Product, error)
 	FindProductBySlug(database.Database, string) (*entity.Product, error)
 	FindProductByName(database.Database, string) (*entity.Product, error)
 	GetProducts(database.Database) ([]*entity.Product, error)
+	SearchProducts(database.Database, ProductFilter) ([]*entity.Product, error)
+	GetRelatedProducts(database.Database, uint, uint, uint, int) ([]*entity.Product, error)
 	GetCategoryProducts(database.Database, uint) ([]*entity.Product, error)
 	GetProductsCount(database.Database) (uint, error)
 	DeleteProductByID(database.Database, uint) error

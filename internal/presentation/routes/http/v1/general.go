@@ -17,4 +17,15 @@ func SetupGeneralRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		auth.POST("/verify", app.Controllers.General.UserController.VerifyAuth)
 		auth.POST("/login", app.Controllers.General.UserController.AdminLogin)
 	}
+
+	products := routerGroup.Group("/products")
+	{
+		products.GET("", app.Controllers.General.ProductController.GetProducts)
+		productSub := products.Group("/:productID")
+		{
+			productSub.GET("/related", app.Controllers.General.ProductController.GetRelatedProducts)
+			productSub.GET("/reviews", app.Controllers.General.ReviewController.GetProductReviews)
+		}
+		products.GET("/slug/:slug", app.Controllers.General.ProductController.GetProductBySlug)
+	}
 }

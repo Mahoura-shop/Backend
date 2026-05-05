@@ -45,6 +45,11 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		{
 			productsSubGroup.PUT("", app.Controllers.Admin.ProductController.UpdateProduct)
 			productsSubGroup.DELETE("", app.Controllers.Admin.ProductController.DeleteProduct)
+			productsSubGroup.POST("/images", app.Controllers.Admin.ProductController.AddProductImage)
+			imagesSubGroup := productsSubGroup.Group("/images")
+			{
+				imagesSubGroup.DELETE("/:imageID", app.Controllers.Admin.ProductController.DeleteProductImage)
+			}
 		}
 		productsSlugSubgroup := products.Group("/:slug")
 		{
@@ -74,5 +79,25 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	admin := routerGroup.Group("/admin")
 	{
 		admin.GET("/dashboard", app.Controllers.Admin.UserController.GetDashboard)
+	}
+
+	users := routerGroup.Group("/users")
+	{
+		users.GET("", app.Controllers.Admin.UserController.GetUsers)
+		userSub := users.Group("/:userID")
+		{
+			userSub.PATCH("/type", app.Controllers.Admin.UpgradeRequestController.ChangeUserType)
+			userSub.GET("/audit-logs", app.Controllers.Admin.UpgradeRequestController.GetUserAuditLogs)
+		}
+	}
+
+	upgradeRequests := routerGroup.Group("/upgrade-requests")
+	{
+		upgradeRequests.GET("", app.Controllers.Admin.UpgradeRequestController.GetUpgradeRequests)
+		requestSub := upgradeRequests.Group("/:requestID")
+		{
+			requestSub.GET("", app.Controllers.Admin.UpgradeRequestController.GetUpgradeRequest)
+			requestSub.PATCH("/review", app.Controllers.Admin.UpgradeRequestController.ReviewUpgradeRequest)
+		}
 	}
 }

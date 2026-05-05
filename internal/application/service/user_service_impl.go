@@ -139,6 +139,18 @@ func (userService *UserService) GetUserCredential(userID uint) (userdto.UserCred
 	return userService.ParseUser(*user), nil
 }
 
+func (userService *UserService) GetUsers() ([]userdto.UserCredential, error) {
+	users, err := userService.userRepository.FindUsers(userService.db)
+	if err != nil {
+		return nil, err
+	}
+	var result []userdto.UserCredential
+	for _, u := range users {
+		result = append(result, userService.ParseUser(*u))
+	}
+	return result, nil
+}
+
 func (userService *UserService) BanUser(userID uint) error {
 	user, err := userService.GetUserByID(userID)
 	if err != nil {

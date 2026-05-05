@@ -41,6 +41,7 @@ type ProductCredential struct {
 	IsNew         bool                            `json:"isNew"`
 	ProductPic    string                          `json:"productPic"`
 	Size          string                          `json:"size"`
+	Images        []string                        `json:"images"`
 }
 
 type ProductPrices struct {
