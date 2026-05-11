@@ -60,3 +60,18 @@ func (am *AuthMiddleware) AuthRequired(ctx *gin.Context) {
 
 	ctx.Next()
 }
+
+func (am *AuthMiddleware) AdminRequired(ctx *gin.Context) {
+	am.AuthRequired(ctx)
+
+	userID, _ := ctx.Get(am.constants.Context.ID)
+	user, err := am.userRepository.FindUserByID(am.db, userID.(uint))
+	if err != nil {
+		panic(err)
+	}
+	if user == nil || !user.IsAdmin {
+		panic(exception.NewAdminRequiredError())
+	}
+
+	ctx.Next()
+}

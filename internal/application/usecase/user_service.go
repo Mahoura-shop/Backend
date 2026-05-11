@@ -23,4 +23,5 @@ type UserService interface {
 	GetUserWalletBalance(uint) (userdto.UserWalletBalance, error)
 	DepositWallet(userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error)
 	WithdrawWallet(userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error)
+	UpdateProfile(userdto.UpdateProfileRequest) (userdto.UserCredential, error)
 }

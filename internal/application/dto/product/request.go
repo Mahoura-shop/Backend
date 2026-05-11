@@ -82,4 +82,6 @@ type ProductFilterRequest struct {
 	MaxPrice   *uint  `form:"maxPrice"`
 	InStock    *bool  `form:"inStock"`
 	SortBy     string `form:"sortBy"`
+	Limit      *int   `form:"limit"`
+	Offset     *int   `form:"offset"`
 }

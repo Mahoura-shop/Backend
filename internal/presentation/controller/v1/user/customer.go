@@ -32,6 +32,27 @@ func (userController *CustomerUserController) GetMyProfile(ctx *gin.Context) {
 	controller.Response(ctx, 200, "", profile)
 }
 
+func (userController *CustomerUserController) UpdateMyProfile(ctx *gin.Context) {
+	userID, _ := ctx.Get(userController.constants.Context.ID)
+	type UpdateProfileParams struct {
+		FirstName string `json:"firstName"`
+		LastName  string `json:"lastName"`
+		Email     string `json:"email" validate:"omitempty,email"`
+	}
+	params := controller.Validated[UpdateProfileParams](ctx)
+	req := userdto.UpdateProfileRequest{
+		UserID:    userID.(uint),
+		FirstName: params.FirstName,
+		LastName:  params.LastName,
+		Email:     params.Email,
+	}
+	profile, err := userController.userService.UpdateProfile(req)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", profile)
+}
+
 func (userController *CustomerUserController) GetUserWalletBalance(ctx *gin.Context) {
 	userID, _ := ctx.Get(userController.constants.Context.ID)
 	balance, err := userController.userService.GetUserWalletBalance(userID.(uint))

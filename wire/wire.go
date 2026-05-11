@@ -35,6 +35,7 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/order"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/wishlist"
 	upgraderequest "github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/upgrade_request"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/role"
 	"github.com/Mahoura-shop/Backend/internal/presentation/middleware"
 	"github.com/google/wire"
 )
@@ -48,6 +49,7 @@ var DatabaseProviderSet = wire.NewSet(
 )
 
 var RepositoryProviderSet = wire.NewSet(
+	infraPostgres.NewRoleRepository,
 	infraPostgres.NewUserRepository,
 	infraPostgres.NewAddressRepository,
 	infraPostgres.NewCategoryRepository,
@@ -86,6 +88,7 @@ var RepositoryProviderSet = wire.NewSet(
 	wire.Bind(new(domainPostgres.InstalmentRepository), new(*infraPostgres.InstalmentRepository)),
 	wire.Bind(new(domainPostgres.UpgradeRequestRepository), new(*infraPostgres.UpgradeRequestRepository)),
 	wire.Bind(new(domainPostgres.UserAuditLogRepository), new(*infraPostgres.UserAuditLogRepository)),
+	wire.Bind(new(domainPostgres.RoleRepository), new(*infraPostgres.RoleRepository)),
 )
 
 var ServiceProviderSet = wire.NewSet(
@@ -100,6 +103,7 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Struct(new(service.CartServiceDeps), "*"),
 	wire.Struct(new(service.OrderServiceDeps), "*"),
 	wire.Struct(new(service.UpgradeRequestServiceDeps), "*"),
+	wire.Struct(new(service.RoleServiceDeps), "*"),
 	service.NewUserService,
 	service.NewOTPService,
 	sms.NewSMSService,
@@ -118,6 +122,7 @@ var ServiceProviderSet = wire.NewSet(
 	service.NewOrderService,
 	service.NewPaymentService,
 	service.NewUpgradeRequestService,
+	service.NewRoleService,
 	wire.Bind(new(usecase.UserService), new(*service.UserService)),
 	wire.Bind(new(usecase.OTPService), new(*service.OTPService)),
 	wire.Bind(new(communication.SMSService), new(*sms.SMSService)),
@@ -136,6 +141,7 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Bind(new(usecase.OrderService), new(*service.OrderService)),
 	wire.Bind(new(usecase.PaymentService), new(*service.PaymentService)),
 	wire.Bind(new(usecase.UpgradeRequestService), new(*service.UpgradeRequestService)),
+	wire.Bind(new(usecase.RoleService), new(*service.RoleService)),
 )
 
 var AdapterProviderSet = wire.NewSet(
@@ -176,6 +182,7 @@ var AdminControllerProviderSet = wire.NewSet(
 	user.NewAdminUserController,
 	order.NewAdminOrderController,
 	upgraderequest.NewAdminUpgradeRequestController,
+	role.NewAdminRoleController,
 	wire.Struct(new(AdminControllers), "*"),
 )
 
@@ -327,6 +334,7 @@ type AdminControllers struct {
 	UserController           *user.AdminUserController
 	OrderController          *order.AdminOrderController
 	UpgradeRequestController *upgraderequest.AdminUpgradeRequestController
+	RoleController           *role.AdminRoleController
 }
 
 type Controllers struct {

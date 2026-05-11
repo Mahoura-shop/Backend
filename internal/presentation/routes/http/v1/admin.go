@@ -76,28 +76,42 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		}
 	}
 
+	roles := routerGroup.Group("/roles")
+	{
+		roles.GET("", app.Controllers.Admin.RoleController.GetRoles)
+		roles.POST("", app.Controllers.Admin.RoleController.CreateRole)
+		roles.GET("/permissions", app.Controllers.Admin.RoleController.GetPermissions)
+		rolesSub := roles.Group("/:roleID")
+		{
+			rolesSub.PUT("", app.Controllers.Admin.RoleController.UpdateRole)
+			rolesSub.DELETE("", app.Controllers.Admin.RoleController.DeleteRole)
+		}
+	}
+
 	admin := routerGroup.Group("/admin")
 	{
 		admin.GET("/dashboard", app.Controllers.Admin.UserController.GetDashboard)
+
+		upgradeRequests := admin.Group("/upgrade-requests")
+		{
+			upgradeRequests.GET("", app.Controllers.Admin.UpgradeRequestController.GetUpgradeRequests)
+			upgradeRequestsSubGroup := upgradeRequests.Group("/:requestID")
+			{
+				upgradeRequestsSubGroup.GET("", app.Controllers.Admin.UpgradeRequestController.GetUpgradeRequest)
+				upgradeRequestsSubGroup.PATCH("/review", app.Controllers.Admin.UpgradeRequestController.ReviewUpgradeRequest)
+			}
+		}
 	}
 
 	users := routerGroup.Group("/users")
 	{
 		users.GET("", app.Controllers.Admin.UserController.GetUsers)
-		userSub := users.Group("/:userID")
+		usersSubGroup := users.Group("/:userID")
 		{
-			userSub.PATCH("/type", app.Controllers.Admin.UpgradeRequestController.ChangeUserType)
-			userSub.GET("/audit-logs", app.Controllers.Admin.UpgradeRequestController.GetUserAuditLogs)
-		}
-	}
-
-	upgradeRequests := routerGroup.Group("/upgrade-requests")
-	{
-		upgradeRequests.GET("", app.Controllers.Admin.UpgradeRequestController.GetUpgradeRequests)
-		requestSub := upgradeRequests.Group("/:requestID")
-		{
-			requestSub.GET("", app.Controllers.Admin.UpgradeRequestController.GetUpgradeRequest)
-			requestSub.PATCH("/review", app.Controllers.Admin.UpgradeRequestController.ReviewUpgradeRequest)
+			usersSubGroup.PATCH("/type", app.Controllers.Admin.UpgradeRequestController.ChangeUserType)
+			usersSubGroup.GET("/audit-logs", app.Controllers.Admin.UpgradeRequestController.GetUserAuditLogs)
+			usersSubGroup.PATCH("/ban", app.Controllers.Admin.UserController.BanUser)
+			usersSubGroup.PATCH("/unban", app.Controllers.Admin.UserController.UnbanUser)
 		}
 	}
 }

@@ -32,6 +32,7 @@ type OrderService struct {
 	cartService           usecase.CartService
 	paymentService        usecase.PaymentService
 	smsService            communication.SMSService
+	emailService          communication.EmailService
 	db                    database.Database
 }
 
@@ -50,6 +51,7 @@ type OrderServiceDeps struct {
 	CartService           usecase.CartService
 	PaymentService        usecase.PaymentService
 	SMSService            communication.SMSService
+	EmailService          communication.EmailService
 	DB                    database.Database
 }
 
@@ -69,6 +71,7 @@ func NewOrderService(deps OrderServiceDeps) *OrderService {
 		cartService:           deps.CartService,
 		paymentService:        deps.PaymentService,
 		smsService:            deps.SMSService,
+		emailService:          deps.EmailService,
 		db:                    deps.DB,
 	}
 }
@@ -200,7 +203,7 @@ func (s *OrderService) RegisterOrder(userID uint, req orderdto.CreateOrderReques
 			return 0, err
 		}
 		if addr != nil {
-			shippingCost = shipping.CalculateShipping(addr.ProvinceID)
+			shippingCost = shipping.CalculateShipping(&addr.Province)
 		}
 	}
 
@@ -298,6 +301,14 @@ func (s *OrderService) RegisterOrder(userID uint, req orderdto.CreateOrderReques
 
 		return nil
 	})
+
+	if err == nil {
+		order, _ := s.orderRepository.FindOrderByID(s.db, createdOrderID)
+		if order != nil {
+			go s.sendOrderConfirmationEmail(order)
+		}
+	}
+
 	return createdOrderID, err
 }
 
@@ -566,4 +577,49 @@ func (s *OrderService) GetOrderInstalments(orderID uint) ([]orderdto.InstalmentC
 		})
 	}
 	return result, nil
+}
+
+func (s *OrderService) sendOrderConfirmationEmail(order *entity.Order) {
+	if order.User.Phone == "" {
+		return
+	}
+
+	items := make([]map[string]interface{}, 0)
+	for _, item := range order.Items {
+		itemMap := map[string]interface{}{
+			"ProductName": item.Product.Name,
+			"Quantity":    item.Count,
+			"Price":       fmt.Sprintf("%d", item.PriceSnapshot),
+		}
+		items = append(items, itemMap)
+	}
+
+	shippingAddr := "—"
+	if order.Address != nil {
+		shippingAddr = fmt.Sprintf("%s، %s - %s", order.Address.StreetAddress, order.Address.City.Name, order.Address.Province.Name)
+	}
+
+	paymentMethodStr := "—"
+	switch order.PaymentMethod {
+	case enum.PaymentMethodCash:
+		paymentMethodStr = "نقدی"
+	case enum.PaymentMethodInstallment:
+		paymentMethodStr = "اقساطی"
+	case enum.PaymentMethodWallet:
+		paymentMethodStr = "کیف پول"
+	}
+
+	emailData := map[string]interface{}{
+		"CustomerName":    order.User.Phone,
+		"OrderID":         order.ID,
+		"OrderDate":       order.CreatedAt.Format("2006-01-02"),
+		"OrderStatus":     "در انتظار پرداخت",
+		"Items":           items,
+		"TotalAmount":     fmt.Sprintf("%d", order.TotalAmount),
+		"ShippingAddress": shippingAddr,
+		"PaymentMethod":   paymentMethodStr,
+		"SupportEmail":    "support@mahoura.com",
+	}
+
+	_ = s.emailService.SendEmail(order.User.Phone, "تأیید سفارش - Mahoura", "order_confirmation/fa.html", emailData)
 }

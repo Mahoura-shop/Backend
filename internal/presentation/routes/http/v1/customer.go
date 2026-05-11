@@ -9,6 +9,7 @@ func SetupCustomerRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	profile := routerGroup.Group("/profile")
 	{
 		profile.GET("", app.Controllers.Customer.UserController.GetMyProfile)
+		profile.PATCH("", app.Controllers.Customer.UserController.UpdateMyProfile)
 	}
 
 	wallet := routerGroup.Group("/wallet")

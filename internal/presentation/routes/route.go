@@ -13,6 +13,8 @@ func Run(ginEngine *gin.Engine, app *wire.Application) {
 	ginEngine.Use(app.Middlewares.Recovery.Recovery)
 	ginEngine.Use(app.Middlewares.RateLimit.RateLimit)
 
+	ginEngine.OPTIONS("/*any", func(c *gin.Context) {})
+
 	v1 := ginEngine.Group("/v1")
 	registerGeneralRoutes(v1, app)
 	registerCustomerRoutes(v1, app)
@@ -31,6 +33,6 @@ func registerCustomerRoutes(v1 *gin.RouterGroup, app *wire.Application) {
 
 func registerAdminRoutes(v1 *gin.RouterGroup, app *wire.Application) {
 	admin := v1.Group("")
-	admin.Use(app.Middlewares.Authentication.AuthRequired)
+	admin.Use(app.Middlewares.Authentication.AdminRequired)
 	httpv1.SetupAdminRoutes(admin, app)
 }

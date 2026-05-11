@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	postgresrepo "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 	"gorm.io/gorm"
 )
@@ -86,4 +87,42 @@ func (repo *OrderRepository) CreateOrderItem(db database.Database, orderItem ent
 
 func (repo *OrderRepository) CreateOrderStatusHistory(db database.Database, history entity.OrderStatusHistory) error {
 	return db.GetDB().Create(&history).Error
+}
+
+func (repo *OrderRepository) GetRevenuePerTier(db database.Database) ([]postgresrepo.RevenueByTier, error) {
+	var results []postgresrepo.RevenueByTier
+	result := db.GetDB().
+		Model(&entity.OrderItem{}).
+		Select(`
+			CASE tier
+				WHEN 1 THEN 'guest'
+				WHEN 2 THEN 'regular'
+				WHEN 3 THEN 'shopkeeperCheque'
+				WHEN 4 THEN 'shopkeeperCash'
+				WHEN 5 THEN 'fellow'
+				WHEN 6 THEN 'admin'
+			END as tier,
+			SUM(price_snapshot * count) as revenue
+		`).
+		Group("tier").
+		Scan(&results)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return results, nil
+}
+
+func (repo *OrderRepository) GetOrdersPerDay(db database.Database, days int) ([]postgresrepo.OrderByDay, error) {
+	var results []postgresrepo.OrderByDay
+	result := db.GetDB().
+		Model(&entity.Order{}).
+		Select("DATE(created_at) as date, COUNT(*) as count").
+		Where("created_at >= NOW() - INTERVAL ? DAY", days).
+		Group("DATE(created_at)").
+		Order("DATE(created_at)").
+		Scan(&results)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return results, nil
 }

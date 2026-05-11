@@ -15,7 +15,7 @@ func NewCorsMiddleware() *CORSMiddleware {
 
 func (cm *CORSMiddleware) CORS() gin.HandlerFunc {
 	corsConfig := cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "*"},
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3001"},
 		AllowMethods:     []string{"POST", "GET", "OPTIONS", "PUT", "PATCH", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "ngrok-skip-browser-warning"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -23,5 +23,12 @@ func (cm *CORSMiddleware) CORS() gin.HandlerFunc {
 		MaxAge:           12 * time.Hour,
 	}
 
-	return cors.New(corsConfig)
+	corsFn := cors.New(corsConfig)
+
+	return func(c *gin.Context) {
+		corsFn(c)
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+		}
+	}
 }

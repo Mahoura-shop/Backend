@@ -84,7 +84,7 @@ func (repo *AddressRepository) GetCityByName(db database.Database, name string) 
 
 func (repo *AddressRepository) GetAddressByID(db database.Database, id uint) (*entity.Address, error) {
 	var address entity.Address
-	result := db.GetDB().First(&address, id)
+	result := db.GetDB().Preload("Province").First(&address, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return nil, nil

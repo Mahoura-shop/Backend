@@ -73,6 +73,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	walletRepository := postgres.NewWalletRepository()
 	cartRepository := postgres.NewCartRepository()
 	transactionRepository := postgres.NewTransactionRepository()
+	orderRepository := postgres.NewOrderRepository()
 	userServiceDeps := service.UserServiceDeps{
 		Constants:             constants,
 		OTPService:            otpService,
@@ -86,6 +87,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		WalletRepository:      walletRepository,
 		CartRepository:        cartRepository,
 		TransactionRepository: transactionRepository,
+		OrderRepository:       orderRepository,
 		UserCacheRepository:   userCacheRepository,
 		DB:                    postgresDatabase,
 	}
@@ -130,7 +132,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		DB:                     postgresDatabase,
 	}
 	productService := service.NewProductService(productServiceDeps)
-	generalProductController := product.NewGeneralProductController(constants, productService)
+	generalProductController := product.NewGeneralProductController(constants, productService, userRepository, postgresDatabase)
 	reviewRepository := postgres.NewReviewRepository()
 	reviewServiceDeps := service.ReviewServiceDeps{
 		ReviewRepository: reviewRepository,
@@ -167,7 +169,6 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	}
 	couponService := service.NewCouponService(couponServiceDeps)
 	customerCouponController := coupon.NewCustomerCouponController(constants, couponService)
-	orderRepository := postgres.NewOrderRepository()
 	paymentRepository := postgres.NewPaymentRepository()
 	instalmentRepository := postgres.NewInstalmentRepository()
 	zarinpal := ProvideZarinpalConfig(container)
@@ -187,6 +188,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		CartService:           cartService,
 		PaymentService:        paymentService,
 		SMSService:            smsService,
+		EmailService:          emailService,
 		DB:                    postgresDatabase,
 	}
 	orderService := service.NewOrderService(orderServiceDeps)

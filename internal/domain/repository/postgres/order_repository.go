@@ -5,6 +5,16 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 )
 
+type RevenueByTier struct {
+	Tier    string
+	Revenue uint
+}
+
+type OrderByDay struct {
+	Date  string
+	Count uint
+}
+
 type OrderRepository interface {
 	FindOrderByID(db database.Database, orderID uint) (*entity.Order, error)
 	GetOrders(db database.Database) ([]*entity.Order, error)
@@ -14,4 +24,6 @@ type OrderRepository interface {
 	DeleteOrderByID(db database.Database, orderID uint) error
 	CreateOrderItem(db database.Database, orderItem entity.OrderItem) error
 	CreateOrderStatusHistory(db database.Database, history entity.OrderStatusHistory) error
+	GetRevenuePerTier(db database.Database) ([]RevenueByTier, error)
+	GetOrdersPerDay(db database.Database, days int) ([]OrderByDay, error)
 }

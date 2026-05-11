@@ -15,6 +15,7 @@ type ProductService interface {
 	GetProductBySlug(string) (*productdto.ProductCredential, error)
 	GetProducts() ([]productdto.ProductCredential, error)
 	SearchProducts(productdto.ProductFilterRequest) ([]productdto.ProductCredential, error)
+	SearchProductsWithPagination(productdto.ProductFilterRequest) (*productdto.ProductSearchResponse, error)
 	GetRelatedProducts(uint, int) ([]productdto.ProductCredential, error)
 	CreateProduct(productdto.CreateProductRequest) error
 	UpdateProduct(productdto.UpdateProductRequest) error

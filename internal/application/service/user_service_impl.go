@@ -29,6 +29,7 @@ type UserService struct {
 	walletRepository      postgres.WalletRepository
 	cartRepository        postgres.CartRepository
 	transactionRepository postgres.TransactionRepository
+	orderRepository       postgres.OrderRepository
 	userCacheRepository   redis.UserCacheRepository
 	db                    database.Database
 }
@@ -46,6 +47,7 @@ type UserServiceDeps struct {
 	WalletRepository      postgres.WalletRepository
 	CartRepository        postgres.CartRepository
 	TransactionRepository postgres.TransactionRepository
+	OrderRepository       postgres.OrderRepository
 	UserCacheRepository   redis.UserCacheRepository
 	DB                    database.Database
 }
@@ -64,6 +66,7 @@ func NewUserService(deps UserServiceDeps) *UserService {
 		walletRepository:      deps.WalletRepository,
 		cartRepository:        deps.CartRepository,
 		transactionRepository: deps.TransactionRepository,
+		orderRepository:       deps.OrderRepository,
 		userCacheRepository:   deps.UserCacheRepository,
 		db:                    deps.DB,
 	}
@@ -327,26 +330,86 @@ func (userService *UserService) AdminLogin(adminInfo userdto.AdminLoginRequest) 
 }	
 	
 func (userService *UserService) GetDashboard() (userdto.DashboardResponse, error) {
-	brandsCount, err := userService.brandRepository.GetBrandsCount(userService.db); 
+	brandsCount, err := userService.brandRepository.GetBrandsCount(userService.db)
 	if err != nil {
 		return userdto.DashboardResponse{}, err
 	}
-	
-	categoriesCount, err := userService.categoryRepository.GetCategoriesCount(userService.db); 
+
+	categoriesCount, err := userService.categoryRepository.GetCategoriesCount(userService.db)
 	if err != nil {
 		return userdto.DashboardResponse{}, err
 	}
-	
-	productsCount, err := userService.productRepository.GetProductsCount(userService.db); 
+
+	productsCount, err := userService.productRepository.GetProductsCount(userService.db)
 	if err != nil {
 		return userdto.DashboardResponse{}, err
 	}
-	
+
+	revenuePerTier, err := userService.orderRepository.GetRevenuePerTier(userService.db)
+	if err != nil {
+		return userdto.DashboardResponse{}, err
+	}
+
+	ordersPerDay, err := userService.orderRepository.GetOrdersPerDay(userService.db, 7)
+	if err != nil {
+		return userdto.DashboardResponse{}, err
+	}
+
+	lowStockProducts, err := userService.productRepository.GetLowStockProducts(userService.db, 5)
+	if err != nil {
+		return userdto.DashboardResponse{}, err
+	}
+
+	topProducts, err := userService.productRepository.GetTopSoldProducts(userService.db, 5)
+	if err != nil {
+		return userdto.DashboardResponse{}, err
+	}
+
+	revenuePerTierDTO := make([]userdto.RevenueByTier, len(revenuePerTier))
+	for i, r := range revenuePerTier {
+		revenuePerTierDTO[i] = userdto.RevenueByTier{
+			Tier:    r.Tier,
+			Revenue: r.Revenue,
+		}
+	}
+
+	ordersPerDayDTO := make([]userdto.OrderByDay, len(ordersPerDay))
+	for i, o := range ordersPerDay {
+		ordersPerDayDTO[i] = userdto.OrderByDay{
+			Date:  o.Date,
+			Count: o.Count,
+		}
+	}
+
+	lowStockDTO := make([]userdto.LowStockProduct, len(lowStockProducts))
+	for i, p := range lowStockProducts {
+		lowStockDTO[i] = userdto.LowStockProduct{
+			ID:       p.ID,
+			Name:     p.Name,
+			Quantity: p.Quantity,
+			MinOrder: p.MinOrder,
+		}
+	}
+
+	topProductsDTO := make([]userdto.TopProduct, len(topProducts))
+	for i, p := range topProducts {
+		topProductsDTO[i] = userdto.TopProduct{
+			ID:       p.ID,
+			Name:     p.Name,
+			Quantity: p.Quantity,
+			Revenue:  p.Revenue,
+		}
+	}
+
 	return userdto.DashboardResponse{
-		BrandsCount: brandsCount,
-		CategoriesCount: categoriesCount,
-		ProductsCount: productsCount,
-		}, nil
+		ProductsCount:    productsCount,
+		CategoriesCount:  categoriesCount,
+		BrandsCount:      brandsCount,
+		RevenuePerTier:   revenuePerTierDTO,
+		OrdersPerDay:     ordersPerDayDTO,
+		LowStockProducts: lowStockDTO,
+		TopProducts:      topProductsDTO,
+	}, nil
 }
 
 func (userService *UserService) GetUserWalletBalance(userID uint) (userdto.UserWalletBalance, error) {
@@ -423,4 +486,19 @@ func (userService *UserService) WithdrawWallet(balanceUpdateInfo userdto.UserBal
 	return userdto.UserWalletBalance{
 		Balance: newBalance,
 	}, err
+}
+
+func (userService *UserService) UpdateProfile(req userdto.UpdateProfileRequest) (userdto.UserCredential, error) {
+	user, err := userService.userRepository.FindUserByID(userService.db, req.UserID)
+	if err != nil {
+		return userdto.UserCredential{}, err
+	}
+	user.FirstName = req.FirstName
+	user.LastName = req.LastName
+	user.Email = req.Email
+	err = userService.userRepository.UpdateUser(userService.db, *user)
+	if err != nil {
+		return userdto.UserCredential{}, err
+	}
+	return userService.ParseUser(*user), nil
 }

@@ -841,6 +841,32 @@ func (productService *ProductService) SearchProducts(filter productdto.ProductFi
 	return responses, nil
 }
 
+func (productService *ProductService) SearchProductsWithPagination(filter productdto.ProductFilterRequest) (*productdto.ProductSearchResponse, error) {
+	domainFilter := domainPostgres.ProductFilter{
+		Query:      filter.Query,
+		CategoryID: filter.CategoryID,
+		BrandID:    filter.BrandID,
+		MinPrice:   filter.MinPrice,
+		MaxPrice:   filter.MaxPrice,
+		InStock:    filter.InStock,
+		SortBy:     filter.SortBy,
+		Limit:      filter.Limit,
+		Offset:     filter.Offset,
+	}
+	products, count, err := productService.productRepository.SearchProductsWithCount(productService.db, domainFilter)
+	if err != nil {
+		return nil, err
+	}
+	var responses []productdto.ProductCredential
+	for _, p := range products {
+		responses = append(responses, productService.ParseProduct(*p))
+	}
+	return &productdto.ProductSearchResponse{
+		Products:   responses,
+		TotalCount: count,
+	}, nil
+}
+
 func (productService *ProductService) GetRelatedProducts(productID uint, limit int) ([]productdto.ProductCredential, error) {
 	product, err := productService.productRepository.FindProductByID(productService.db, productID)
 	if err != nil {

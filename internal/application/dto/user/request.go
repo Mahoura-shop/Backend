@@ -29,3 +29,10 @@ type UpdateProductCountInCart struct {
 	ProductID uint
 	UserID    uint
 }
+
+type UpdateProfileRequest struct {
+	UserID    uint
+	FirstName string
+	LastName  string
+	Email     string
+}

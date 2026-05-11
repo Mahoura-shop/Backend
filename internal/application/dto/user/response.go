@@ -33,10 +33,38 @@ type AdminInfoResponse struct {
 	RefreshToken string               `json:"refreshToken"`
 }
 
+type RevenueByTier struct {
+	Tier     string `json:"tier"`
+	Revenue  uint   `json:"revenue"`
+}
+
+type OrderByDay struct {
+	Date  string `json:"date"`
+	Count uint   `json:"count"`
+}
+
+type LowStockProduct struct {
+	ID        uint   `json:"id"`
+	Name      string `json:"name"`
+	Quantity  uint   `json:"quantity"`
+	MinOrder  uint   `json:"minOrder"`
+}
+
+type TopProduct struct {
+	ID       uint   `json:"id"`
+	Name     string `json:"name"`
+	Quantity uint   `json:"quantity"`
+	Revenue  uint   `json:"revenue"`
+}
+
 type DashboardResponse struct {
-	ProductsCount   uint `json:"productsCount"`
-	CategoriesCount uint `json:"categoriesCount"`
-	BrandsCount     uint `json:"brandsCount"`
+	ProductsCount     uint              `json:"productsCount"`
+	CategoriesCount   uint              `json:"categoriesCount"`
+	BrandsCount       uint              `json:"brandsCount"`
+	RevenuePerTier    []RevenueByTier   `json:"revenuePerTier"`
+	OrdersPerDay      []OrderByDay      `json:"ordersPerDay"`
+	LowStockProducts  []LowStockProduct `json:"lowStockProducts"`
+	TopProducts       []TopProduct      `json:"topProducts"`
 }
 
 type UserWalletBalance struct {
