@@ -164,13 +164,11 @@ func (s *OrderService) GetOrdersByStatus(status enum.OrderStatus) ([]orderdto.Or
 func validatePaymentMethod(userType enum.UserType, paymentMethod enum.PaymentMethod) error {
 	switch paymentMethod {
 	case enum.PaymentMethodCash:
-		if userType != enum.UserTypeShopkeeperCash {
-			return exception.ForbiddenError{Message: "cash payment is only available for shopkeeperCash users"}
+		if userType != enum.UserTypeShopkeeperCash && userType != enum.UserTypeShopkeeperCheque {
+			return exception.ForbiddenError{Message: "cash payment is only available for shopkeeper users"}
 		}
 	case enum.PaymentMethodInstallment:
-		if userType != enum.UserTypeShopkeeperCheque {
-			return exception.ForbiddenError{Message: "instalment payment is only available for shopkeeperCheque users"}
-		}
+		return exception.ForbiddenError{Message: "instalment payment is no longer available online — please contact sales"}
 	}
 	return nil
 }
@@ -412,6 +410,7 @@ func (s *OrderService) PayOrderByWallet(userID, orderID uint) error {
 }
 
 func (s *OrderService) InitiateGatewayPayment(userID, orderID uint) (*orderdto.PaymentGatewayResponse, error) {
+	// MOCKED: skip gateway, mark order as paid immediately
 	order, err := s.orderRepository.FindOrderByID(s.db, orderID)
 	if err != nil {
 		return nil, err
@@ -419,30 +418,43 @@ func (s *OrderService) InitiateGatewayPayment(userID, orderID uint) (*orderdto.P
 	if order == nil {
 		return nil, exception.NotFoundError{Item: s.constants.Field.Order}
 	}
-	if order.UserID != userID {
-		return nil, exception.ForbiddenError{Message: "this order does not belong to you"}
-	}
-	if order.Status != enum.OrderStatusPending {
-		return nil, exception.ForbiddenError{Message: "order is not in pending status"}
-	}
-
-	authority, gatewayURL, err := s.paymentService.InitiateGatewayPayment(orderID, order.TotalAmount)
-	if err != nil {
+	order.Status = enum.OrderStatusPaid
+	if err := s.orderRepository.UpdateOrder(s.db, *order); err != nil {
 		return nil, err
 	}
+	return &orderdto.PaymentGatewayResponse{GatewayURL: ""}, nil
 
-	payment := entity.Payment{
-		OrderID:    orderID,
-		Amount:     order.TotalAmount,
-		Status:     enum.PaymentStatusPaying,
-		Authority:  authority,
-		GatewayURL: gatewayURL,
-	}
-	if _, err := s.paymentRepository.CreatePayment(s.db, payment); err != nil {
-		return nil, err
-	}
-
-	return &orderdto.PaymentGatewayResponse{GatewayURL: gatewayURL}, nil
+	// order, err := s.orderRepository.FindOrderByID(s.db, orderID)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if order == nil {
+	// 	return nil, exception.NotFoundError{Item: s.constants.Field.Order}
+	// }
+	// if order.UserID != userID {
+	// 	return nil, exception.ForbiddenError{Message: "this order does not belong to you"}
+	// }
+	// if order.Status != enum.OrderStatusPending {
+	// 	return nil, exception.ForbiddenError{Message: "order is not in pending status"}
+	// }
+	//
+	// authority, gatewayURL, err := s.paymentService.InitiateGatewayPayment(orderID, order.TotalAmount)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// payment := entity.Payment{
+	// 	OrderID:    orderID,
+	// 	Amount:     order.TotalAmount,
+	// 	Status:     enum.PaymentStatusPaying,
+	// 	Authority:  authority,
+	// 	GatewayURL: gatewayURL,
+	// }
+	// if _, err := s.paymentRepository.CreatePayment(s.db, payment); err != nil {
+	// 	return nil, err
+	// }
+	//
+	// return &orderdto.PaymentGatewayResponse{GatewayURL: gatewayURL}, nil
 }
 
 func (s *OrderService) VerifyGatewayPayment(authority string, status string) error {

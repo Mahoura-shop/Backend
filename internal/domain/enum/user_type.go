@@ -5,11 +5,14 @@ type UserType uint
 const (
 	UserTypeGuest UserType = iota + 1
 	UserTypeCustomer
-	UserTypeShopkeeperCheque
+	UserTypeShopkeeperCheque // legacy — treated same as ShopkeeperCash
 	UserTypeShopkeeperCash
 	UserTypeFellow
 	UserTypeAdmin
 )
+
+// UserTypeShopkeeper is the canonical name going forward.
+const UserTypeShopkeeper = UserTypeShopkeeperCash
 
 func (userType UserType) String() string {
 	switch userType {
@@ -17,10 +20,8 @@ func (userType UserType) String() string {
 		return "guest"
 	case UserTypeCustomer:
 		return "regular"
-	case UserTypeShopkeeperCheque:
-		return "shopkeeperCheque"
-	case UserTypeShopkeeperCash:
-		return "shopkeeperCash"
+	case UserTypeShopkeeperCheque, UserTypeShopkeeperCash:
+		return "shopkeeper"
 	case UserTypeFellow:
 		return "fellow"
 	case UserTypeAdmin:
@@ -33,7 +34,6 @@ func GetAllUserTypes() []UserType {
 	return []UserType{
 		UserTypeGuest,
 		UserTypeCustomer,
-		UserTypeShopkeeperCheque,
 		UserTypeShopkeeperCash,
 		UserTypeFellow,
 		UserTypeAdmin,

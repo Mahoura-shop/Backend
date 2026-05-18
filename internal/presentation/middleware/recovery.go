@@ -145,7 +145,10 @@ func handleNotFoundError(ctx *gin.Context, notFoundError exception.NotFoundError
 }
 
 func handleForbiddenError(ctx *gin.Context, forbiddenError exception.ForbiddenError, transKey string) {
-	// maybe add without field later -> add type and switch case between them
+	if forbiddenError.Message != "" {
+		controller.Response(ctx, 403, forbiddenError.Message, nil)
+		return
+	}
 	trans := controller.GetTranslator(ctx, transKey)
 	ResourceName, _ := trans.Translate(forbiddenError.Resource)
 	message, _ := trans.Translate("errors.forbiddenError", ResourceName)

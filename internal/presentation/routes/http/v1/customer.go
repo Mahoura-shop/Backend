@@ -15,6 +15,7 @@ func SetupCustomerRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	wallet := routerGroup.Group("/wallet")
 	{
 		wallet.GET("", app.Controllers.Customer.UserController.GetUserWalletBalance)
+		wallet.GET("/history", app.Controllers.Customer.UserController.GetWalletHistory)
 		wallet.POST("/deposit", app.Controllers.Customer.UserController.DepositWallet)
 		wallet.POST("/withdraw", app.Controllers.Customer.UserController.WithdrawWallet)
 	}
@@ -73,8 +74,19 @@ func SetupCustomerRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		}
 	}
 
+	reviews := routerGroup.Group("/reviews")
+	{
+		reviews.GET("", app.Controllers.Customer.ReviewController.GetMyReviews)
+	}
+
 	coupon := routerGroup.Group("/coupon")
 	{
 		coupon.POST("/validate", app.Controllers.Customer.CouponController.ValidateCoupon)
+	}
+
+	returns := routerGroup.Group("/returns")
+	{
+		returns.POST("", app.Controllers.Customer.ReturnController.RequestReturn)
+		returns.GET("", app.Controllers.Customer.ReturnController.GetMyReturns)
 	}
 }

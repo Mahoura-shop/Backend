@@ -62,3 +62,16 @@ func (userController *AdminUserController) UnbanUser(ctx *gin.Context) {
 	message, _ := trans.Translate("successMessage.unbanUser")
 	controller.Response(ctx, 200, message, nil)
 }
+
+func (userController *AdminUserController) GetUserWallet(ctx *gin.Context) {
+	type walletParams struct {
+		UserID uint `uri:"userID"`
+	}
+	params := controller.Validated[walletParams](ctx)
+
+	wallet, err := userController.userService.GetAdminUserWallet(params.UserID)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", wallet)
+}

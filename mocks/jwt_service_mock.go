@@ -23,5 +23,12 @@ func (s *JwtServiceMock) ValidateToken(tokenString string) (jwt.MapClaims, error
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(jwt.MapClaims), args.Error(1)
+	switch v := args.Get(0).(type) {
+	case jwt.MapClaims:
+		return v, args.Error(1)
+	case map[string]any:
+		return jwt.MapClaims(v), args.Error(1)
+	default:
+		return args.Get(0).(jwt.MapClaims), args.Error(1)
+	}
 }

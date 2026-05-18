@@ -22,6 +22,7 @@ type ProductService interface {
 	DeleteProduct(uint) error
 	GetCategoryProducts(uint) ([]productdto.ProductCredential, error)
 	UpdateProductsPrice([]productdto.ProductPriceUpdateCredentials) error
+	UpdateProductsStock([]productdto.ProductStockUpdateCredentials, string) error
 	GetProductPrices() ([]productdto.ProductPrices, error)
 	AddProductImage(uint, *multipart.FileHeader) error
 	DeleteProductImage(uint, uint) error

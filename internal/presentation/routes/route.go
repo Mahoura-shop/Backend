@@ -15,6 +15,10 @@ func Run(ginEngine *gin.Engine, app *wire.Application) {
 
 	ginEngine.OPTIONS("/*any", func(c *gin.Context) {})
 
+	ginEngine.GET("/", func(c *gin.Context) {
+		c.String(200, "backend is running")
+	})
+
 	v1 := ginEngine.Group("/v1")
 	registerGeneralRoutes(v1, app)
 	registerCustomerRoutes(v1, app)

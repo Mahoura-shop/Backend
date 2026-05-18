@@ -24,10 +24,7 @@ func NewCustomerUpgradeRequestController(
 }
 
 func (c *CustomerUpgradeRequestController) SubmitUpgradeRequest(ctx *gin.Context) {
-	var req upgraderequestdto.SubmitUpgradeRequestRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		panic(err)
-	}
+	req := controller.Validated[upgraderequestdto.SubmitUpgradeRequestRequest](ctx)
 
 	userID, _ := ctx.Get(c.constants.Context.ID)
 	req.UserID = userID.(uint)

@@ -8,7 +8,6 @@ import (
 func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	categories := routerGroup.Group("/category")
 	{
-		categories.GET("", app.Controllers.Admin.CategoryController.GetCategories)
 		categories.POST("", app.Controllers.Admin.CategoryController.CreateCategory)
 		categoriesSubGroup := categories.Group("/:categoryID")
 		{
@@ -28,7 +27,6 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 
 	brands := routerGroup.Group("/brand")
 	{
-		brands.GET("", app.Controllers.Admin.BrandController.GetBrands)
 		brands.POST("", app.Controllers.Admin.BrandController.CreateBrand)
 		brandsSubGroup := brands.Group("/:brandID")
 		{
@@ -43,6 +41,7 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		products.GET("", app.Controllers.Admin.ProductController.GetProducts)
 		productsSubGroup := products.Group("/:productID")
 		{
+			productsSubGroup.GET("", app.Controllers.Admin.ProductController.GetProduct)
 			productsSubGroup.PUT("", app.Controllers.Admin.ProductController.UpdateProduct)
 			productsSubGroup.DELETE("", app.Controllers.Admin.ProductController.DeleteProduct)
 			productsSubGroup.POST("/images", app.Controllers.Admin.ProductController.AddProductImage)
@@ -51,16 +50,13 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 				imagesSubGroup.DELETE("/:imageID", app.Controllers.Admin.ProductController.DeleteProductImage)
 			}
 		}
-		productsSlugSubgroup := products.Group("/:slug")
-		{
-			productsSlugSubgroup.GET("", app.Controllers.Admin.ProductController.GetProduct)
-		}
 		categoryProductsSubGroup := products.Group("/category")
 		{
 			categoryProductsSubGroup.GET("/:categoryID", app.Controllers.Admin.ProductController.GetCategoryProducts)
 		}
 		products.GET("/prices", app.Controllers.Admin.ProductController.GetProductPrices)
 		products.PATCH("/prices", app.Controllers.Admin.ProductController.UpdateProductPrices)
+		products.POST("/stock", app.Controllers.Admin.ProductController.UpdateProductStock)
 	}
 
 	orders := routerGroup.Group("/orders")
@@ -91,6 +87,8 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 	admin := routerGroup.Group("/admin")
 	{
 		admin.GET("/dashboard", app.Controllers.Admin.UserController.GetDashboard)
+		admin.GET("/dashboard/orders", app.Controllers.Admin.UserController.GetOrdersChart)
+		admin.GET("/dashboard/sales", app.Controllers.Admin.UserController.GetSalesChart)
 
 		upgradeRequests := admin.Group("/upgrade-requests")
 		{
@@ -100,6 +98,26 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 				upgradeRequestsSubGroup.GET("", app.Controllers.Admin.UpgradeRequestController.GetUpgradeRequest)
 				upgradeRequestsSubGroup.PATCH("/review", app.Controllers.Admin.UpgradeRequestController.ReviewUpgradeRequest)
 			}
+		}
+
+		returns := admin.Group("/returns")
+		{
+			returns.GET("", app.Controllers.Admin.ReturnController.GetReturns)
+			returnsSub := returns.Group("/:returnID")
+			{
+				returnsSub.PATCH("/review", app.Controllers.Admin.ReturnController.ReviewReturn)
+				returnsSub.POST("/refund", app.Controllers.Admin.ReturnController.ProcessRefund)
+			}
+		}
+
+		admin.GET("/contact-messages", app.Controllers.Admin.ContactController.GetAll)
+	}
+
+	reviews := routerGroup.Group("/reviews")
+	{
+		reviewsSub := reviews.Group("/:reviewID")
+		{
+			reviewsSub.DELETE("", app.Controllers.Admin.ReviewController.DeleteReview)
 		}
 	}
 
@@ -112,6 +130,7 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 			usersSubGroup.GET("/audit-logs", app.Controllers.Admin.UpgradeRequestController.GetUserAuditLogs)
 			usersSubGroup.PATCH("/ban", app.Controllers.Admin.UserController.BanUser)
 			usersSubGroup.PATCH("/unban", app.Controllers.Admin.UserController.UnbanUser)
+			usersSubGroup.GET("/wallet", app.Controllers.Admin.UserController.GetUserWallet)
 		}
 	}
 }

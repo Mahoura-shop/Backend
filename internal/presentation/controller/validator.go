@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"bytes"
+	"io"
 	"reflect"
 
 	"github.com/Mahoura-shop/Backend/internal/domain/exception"
@@ -23,10 +25,18 @@ func Validated[T any](ctx *gin.Context) T {
 		panic(bindingError)
 	}
 
+	var bodyBytes []byte
+	if ctx.Request.Body != nil {
+		bodyBytes, _ = io.ReadAll(ctx.Request.Body)
+		ctx.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	}
+
 	if err := ctx.ShouldBind(&params); err != nil {
 		bindingError := exception.BindingError{Err: err}
 		panic(bindingError)
 	}
+
+	ctx.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 	if err := validate.Struct(params); err != nil {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {

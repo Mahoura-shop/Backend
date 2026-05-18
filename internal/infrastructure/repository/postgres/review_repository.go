@@ -55,6 +55,15 @@ func (r *ReviewRepository) GetProductReviews(db database.Database, productID uin
 	return reviews, nil
 }
 
+func (r *ReviewRepository) GetUserReviews(db database.Database, userID uint) ([]*entity.Review, error) {
+	var reviews []*entity.Review
+	result := db.GetDB().Preload("User").Preload("Product").Where("user_id = ?", userID).Order("created_at DESC").Find(&reviews)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return reviews, nil
+}
+
 func (r *ReviewRepository) DeleteReviewByID(db database.Database, reviewID uint) error {
 	return db.GetDB().Where("id = ?", reviewID).Delete(&entity.Review{}).Error
 }

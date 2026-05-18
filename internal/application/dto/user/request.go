@@ -15,10 +15,6 @@ type VerifyEmailRequest struct {
 	OTP    string
 }
 
-type AdminLoginRequest struct {
-	Phone    string
-	Password string
-}
 
 type UserBalanceUpdate struct {
 	UserID uint

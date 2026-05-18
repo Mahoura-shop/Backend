@@ -97,8 +97,8 @@ func (repo *OrderRepository) GetRevenuePerTier(db database.Database) ([]postgres
 			CASE tier
 				WHEN 1 THEN 'guest'
 				WHEN 2 THEN 'regular'
-				WHEN 3 THEN 'shopkeeperCheque'
-				WHEN 4 THEN 'shopkeeperCash'
+				WHEN 3 THEN 'shopkeeper'
+				WHEN 4 THEN 'shopkeeper'
 				WHEN 5 THEN 'fellow'
 				WHEN 6 THEN 'admin'
 			END as tier,
@@ -112,12 +112,37 @@ func (repo *OrderRepository) GetRevenuePerTier(db database.Database) ([]postgres
 	return results, nil
 }
 
+func (repo *OrderRepository) GetRevenuePerDay(db database.Database, days int) ([]postgresrepo.RevenueByDay, error) {
+	var results []postgresrepo.RevenueByDay
+	result := db.GetDB().
+		Model(&entity.OrderItem{}).
+		Select("DATE(orders.created_at) as date, SUM(order_items.price_snapshot * order_items.count) as revenue").
+		Joins("JOIN orders ON orders.id = order_items.order_id").
+		Where("orders.created_at >= NOW() - ? * INTERVAL '1 day'", days).
+		Group("DATE(orders.created_at)").
+		Order("DATE(orders.created_at)").
+		Scan(&results)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return results, nil
+}
+
+func (repo *OrderRepository) FindOrderItemByID(db database.Database, orderItemID uint) (*entity.OrderItem, error) {
+	var item entity.OrderItem
+	result := db.GetDB().Preload("Order").Preload("Product").Where("id = ?", orderItemID).First(&item)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return &item, result.Error
+}
+
 func (repo *OrderRepository) GetOrdersPerDay(db database.Database, days int) ([]postgresrepo.OrderByDay, error) {
 	var results []postgresrepo.OrderByDay
 	result := db.GetDB().
 		Model(&entity.Order{}).
 		Select("DATE(created_at) as date, COUNT(*) as count").
-		Where("created_at >= NOW() - INTERVAL ? DAY", days).
+		Where("created_at >= NOW() - ? * INTERVAL '1 day'", days).
 		Group("DATE(created_at)").
 		Order("DATE(created_at)").
 		Scan(&results)

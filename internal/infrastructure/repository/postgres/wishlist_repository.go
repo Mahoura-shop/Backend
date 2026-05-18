@@ -19,7 +19,7 @@ func (r *WishlistRepository) AddToWishlist(db database.Database, item entity.Wis
 }
 
 func (r *WishlistRepository) RemoveFromWishlist(db database.Database, userID, productID uint) error {
-	return db.GetDB().Where("user_id = ? AND product_id = ?", userID, productID).Delete(&entity.Wishlist{}).Error
+	return db.GetDB().Unscoped().Where("user_id = ? AND product_id = ?", userID, productID).Delete(&entity.Wishlist{}).Error
 }
 
 func (r *WishlistRepository) GetWishlistByUserID(db database.Database, userID uint) ([]*entity.Wishlist, error) {

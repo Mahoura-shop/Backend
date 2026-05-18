@@ -26,7 +26,7 @@ func TestResolvePrice(t *testing.T) {
 		{enum.UserTypeShopkeeperCheque, 3_000_000},
 		{enum.UserTypeCustomer, 4_000_000},
 		{enum.UserTypeGuest, 5_000_000},
-		{enum.UserTypeAdmin, 5_000_000},
+		{enum.UserTypeAdmin, 1_000_000},
 	}
 
 	for _, c := range cases {

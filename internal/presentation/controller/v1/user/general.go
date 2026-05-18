@@ -28,11 +28,11 @@ func NewGeneralUserController(
 
 func (userController *GeneralUserController) Auth(ctx *gin.Context) {
 	type authParams struct {
-		Phone           string `json:"phone" validate:"required,e164"`
+		Phone string `json:"phone" validate:"required"`
 	}
 	params := controller.Validated[authParams](ctx)
 	registerInfo := userdto.AuthRequest{
-		Phone:     params.Phone,
+		Phone: params.Phone,
 	}
 	if err := userController.userService.Auth(registerInfo); err != nil {
 		panic(err)
@@ -45,7 +45,7 @@ func (userController *GeneralUserController) Auth(ctx *gin.Context) {
 
 func (userController *GeneralUserController) VerifyAuth(ctx *gin.Context) {
 	type verifyPhoneParams struct {
-		Phone string `json:"phone" validate:"required,e164"`
+		Phone string `json:"phone" validate:"required"`
 		OTP   string `json:"otp" validate:"required"`
 	}
 	params := controller.Validated[verifyPhoneParams](ctx)
@@ -84,31 +84,29 @@ func (userController *GeneralUserController) RefreshToken(ctx *gin.Context) {
 	controller.Response(ctx, 200, message, accessToken)
 }
 
-func (userController *GeneralUserController) AdminLogin(ctx *gin.Context) {
-	type AdminLoginParams struct {
-		Phone    string `json:"phone" validate:"required"`
-		Password string `json:"password" validate:"required"`
-	}
-	params := controller.Validated[AdminLoginParams](ctx)
-	adminLoginInfo := userdto.AdminLoginRequest{
-		Phone:    params.Phone,
-		Password: params.Password,
-	}
-	adminInfo, err := userController.userService.AdminLogin(adminLoginInfo)
-	if err != nil {
-		panic(err)
-	}
-
-	trans := controller.GetTranslator(ctx, userController.constants.Context.Translator)
-	message, _ := trans.Translate("successMessage.login")
-	controller.Response(ctx, 200, message, adminInfo)
-}
 
 func (userController *AdminUserController) GetDashboard(ctx *gin.Context) {
-	dashboard, err := userController.userService.GetDashboard();
+	dashboard, err := userController.userService.GetDashboard()
 	if err != nil {
 		panic(err)
 	}
-
 	controller.Response(ctx, 200, "", dashboard)
+}
+
+func (userController *AdminUserController) GetOrdersChart(ctx *gin.Context) {
+	period := ctx.DefaultQuery("period", "week")
+	data, err := userController.userService.GetOrdersChart(period)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", data)
+}
+
+func (userController *AdminUserController) GetSalesChart(ctx *gin.Context) {
+	period := ctx.DefaultQuery("period", "week")
+	data, err := userController.userService.GetSalesChart(period)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", data)
 }

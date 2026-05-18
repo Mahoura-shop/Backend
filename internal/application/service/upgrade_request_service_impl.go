@@ -43,9 +43,8 @@ func NewUpgradeRequestService(deps UpgradeRequestServiceDeps) *UpgradeRequestSer
 }
 
 var validUpgradeTypes = map[enum.UserType]bool{
-	enum.UserTypeShopkeeperCash:   true,
-	enum.UserTypeShopkeeperCheque: true,
-	enum.UserTypeFellow:           true,
+	enum.UserTypeShopkeeperCash: true,
+	enum.UserTypeFellow:         true,
 }
 
 func (s *UpgradeRequestService) parseRequest(req entity.UpgradeRequest) upgraderequestdto.UpgradeRequestCredential {
@@ -69,7 +68,7 @@ func (s *UpgradeRequestService) parseRequest(req entity.UpgradeRequest) upgrader
 
 func (s *UpgradeRequestService) SubmitUpgradeRequest(req upgraderequestdto.SubmitUpgradeRequestRequest) error {
 	if !validUpgradeTypes[req.RequestedType] {
-		return exception.ForbiddenError{Message: "invalid upgrade target: must be shopkeeperCash, shopkeeperCheque, or fellow"}
+		return exception.ForbiddenError{Message: "invalid upgrade target: must be shopkeeper or fellow"}
 	}
 
 	user, err := s.userRepository.FindUserByID(s.db, req.UserID)
@@ -222,6 +221,7 @@ func (s *UpgradeRequestService) ChangeUserType(userID uint, req upgraderequestdt
 
 	return s.db.WithTransaction(func(tx database.Database) error {
 		user.Type = newType
+		user.IsAdmin = (newType == enum.UserTypeAdmin)
 		if err := s.userRepository.UpdateUser(tx, *user); err != nil {
 			return err
 		}
@@ -230,7 +230,6 @@ func (s *UpgradeRequestService) ChangeUserType(userID uint, req upgraderequestdt
 			ChangedByID: req.AdminID,
 			OldType:     oldType,
 			NewType:     newType,
-			Reason:      req.Reason,
 		})
 	})
 }

@@ -51,3 +51,80 @@ func (s *UserServiceMock) FindActiveUserByPhone(phone string) (*entity.User, err
 	args := s.Called(phone)
 	return args.Get(0).(*entity.User), args.Error(1)
 }
+
+func (s *UserServiceMock) ParseUser(user entity.User) userdto.UserCredential {
+	args := s.Called(user)
+	return args.Get(0).(userdto.UserCredential)
+}
+
+func (s *UserServiceMock) GetUsers() ([]userdto.UserCredential, error) {
+	args := s.Called()
+	return args.Get(0).([]userdto.UserCredential), args.Error(1)
+}
+
+func (s *UserServiceMock) Auth(req userdto.AuthRequest) error {
+	args := s.Called(req)
+	return args.Error(0)
+}
+
+func (s *UserServiceMock) VerifyAuth(req userdto.VerifyAuthRequest) (userdto.UserInfoResponse, error) {
+	args := s.Called(req)
+	return args.Get(0).(userdto.UserInfoResponse), args.Error(1)
+}
+
+func (s *UserServiceMock) FindUserByPhone(phone string) (*entity.User, error) {
+	args := s.Called(phone)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entity.User), args.Error(1)
+}
+
+
+func (s *UserServiceMock) GetDashboard() (userdto.DashboardResponse, error) {
+	args := s.Called()
+	return args.Get(0).(userdto.DashboardResponse), args.Error(1)
+}
+
+func (s *UserServiceMock) GetOrdersChart(period string) ([]userdto.OrderByDay, error) {
+	args := s.Called(period)
+	return args.Get(0).([]userdto.OrderByDay), args.Error(1)
+}
+
+func (s *UserServiceMock) GetSalesChart(period string) ([]userdto.RevenueByDay, error) {
+	args := s.Called(period)
+	return args.Get(0).([]userdto.RevenueByDay), args.Error(1)
+}
+
+func (s *UserServiceMock) GetUserWalletBalance(userID uint) (userdto.UserWalletBalance, error) {
+	args := s.Called(userID)
+	return args.Get(0).(userdto.UserWalletBalance), args.Error(1)
+}
+
+func (s *UserServiceMock) GetWalletHistory(userID uint) ([]userdto.TransactionDTO, error) {
+	args := s.Called(userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]userdto.TransactionDTO), args.Error(1)
+}
+
+func (s *UserServiceMock) DepositWallet(req userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error) {
+	args := s.Called(req)
+	return args.Get(0).(userdto.UserWalletBalance), args.Error(1)
+}
+
+func (s *UserServiceMock) WithdrawWallet(req userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error) {
+	args := s.Called(req)
+	return args.Get(0).(userdto.UserWalletBalance), args.Error(1)
+}
+
+func (s *UserServiceMock) GetAdminUserWallet(userID uint) (userdto.AdminUserWalletResponse, error) {
+	args := s.Called(userID)
+	return args.Get(0).(userdto.AdminUserWalletResponse), args.Error(1)
+}
+
+func (s *UserServiceMock) UpdateProfile(req userdto.UpdateProfileRequest) (userdto.UserCredential, error) {
+	args := s.Called(req)
+	return args.Get(0).(userdto.UserCredential), args.Error(1)
+}

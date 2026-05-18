@@ -5,5 +5,6 @@ import reviewdto "github.com/Mahoura-shop/Backend/internal/application/dto/revie
 type ReviewService interface {
 	SubmitReview(reviewdto.SubmitReviewRequest) error
 	GetProductReviews(productID uint) ([]reviewdto.ReviewCredential, error)
+	GetMyReviews(userID uint) ([]reviewdto.ReviewCredential, error)
 	DeleteReview(reviewID uint) error
 }

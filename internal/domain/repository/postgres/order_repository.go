@@ -15,6 +15,11 @@ type OrderByDay struct {
 	Count uint
 }
 
+type RevenueByDay struct {
+	Date    string
+	Revenue uint
+}
+
 type OrderRepository interface {
 	FindOrderByID(db database.Database, orderID uint) (*entity.Order, error)
 	GetOrders(db database.Database) ([]*entity.Order, error)
@@ -26,4 +31,6 @@ type OrderRepository interface {
 	CreateOrderStatusHistory(db database.Database, history entity.OrderStatusHistory) error
 	GetRevenuePerTier(db database.Database) ([]RevenueByTier, error)
 	GetOrdersPerDay(db database.Database, days int) ([]OrderByDay, error)
+	GetRevenuePerDay(db database.Database, days int) ([]RevenueByDay, error)
+	FindOrderItemByID(db database.Database, orderItemID uint) (*entity.OrderItem, error)
 }

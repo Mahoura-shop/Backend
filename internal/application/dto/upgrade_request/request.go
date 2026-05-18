@@ -16,7 +16,6 @@ type ReviewUpgradeRequestRequest struct {
 }
 
 type ChangeUserTypeRequest struct {
-	NewType uint   `json:"newType" validate:"required"`
-	Reason  string `json:"reason" validate:"required"`
+	NewType uint `json:"newType" validate:"required"`
 	AdminID uint
 }

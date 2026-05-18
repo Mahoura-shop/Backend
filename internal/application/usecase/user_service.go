@@ -18,9 +18,12 @@ type UserService interface {
 	VerifyAuth(userdto.VerifyAuthRequest) (userdto.UserInfoResponse, error)
 	FindUserByPhone(phone string) (*entity.User, error)
 	VerifyEmail(userdto.VerifyEmailRequest) error
-	AdminLogin(userdto.AdminLoginRequest) (userdto.AdminInfoResponse, error)
 	GetDashboard() (userdto.DashboardResponse, error)
+	GetOrdersChart(period string) ([]userdto.OrderByDay, error)
+	GetSalesChart(period string) ([]userdto.RevenueByDay, error)
 	GetUserWalletBalance(uint) (userdto.UserWalletBalance, error)
+	GetWalletHistory(uint) ([]userdto.TransactionDTO, error)
+	GetAdminUserWallet(uint) (userdto.AdminUserWalletResponse, error)
 	DepositWallet(userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error)
 	WithdrawWallet(userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error)
 	UpdateProfile(userdto.UpdateProfileRequest) (userdto.UserCredential, error)

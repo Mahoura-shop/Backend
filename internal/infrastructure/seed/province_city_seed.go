@@ -441,7 +441,7 @@ func (seeder *AddressSeeder) SeedProvincesAndCities() {
 		if province == nil {
 			province = &entity.Province{
 				Name:         provinceName,
-				ShippingCost: 50000,
+				ShippingCost: 2000000,
 			}
 			err := seeder.addressRepository.CreateProvince(seeder.db, province)
 			if err != nil {

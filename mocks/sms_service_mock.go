@@ -14,3 +14,8 @@ func (s *SMSServiceMock) SendOTP(receptor, token string) error {
 	args := s.Called(receptor, token)
 	return args.Error(0)
 }
+
+func (s *SMSServiceMock) SendMessage(receptor, message string) error {
+	args := s.Called(receptor, message)
+	return args.Error(0)
+}

@@ -29,6 +29,7 @@ func main() {
 		&entity.Category{},
 		&entity.Brand{},
 		&entity.Product{},
+		&entity.ProductImage{},
 		&entity.Currency{},
 		&entity.Wallet{},
 		&entity.Cart{},
@@ -41,6 +42,14 @@ func main() {
 		&entity.Instalment{},
 		&entity.UpgradeRequest{},
 		&entity.UserAuditLog{},
+		&entity.ContactMessage{},
+		&entity.Review{},
+		&entity.Wishlist{},
+		&entity.Coupon{},
+		&entity.Return{},
+		&entity.Role{},
+		&entity.Permission{},
+		&entity.InventoryAdjustmentLog{},
 	)
 	
 	app.Seeds.AddressSeeder.SeedProvincesAndCities()

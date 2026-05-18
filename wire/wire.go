@@ -36,6 +36,8 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/wishlist"
 	upgraderequest "github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/upgrade_request"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/role"
+	returnctrl "github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/return"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/contact"
 	"github.com/Mahoura-shop/Backend/internal/presentation/middleware"
 	"github.com/google/wire"
 )
@@ -68,6 +70,8 @@ var RepositoryProviderSet = wire.NewSet(
 	infraPostgres.NewInstalmentRepository,
 	infraPostgres.NewUpgradeRequestRepository,
 	infraPostgres.NewUserAuditLogRepository,
+	infraPostgres.NewReturnRepository,
+	infraPostgres.NewContactMessageRepository,
 	infraRedis.NewUserCacheRepository,
 	wire.Bind(new(domainPostgres.UserRepository), new(*infraPostgres.UserRepository)),
 	wire.Bind(new(domainPostgres.AddressRepository), new(*infraPostgres.AddressRepository)),
@@ -89,6 +93,8 @@ var RepositoryProviderSet = wire.NewSet(
 	wire.Bind(new(domainPostgres.UpgradeRequestRepository), new(*infraPostgres.UpgradeRequestRepository)),
 	wire.Bind(new(domainPostgres.UserAuditLogRepository), new(*infraPostgres.UserAuditLogRepository)),
 	wire.Bind(new(domainPostgres.RoleRepository), new(*infraPostgres.RoleRepository)),
+	wire.Bind(new(domainPostgres.ReturnRepository), new(*infraPostgres.ReturnRepository)),
+	wire.Bind(new(domainPostgres.ContactMessageRepository), new(*infraPostgres.ContactMessageRepository)),
 )
 
 var ServiceProviderSet = wire.NewSet(
@@ -104,6 +110,8 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Struct(new(service.OrderServiceDeps), "*"),
 	wire.Struct(new(service.UpgradeRequestServiceDeps), "*"),
 	wire.Struct(new(service.RoleServiceDeps), "*"),
+	wire.Struct(new(service.ReturnServiceDeps), "*"),
+	wire.Struct(new(service.ContactMessageServiceDeps), "*"),
 	service.NewUserService,
 	service.NewOTPService,
 	sms.NewSMSService,
@@ -123,6 +131,8 @@ var ServiceProviderSet = wire.NewSet(
 	service.NewPaymentService,
 	service.NewUpgradeRequestService,
 	service.NewRoleService,
+	service.NewReturnService,
+	service.NewContactMessageService,
 	wire.Bind(new(usecase.UserService), new(*service.UserService)),
 	wire.Bind(new(usecase.OTPService), new(*service.OTPService)),
 	wire.Bind(new(communication.SMSService), new(*sms.SMSService)),
@@ -142,6 +152,8 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Bind(new(usecase.PaymentService), new(*service.PaymentService)),
 	wire.Bind(new(usecase.UpgradeRequestService), new(*service.UpgradeRequestService)),
 	wire.Bind(new(usecase.RoleService), new(*service.RoleService)),
+	wire.Bind(new(usecase.ReturnService), new(*service.ReturnService)),
+	wire.Bind(new(usecase.ContactMessageService), new(*service.ContactMessageService)),
 )
 
 var AdapterProviderSet = wire.NewSet(
@@ -159,6 +171,7 @@ var GeneralControllerProviderSet = wire.NewSet(
 	product.NewGeneralProductController,
 	review.NewGeneralReviewController,
 	test.NewGeneralTestController,
+	contact.NewGeneralContactController,
 	wire.Struct(new(GeneralControllers), "*"),
 )
 
@@ -171,6 +184,7 @@ var CustomerControllerProviderSet = wire.NewSet(
 	review.NewCustomerReviewController,
 	upgraderequest.NewCustomerUpgradeRequestController,
 	wishlist.NewCustomerWishlistController,
+	returnctrl.NewCustomerReturnController,
 	wire.Struct(new(CustomerControllers), "*"),
 )
 
@@ -183,6 +197,9 @@ var AdminControllerProviderSet = wire.NewSet(
 	order.NewAdminOrderController,
 	upgraderequest.NewAdminUpgradeRequestController,
 	role.NewAdminRoleController,
+	returnctrl.NewAdminReturnController,
+	contact.NewAdminContactController,
+	review.NewAdminReviewController,
 	wire.Struct(new(AdminControllers), "*"),
 )
 
@@ -313,6 +330,7 @@ type GeneralControllers struct {
 	ProductController   *product.GeneralProductController
 	ReviewController    *review.GeneralReviewController
 	TestController      *test.GeneralTestController
+	ContactController   *contact.GeneralContactController
 }
 
 type CustomerControllers struct {
@@ -324,6 +342,7 @@ type CustomerControllers struct {
 	ReviewController         *review.CustomerReviewController
 	UpgradeRequestController *upgraderequest.CustomerUpgradeRequestController
 	WishlistController       *wishlist.CustomerWishlistController
+	ReturnController         *returnctrl.CustomerReturnController
 }
 
 type AdminControllers struct {
@@ -335,6 +354,9 @@ type AdminControllers struct {
 	OrderController          *order.AdminOrderController
 	UpgradeRequestController *upgraderequest.AdminUpgradeRequestController
 	RoleController           *role.AdminRoleController
+	ReturnController         *returnctrl.AdminReturnController
+	ContactController        *contact.AdminContactController
+	ReviewController         *review.AdminReviewController
 }
 
 type Controllers struct {

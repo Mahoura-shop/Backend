@@ -45,7 +45,7 @@ func (c *GeneralProductController) GetProducts(ctx *gin.Context) {
 		panic(err)
 	}
 
-	userType := enum.UserTypeCustomer
+	userType := enum.UserTypeGuest
 	userID, exists := ctx.Get(c.constants.Context.ID)
 	if exists && userID != nil {
 		user, err := c.userRepository.FindUserByID(c.database, userID.(uint))
@@ -65,10 +65,8 @@ func (c *GeneralProductController) resolvePriceForType(userType enum.UserType, p
 	switch userType {
 	case enum.UserTypeFellow:
 		return product.Step1Price
-	case enum.UserTypeShopkeeperCash:
+	case enum.UserTypeShopkeeperCash, enum.UserTypeShopkeeperCheque:
 		return product.Step2Price
-	case enum.UserTypeShopkeeperCheque:
-		return product.Step3Price
 	case enum.UserTypeCustomer:
 		return product.Step4Price
 	default:

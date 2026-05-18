@@ -43,7 +43,7 @@ func (u *UserRepositoryMock) FindUserByEmail(db database.Database, email string)
 	return args.Get(0).(*entity.User), args.Error(1)
 }
 
-func (u *UserRepositoryMock) CreateUser(db database.Database, user *entity.User) error {
+func (u *UserRepositoryMock) CreateUser(db database.Database, user entity.User) error {
 	args := u.Called(db, user)
 	return args.Error(0)
 }
@@ -53,7 +53,7 @@ func (u *UserRepositoryMock) DeleteUserByPhone(db database.Database, phone strin
 	return args.Error(0)
 }
 
-func (u *UserRepositoryMock) UpdateUser(db database.Database, user *entity.User) error {
+func (u *UserRepositoryMock) UpdateUser(db database.Database, user entity.User) error {
 	args := u.Called(db, user)
 	return args.Error(0)
 }

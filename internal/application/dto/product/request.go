@@ -74,6 +74,11 @@ type ProductPriceUpdateCredentials struct {
 	IRRPrice uint
 }
 
+type ProductStockUpdateCredentials struct {
+	ProductID uint
+	Count     uint
+}
+
 type ProductFilterRequest struct {
 	Query      string `form:"q"`
 	CategoryID *uint  `form:"categoryID"`

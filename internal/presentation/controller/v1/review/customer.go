@@ -59,3 +59,12 @@ func (c *CustomerReviewController) GetProductReviews(ctx *gin.Context) {
 	}
 	controller.Response(ctx, 200, "", reviews)
 }
+
+func (c *CustomerReviewController) GetMyReviews(ctx *gin.Context) {
+	userID, _ := ctx.Get(c.constants.Context.ID)
+	reviews, err := c.reviewService.GetMyReviews(userID.(uint))
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", reviews)
+}

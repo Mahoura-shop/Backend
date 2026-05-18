@@ -7,6 +7,7 @@ import (
 
 type TransactionRepository interface {
 	FindTransactionByID(database.Database, uint) (entity.Transaction, error)
+	FindTransactionsByWalletID(database.Database, uint) ([]entity.Transaction, error)
 	CreateTransaction(database.Database, entity.Transaction) (error)
 	UpdateTransaction(database.Database, entity.Transaction) (error)
 }

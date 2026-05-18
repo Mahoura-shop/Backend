@@ -151,12 +151,14 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 	}
 
 	response.Images = []string{}
+	response.ImageObjects = []productdto.ProductImageDTO{}
 	for _, img := range product.Images {
 		url, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, img.Path, 8*time.Hour)
 		if err != nil {
 			continue
 		}
 		response.Images = append(response.Images, url)
+		response.ImageObjects = append(response.ImageObjects, productdto.ProductImageDTO{ID: img.ID, Path: url})
 	}
 
 	return response
@@ -214,6 +216,21 @@ func (productService *ProductService) validateDuplicateProduct(slug string, name
 	return nil
 }
 
+func (productService *ProductService) fillRatingStats(p *productdto.ProductCredential) {
+	type stats struct {
+		Count   uint
+		Average float64
+	}
+	var s stats
+	productService.db.GetDB().
+		Table("reviews").
+		Select("COUNT(*) as count, COALESCE(AVG(rating), 0) as average").
+		Where("product_id = ? AND deleted_at IS NULL", p.ID).
+		Scan(&s)
+	p.ReviewCount = s.Count
+	p.AverageRating = math.Round(s.Average*10) / 10
+}
+
 func (productService *ProductService) GetProductBySlug(slug string) (*productdto.ProductCredential, error) {
 	parsedSlug, err := productService.ParseSlug(slug)
 	if err != nil {
@@ -223,12 +240,13 @@ func (productService *ProductService) GetProductBySlug(slug string) (*productdto
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if product == nil {
 		return nil, exception.NotFoundError{Item: productService.constants.Field.Product}
 	}
-	
+
 	parsedProduct := productService.ParseProduct(*product)
+	productService.fillRatingStats(&parsedProduct)
 	return &parsedProduct, nil
 }
 
@@ -237,12 +255,13 @@ func (productService *ProductService) GetProduct(productID uint) (*productdto.Pr
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if product == nil {
 		return nil, exception.NotFoundError{Item: productService.constants.Field.Product}
 	}
-	
+
 	parsedProduct := productService.ParseProduct(*product)
+	productService.fillRatingStats(&parsedProduct)
 	return &parsedProduct, nil
 }
 
@@ -778,6 +797,33 @@ func (productService *ProductService) UpdateProductsPrice(products []productdto.
 	})
 
 	return err
+}
+
+func (productService *ProductService) UpdateProductsStock(items []productdto.ProductStockUpdateCredentials, updateType string) error {
+	return productService.db.WithTransaction(func(tx database.Database) error {
+		for _, item := range items {
+			product, err := productService.productRepository.FindProductByID(tx, item.ProductID)
+			if err != nil {
+				return err
+			}
+			if product == nil {
+				return exception.NotFoundError{Item: productService.constants.Field.Product}
+			}
+			if updateType == "buy" {
+				product.Quantity += item.Count
+			} else {
+				if item.Count > product.Quantity {
+					product.Quantity = 0
+				} else {
+					product.Quantity -= item.Count
+				}
+			}
+			if err := productService.productRepository.UpdateProduct(tx, *product); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (productService *ProductService) DeleteProduct(productID uint) error {

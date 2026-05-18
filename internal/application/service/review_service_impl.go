@@ -58,6 +58,29 @@ func (s *ReviewService) SubmitReview(req reviewdto.SubmitReviewRequest) error {
 	return err
 }
 
+func (s *ReviewService) toCredential(r *entity.Review) reviewdto.ReviewCredential {
+	cred := reviewdto.ReviewCredential{
+		ID:         r.ID,
+		UserID:     r.UserID,
+		ProductID:  r.ProductID,
+		Rating:     r.Rating,
+		Comment:    r.Comment,
+		IsVerified: r.IsVerified,
+		CreatedAt:  r.CreatedAt.Format("2006-01-02T15:04:05Z"),
+	}
+	if r.User.ID != 0 {
+		cred.UserPhone = r.User.Phone
+		cred.UserFirstName = r.User.FirstName
+		cred.UserLastName = r.User.LastName
+	}
+	if r.Product.ID != 0 {
+		cred.ProductName = r.Product.Name
+		cred.ProductSlug = r.Product.Slug
+		cred.ProductPic = r.Product.ProductPic
+	}
+	return cred
+}
+
 func (s *ReviewService) GetProductReviews(productID uint) ([]reviewdto.ReviewCredential, error) {
 	reviews, err := s.reviewRepository.GetProductReviews(s.db, productID)
 	if err != nil {
@@ -65,19 +88,19 @@ func (s *ReviewService) GetProductReviews(productID uint) ([]reviewdto.ReviewCre
 	}
 	var result []reviewdto.ReviewCredential
 	for _, r := range reviews {
-		cred := reviewdto.ReviewCredential{
-			ID:         r.ID,
-			UserID:     r.UserID,
-			ProductID:  r.ProductID,
-			Rating:     r.Rating,
-			Comment:    r.Comment,
-			IsVerified: r.IsVerified,
-			CreatedAt:  r.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		}
-		if r.User.ID != 0 {
-			cred.UserPhone = r.User.Phone
-		}
-		result = append(result, cred)
+		result = append(result, s.toCredential(r))
+	}
+	return result, nil
+}
+
+func (s *ReviewService) GetMyReviews(userID uint) ([]reviewdto.ReviewCredential, error) {
+	reviews, err := s.reviewRepository.GetUserReviews(s.db, userID)
+	if err != nil {
+		return nil, err
+	}
+	var result []reviewdto.ReviewCredential
+	for _, r := range reviews {
+		result = append(result, s.toCredential(r))
 	}
 	return result, nil
 }

@@ -45,7 +45,7 @@ func (s *OtpServiceTestSuite) TestVerifyOTP() {
 			Attempts: 0,
 		}
 
-		s.userCacheRepository.On("Get", context.Background(), mock.Anything).Return(otpData, true).Once()
+		s.userCacheRepository.On("Get", context.Background(), mock.Anything).Return(otpData, nil).Once()
 		err := s.otpService.VerifyOTP(mock.Anything, "123456")
 		s.NoError(err)
 		s.userCacheRepository.AssertExpectations(s.T())
@@ -53,7 +53,7 @@ func (s *OtpServiceTestSuite) TestVerifyOTP() {
 	s.Run("error - OTP not found", func() {
 		var nilOTPData *userdto.OTPData = nil
 
-		s.userCacheRepository.On("Get", context.Background(), mock.Anything).Return(nilOTPData, false).Once()
+		s.userCacheRepository.On("Get", context.Background(), mock.Anything).Return(nilOTPData, nil).Once()
 		err := s.otpService.VerifyOTP(mock.Anything, "123456")
 
 		s.Error(err)
@@ -65,7 +65,7 @@ func (s *OtpServiceTestSuite) TestVerifyOTP() {
 			Attempts: 0,
 		}
 
-		s.userCacheRepository.On("Get", context.Background(), mock.Anything).Return(otpData, true).Once()
+		s.userCacheRepository.On("Get", context.Background(), mock.Anything).Return(otpData, nil).Once()
 		err := s.otpService.VerifyOTP(mock.Anything, "123457")
 
 		s.Error(err)

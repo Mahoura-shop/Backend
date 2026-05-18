@@ -31,3 +31,9 @@ func (repo *TransactionRepository) CreateTransaction(db database.Database, trans
 func (repo *TransactionRepository) UpdateTransaction(db database.Database, transaction entity.Transaction) error {
 	return db.GetDB().Save(&transaction).Error
 }
+
+func (repo *TransactionRepository) FindTransactionsByWalletID(db database.Database, walletID uint) ([]entity.Transaction, error) {
+	var transactions []entity.Transaction
+	result := db.GetDB().Where("wallet_id = ?", walletID).Order("created_at DESC").Find(&transactions)
+	return transactions, result.Error
+}

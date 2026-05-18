@@ -62,6 +62,15 @@ func (userController *CustomerUserController) GetUserWalletBalance(ctx *gin.Cont
 	controller.Response(ctx, 200, "", balance)
 }
 
+func (userController *CustomerUserController) GetWalletHistory(ctx *gin.Context) {
+	userID, _ := ctx.Get(userController.constants.Context.ID)
+	history, err := userController.userService.GetWalletHistory(userID.(uint))
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", history)
+}
+
 func (userController *CustomerUserController) DepositWallet(ctx *gin.Context) {
 	userID, _ := ctx.Get(userController.constants.Context.ID)
 	type DepositWalletParams struct {

@@ -258,6 +258,34 @@ func (productController *AdminProductController) UpdateProductPrices(ctx *gin.Co
 	controller.Response(ctx, 200, message, nil)
 }
 
+func (productController *AdminProductController) UpdateProductStock(ctx *gin.Context) {
+	type stockItem struct {
+		ProductID uint `json:"productID" validate:"required"`
+		Count     uint `json:"count" validate:"required"`
+	}
+	type updateProductStockParams struct {
+		Type  string      `json:"type" validate:"required"`
+		Items []stockItem `json:"items" validate:"required"`
+	}
+	params := controller.Validated[updateProductStockParams](ctx)
+
+	items := make([]productdto.ProductStockUpdateCredentials, len(params.Items))
+	for i, item := range params.Items {
+		items[i] = productdto.ProductStockUpdateCredentials{
+			ProductID: item.ProductID,
+			Count:     item.Count,
+		}
+	}
+
+	if err := productController.productService.UpdateProductsStock(items, params.Type); err != nil {
+		panic(err)
+	}
+
+	trans := controller.GetTranslator(ctx, productController.constants.Context.Translator)
+	message, _ := trans.Translate("successMessage.updateProducts")
+	controller.Response(ctx, 200, message, nil)
+}
+
 func (productController *AdminProductController) GetProductPrices(ctx *gin.Context) {
 	productPrices, err := productController.productService.GetProductPrices()
 	if err != nil {

@@ -29,11 +29,14 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/brand"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/cart"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/category"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/contact"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/coupon"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/currency"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/order"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/product"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/return"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/review"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/role"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/test"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/upgrade_request"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/user"
@@ -142,12 +145,20 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	generalReviewController := review.NewGeneralReviewController(constants, reviewService)
 	testService := service.NewTestService(constants, postgresDatabase)
 	generalTestController := test.NewGeneralTestController(constants, testService)
+	contactMessageRepository := postgres.NewContactMessageRepository()
+	contactMessageServiceDeps := service.ContactMessageServiceDeps{
+		ContactMessageRepository: contactMessageRepository,
+		DB:                       postgresDatabase,
+	}
+	contactMessageService := service.NewContactMessageService(contactMessageServiceDeps)
+	generalContactController := contact.NewGeneralContactController(contactMessageService)
 	generalControllers := &GeneralControllers{
 		UserController:    generalUserController,
 		AddressController: generalAddressController,
 		ProductController: generalProductController,
 		ReviewController:  generalReviewController,
 		TestController:    generalTestController,
+		ContactController: generalContactController,
 	}
 	customerUserController := user.NewCustomerUserController(constants, userService)
 	customerAddressController := address.NewCustomerAddressController(constants, addressService)
@@ -214,6 +225,16 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	}
 	wishlistService := service.NewWishlistService(wishlistServiceDeps)
 	customerWishlistController := wishlist.NewCustomerWishlistController(constants, wishlistService)
+	returnRepository := postgres.NewReturnRepository()
+	returnServiceDeps := service.ReturnServiceDeps{
+		Constants:        constants,
+		ReturnRepository: returnRepository,
+		OrderRepository:  orderRepository,
+		WalletRepository: walletRepository,
+		DB:               postgresDatabase,
+	}
+	returnService := service.NewReturnService(returnServiceDeps)
+	customerReturnController := returnctrl.NewCustomerReturnController(constants, returnService)
 	customerControllers := &CustomerControllers{
 		UserController:           customerUserController,
 		AddressController:        customerAddressController,
@@ -223,6 +244,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		ReviewController:         customerReviewController,
 		UpgradeRequestController: customerUpgradeRequestController,
 		WishlistController:       customerWishlistController,
+		ReturnController:         customerReturnController,
 	}
 	pagination := ProvidePaginationConfig(container)
 	adminCategoryController := category.NewAdminCategoryController(constants, pagination, categoryService)
@@ -232,6 +254,15 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	adminUserController := user.NewAdminUserController(constants, pagination, userService)
 	adminOrderController := order.NewAdminOrderController(constants, orderService)
 	adminUpgradeRequestController := upgraderequest.NewAdminUpgradeRequestController(constants, upgradeRequestService)
+	roleRepository := postgres.NewRoleRepository()
+	roleServiceDeps := service.RoleServiceDeps{
+		RoleRepository: roleRepository,
+		DB:             postgresDatabase,
+	}
+	roleService := service.NewRoleService(roleServiceDeps)
+	adminRoleController := role.NewAdminRoleController(constants, roleService)
+	adminReturnController := returnctrl.NewAdminReturnController(constants, returnService)
+	adminContactController := contact.NewAdminContactController(contactMessageService)
 	adminControllers := &AdminControllers{
 		CategoryController:       adminCategoryController,
 		CurrencyController:       adminCurrencyController,
@@ -240,6 +271,9 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		UserController:           adminUserController,
 		OrderController:          adminOrderController,
 		UpgradeRequestController: adminUpgradeRequestController,
+		RoleController:           adminRoleController,
+		ReturnController:         adminReturnController,
+		ContactController:        adminContactController,
 	}
 	controllers := &Controllers{
 		General:  generalControllers,
@@ -284,17 +318,17 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 
 var DatabaseProviderSet = wire.NewSet(database.NewPostgresDatabase, database.NewRedisDatabase, wire.Bind(new(database.Database), new(*database.PostgresDatabase)), wire.Bind(new(database.Cache), new(*database.RedisDatabase)), wire.Struct(new(Database), "*"))
 
-var RepositoryProviderSet = wire.NewSet(postgres.NewUserRepository, postgres.NewAddressRepository, postgres.NewCategoryRepository, postgres.NewCurrencyRepository, postgres.NewBrandRepository, postgres.NewProductRepository, postgres.NewProductImageRepository, postgres.NewReviewRepository, postgres.NewCouponRepository, postgres.NewWishlistRepository, postgres.NewWalletRepository, postgres.NewCartRepository, postgres.NewOrderRepository, postgres.NewTransactionRepository, postgres.NewPaymentRepository, postgres.NewInstalmentRepository, postgres.NewUpgradeRequestRepository, postgres.NewUserAuditLogRepository, redis.NewUserCacheRepository, wire.Bind(new(postgres2.UserRepository), new(*postgres.UserRepository)), wire.Bind(new(postgres2.AddressRepository), new(*postgres.AddressRepository)), wire.Bind(new(redis2.UserCacheRepository), new(*redis.UserCacheRepository)), wire.Bind(new(postgres2.CategoryRepository), new(*postgres.CategoryRepository)), wire.Bind(new(postgres2.CurrencyRepository), new(*postgres.CurrencyRepository)), wire.Bind(new(postgres2.BrandRepository), new(*postgres.BrandRepository)), wire.Bind(new(postgres2.ProductRepository), new(*postgres.ProductRepository)), wire.Bind(new(postgres2.ProductImageRepository), new(*postgres.ProductImageRepository)), wire.Bind(new(postgres2.ReviewRepository), new(*postgres.ReviewRepository)), wire.Bind(new(postgres2.CouponRepository), new(*postgres.CouponRepository)), wire.Bind(new(postgres2.WishlistRepository), new(*postgres.WishlistRepository)), wire.Bind(new(postgres2.WalletRepository), new(*postgres.WalletRepository)), wire.Bind(new(postgres2.CartRepository), new(*postgres.CartRepository)), wire.Bind(new(postgres2.OrderRepository), new(*postgres.OrderRepository)), wire.Bind(new(postgres2.TransactionRepository), new(*postgres.TransactionRepository)), wire.Bind(new(postgres2.PaymentRepository), new(*postgres.PaymentRepository)), wire.Bind(new(postgres2.InstalmentRepository), new(*postgres.InstalmentRepository)), wire.Bind(new(postgres2.UpgradeRequestRepository), new(*postgres.UpgradeRequestRepository)), wire.Bind(new(postgres2.UserAuditLogRepository), new(*postgres.UserAuditLogRepository)))
+var RepositoryProviderSet = wire.NewSet(postgres.NewRoleRepository, postgres.NewUserRepository, postgres.NewAddressRepository, postgres.NewCategoryRepository, postgres.NewCurrencyRepository, postgres.NewBrandRepository, postgres.NewProductRepository, postgres.NewProductImageRepository, postgres.NewReviewRepository, postgres.NewCouponRepository, postgres.NewWishlistRepository, postgres.NewWalletRepository, postgres.NewCartRepository, postgres.NewOrderRepository, postgres.NewTransactionRepository, postgres.NewPaymentRepository, postgres.NewInstalmentRepository, postgres.NewUpgradeRequestRepository, postgres.NewUserAuditLogRepository, postgres.NewReturnRepository, postgres.NewContactMessageRepository, redis.NewUserCacheRepository, wire.Bind(new(postgres2.UserRepository), new(*postgres.UserRepository)), wire.Bind(new(postgres2.AddressRepository), new(*postgres.AddressRepository)), wire.Bind(new(redis2.UserCacheRepository), new(*redis.UserCacheRepository)), wire.Bind(new(postgres2.CategoryRepository), new(*postgres.CategoryRepository)), wire.Bind(new(postgres2.CurrencyRepository), new(*postgres.CurrencyRepository)), wire.Bind(new(postgres2.BrandRepository), new(*postgres.BrandRepository)), wire.Bind(new(postgres2.ProductRepository), new(*postgres.ProductRepository)), wire.Bind(new(postgres2.ProductImageRepository), new(*postgres.ProductImageRepository)), wire.Bind(new(postgres2.ReviewRepository), new(*postgres.ReviewRepository)), wire.Bind(new(postgres2.CouponRepository), new(*postgres.CouponRepository)), wire.Bind(new(postgres2.WishlistRepository), new(*postgres.WishlistRepository)), wire.Bind(new(postgres2.WalletRepository), new(*postgres.WalletRepository)), wire.Bind(new(postgres2.CartRepository), new(*postgres.CartRepository)), wire.Bind(new(postgres2.OrderRepository), new(*postgres.OrderRepository)), wire.Bind(new(postgres2.TransactionRepository), new(*postgres.TransactionRepository)), wire.Bind(new(postgres2.PaymentRepository), new(*postgres.PaymentRepository)), wire.Bind(new(postgres2.InstalmentRepository), new(*postgres.InstalmentRepository)), wire.Bind(new(postgres2.UpgradeRequestRepository), new(*postgres.UpgradeRequestRepository)), wire.Bind(new(postgres2.UserAuditLogRepository), new(*postgres.UserAuditLogRepository)), wire.Bind(new(postgres2.RoleRepository), new(*postgres.RoleRepository)), wire.Bind(new(postgres2.ReturnRepository), new(*postgres.ReturnRepository)), wire.Bind(new(postgres2.ContactMessageRepository), new(*postgres.ContactMessageRepository)))
 
-var ServiceProviderSet = wire.NewSet(wire.Struct(new(service.UserServiceDeps), "*"), wire.Struct(new(service.CategoryServiceDeps), "*"), wire.Struct(new(service.CurrencyServiceDeps), "*"), wire.Struct(new(service.BrandServiceDeps), "*"), wire.Struct(new(service.ProductServiceDeps), "*"), wire.Struct(new(service.ReviewServiceDeps), "*"), wire.Struct(new(service.CouponServiceDeps), "*"), wire.Struct(new(service.WishlistServiceDeps), "*"), wire.Struct(new(service.CartServiceDeps), "*"), wire.Struct(new(service.OrderServiceDeps), "*"), wire.Struct(new(service.UpgradeRequestServiceDeps), "*"), service.NewUserService, service.NewOTPService, sms.NewSMSService, email.NewEmailService, service.NewJWTService, service.NewAddressService, service.NewTestService, service.NewCategoryService, service.NewCurrencyService, service.NewBrandService, service.NewProductService, service.NewReviewService, service.NewCouponService, service.NewWishlistService, service.NewCartService, service.NewOrderService, service.NewPaymentService, service.NewUpgradeRequestService, wire.Bind(new(usecase.UserService), new(*service.UserService)), wire.Bind(new(usecase.OTPService), new(*service.OTPService)), wire.Bind(new(communication.SMSService), new(*sms.SMSService)), wire.Bind(new(communication.EmailService), new(*email.EmailService)), wire.Bind(new(usecase.JWTService), new(*service.JWTService)), wire.Bind(new(usecase.AddressService), new(*service.AddressService)), wire.Bind(new(usecase.TestService), new(*service.TestService)), wire.Bind(new(usecase.CategoryService), new(*service.CategoryService)), wire.Bind(new(usecase.CurrencyService), new(*service.CurrencyService)), wire.Bind(new(usecase.BrandService), new(*service.BrandService)), wire.Bind(new(usecase.ProductService), new(*service.ProductService)), wire.Bind(new(usecase.ReviewService), new(*service.ReviewService)), wire.Bind(new(usecase.CouponService), new(*service.CouponService)), wire.Bind(new(usecase.WishlistService), new(*service.WishlistService)), wire.Bind(new(usecase.CartService), new(*service.CartService)), wire.Bind(new(usecase.OrderService), new(*service.OrderService)), wire.Bind(new(usecase.PaymentService), new(*service.PaymentService)), wire.Bind(new(usecase.UpgradeRequestService), new(*service.UpgradeRequestService)))
+var ServiceProviderSet = wire.NewSet(wire.Struct(new(service.UserServiceDeps), "*"), wire.Struct(new(service.CategoryServiceDeps), "*"), wire.Struct(new(service.CurrencyServiceDeps), "*"), wire.Struct(new(service.BrandServiceDeps), "*"), wire.Struct(new(service.ProductServiceDeps), "*"), wire.Struct(new(service.ReviewServiceDeps), "*"), wire.Struct(new(service.CouponServiceDeps), "*"), wire.Struct(new(service.WishlistServiceDeps), "*"), wire.Struct(new(service.CartServiceDeps), "*"), wire.Struct(new(service.OrderServiceDeps), "*"), wire.Struct(new(service.UpgradeRequestServiceDeps), "*"), wire.Struct(new(service.RoleServiceDeps), "*"), wire.Struct(new(service.ReturnServiceDeps), "*"), wire.Struct(new(service.ContactMessageServiceDeps), "*"), service.NewUserService, service.NewOTPService, sms.NewSMSService, email.NewEmailService, service.NewJWTService, service.NewAddressService, service.NewTestService, service.NewCategoryService, service.NewCurrencyService, service.NewBrandService, service.NewProductService, service.NewReviewService, service.NewCouponService, service.NewWishlistService, service.NewCartService, service.NewOrderService, service.NewPaymentService, service.NewUpgradeRequestService, service.NewRoleService, service.NewReturnService, service.NewContactMessageService, wire.Bind(new(usecase.UserService), new(*service.UserService)), wire.Bind(new(usecase.OTPService), new(*service.OTPService)), wire.Bind(new(communication.SMSService), new(*sms.SMSService)), wire.Bind(new(communication.EmailService), new(*email.EmailService)), wire.Bind(new(usecase.JWTService), new(*service.JWTService)), wire.Bind(new(usecase.AddressService), new(*service.AddressService)), wire.Bind(new(usecase.TestService), new(*service.TestService)), wire.Bind(new(usecase.CategoryService), new(*service.CategoryService)), wire.Bind(new(usecase.CurrencyService), new(*service.CurrencyService)), wire.Bind(new(usecase.BrandService), new(*service.BrandService)), wire.Bind(new(usecase.ProductService), new(*service.ProductService)), wire.Bind(new(usecase.ReviewService), new(*service.ReviewService)), wire.Bind(new(usecase.CouponService), new(*service.CouponService)), wire.Bind(new(usecase.WishlistService), new(*service.WishlistService)), wire.Bind(new(usecase.CartService), new(*service.CartService)), wire.Bind(new(usecase.OrderService), new(*service.OrderService)), wire.Bind(new(usecase.PaymentService), new(*service.PaymentService)), wire.Bind(new(usecase.UpgradeRequestService), new(*service.UpgradeRequestService)), wire.Bind(new(usecase.RoleService), new(*service.RoleService)), wire.Bind(new(usecase.ReturnService), new(*service.ReturnService)), wire.Bind(new(usecase.ContactMessageService), new(*service.ContactMessageService)))
 
 var AdapterProviderSet = wire.NewSet(localization.NewTranslationService, logger.NewLogger, storage.NewS3Storage, jwt.NewJWTKeyManager, wire.Bind(new(logger2.Logger), new(*logger.Logger)), wire.Bind(new(s3.S3Storage), new(*storage.S3Storage)))
 
-var GeneralControllerProviderSet = wire.NewSet(user.NewGeneralUserController, address.NewGeneralAddressController, product.NewGeneralProductController, review.NewGeneralReviewController, test.NewGeneralTestController, wire.Struct(new(GeneralControllers), "*"))
+var GeneralControllerProviderSet = wire.NewSet(user.NewGeneralUserController, address.NewGeneralAddressController, product.NewGeneralProductController, review.NewGeneralReviewController, test.NewGeneralTestController, contact.NewGeneralContactController, wire.Struct(new(GeneralControllers), "*"))
 
-var CustomerControllerProviderSet = wire.NewSet(user.NewCustomerUserController, address.NewCustomerAddressController, cart.NewCustomerCartController, coupon.NewCustomerCouponController, order.NewCustomerOrderController, review.NewCustomerReviewController, upgraderequest.NewCustomerUpgradeRequestController, wishlist.NewCustomerWishlistController, wire.Struct(new(CustomerControllers), "*"))
+var CustomerControllerProviderSet = wire.NewSet(user.NewCustomerUserController, address.NewCustomerAddressController, cart.NewCustomerCartController, coupon.NewCustomerCouponController, order.NewCustomerOrderController, review.NewCustomerReviewController, upgraderequest.NewCustomerUpgradeRequestController, wishlist.NewCustomerWishlistController, returnctrl.NewCustomerReturnController, wire.Struct(new(CustomerControllers), "*"))
 
-var AdminControllerProviderSet = wire.NewSet(currency.NewAdminCurrencyController, category.NewAdminCategoryController, brand.NewAdminBrandController, product.NewAdminProductController, user.NewAdminUserController, order.NewAdminOrderController, upgraderequest.NewAdminUpgradeRequestController, wire.Struct(new(AdminControllers), "*"))
+var AdminControllerProviderSet = wire.NewSet(currency.NewAdminCurrencyController, category.NewAdminCategoryController, brand.NewAdminBrandController, product.NewAdminProductController, user.NewAdminUserController, order.NewAdminOrderController, upgraderequest.NewAdminUpgradeRequestController, role.NewAdminRoleController, returnctrl.NewAdminReturnController, contact.NewAdminContactController, wire.Struct(new(AdminControllers), "*"))
 
 var ControllersProviderSet = wire.NewSet(wire.Struct(new(Controllers), "*"))
 
@@ -408,6 +442,7 @@ type GeneralControllers struct {
 	ProductController *product.GeneralProductController
 	ReviewController  *review.GeneralReviewController
 	TestController    *test.GeneralTestController
+	ContactController *contact.GeneralContactController
 }
 
 type CustomerControllers struct {
@@ -419,6 +454,7 @@ type CustomerControllers struct {
 	ReviewController         *review.CustomerReviewController
 	UpgradeRequestController *upgraderequest.CustomerUpgradeRequestController
 	WishlistController       *wishlist.CustomerWishlistController
+	ReturnController         *returnctrl.CustomerReturnController
 }
 
 type AdminControllers struct {
@@ -429,6 +465,9 @@ type AdminControllers struct {
 	UserController           *user.AdminUserController
 	OrderController          *order.AdminOrderController
 	UpgradeRequestController *upgraderequest.AdminUpgradeRequestController
+	RoleController           *role.AdminRoleController
+	ReturnController         *returnctrl.AdminReturnController
+	ContactController        *contact.AdminContactController
 }
 
 type Controllers struct {

@@ -6,6 +6,11 @@ import (
 	currencydto "github.com/Mahoura-shop/Backend/internal/application/dto/currency"
 )
 
+type ProductImageDTO struct {
+	ID   uint   `json:"id"`
+	Path string `json:"path"`
+}
+
 type ProductCredential struct {
 	ID               uint                            `json:"id"`
 	Name             string                          `json:"name"`
@@ -42,7 +47,10 @@ type ProductCredential struct {
 	ProductPic       string                          `json:"productPic"`
 	Size             string                          `json:"size"`
 	Images           []string                        `json:"images"`
+	ImageObjects     []ProductImageDTO               `json:"imageObjects"`
 	ResolvedPrice    uint                            `json:"resolvedPrice"`
+	AverageRating    float64                         `json:"averageRating"`
+	ReviewCount      uint                            `json:"reviewCount"`
 }
 
 type ProductPrices struct {

@@ -11,6 +11,7 @@ type UserInfoResponse struct {
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`
 	Type         string `json:"type"`
+	IsAdmin      bool   `json:"isAdmin"`
 }
 
 type UserCredential struct {
@@ -22,6 +23,7 @@ type UserCredential struct {
 	ProfilePic string `json:"profilePic"`
 	Status     string `json:"status"`
 	Type       string `json:"type"`
+	IsAdmin    bool   `json:"isAdmin"`
 }
 
 type UserResponse struct {
@@ -29,8 +31,10 @@ type UserResponse struct {
 }
 
 type AdminInfoResponse struct {
-	AccessToken  string               `json:"accessToken"`
-	RefreshToken string               `json:"refreshToken"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+	FirstName    string `json:"firstName"`
+	LastName     string `json:"lastName"`
 }
 
 type RevenueByTier struct {
@@ -41,6 +45,11 @@ type RevenueByTier struct {
 type OrderByDay struct {
 	Date  string `json:"date"`
 	Count uint   `json:"count"`
+}
+
+type RevenueByDay struct {
+	Date    string `json:"date"`
+	Revenue uint   `json:"revenue"`
 }
 
 type LowStockProduct struct {
@@ -69,4 +78,16 @@ type DashboardResponse struct {
 
 type UserWalletBalance struct {
 	Balance uint `json:"balance"`
+}
+
+type TransactionDTO struct {
+	ID        uint   `json:"id"`
+	Amount    uint   `json:"amount"`
+	Type      uint   `json:"type"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type AdminUserWalletResponse struct {
+	Balance      uint             `json:"balance"`
+	Transactions []TransactionDTO `json:"transactions"`
 }

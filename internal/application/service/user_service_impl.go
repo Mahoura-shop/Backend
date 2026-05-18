@@ -73,19 +73,18 @@ func NewUserService(deps UserServiceDeps) *UserService {
 }
 
 
-func (userService *UserService) ParseUser(user entity.User) (userdto.UserCredential) {
-	response := userdto.UserCredential{
-		ID:            user.ID,
-		FirstName:     user.FirstName,
-		LastName:      user.LastName,
-		Phone:         user.Phone,
-		Email:         user.Email,
-		ProfilePic:    user.ProfilePicPath,
-		Status:        user.Status.String(),
-		Type:          user.Type.String(),
+func (userService *UserService) ParseUser(user entity.User) userdto.UserCredential {
+	return userdto.UserCredential{
+		ID:         user.ID,
+		FirstName:  user.FirstName,
+		LastName:   user.LastName,
+		Phone:      user.Phone,
+		Email:      user.Email,
+		ProfilePic: user.ProfilePicPath,
+		Status:     user.Status.String(),
+		Type:       user.Type.String(),
+		IsAdmin:    user.IsAdmin,
 	}
-
-	return response
 }
 
 func (userService *UserService) IsUserActive(userID uint) error {
@@ -268,6 +267,7 @@ func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequ
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
 		Type:         user.Type.String(),
+		IsAdmin:      user.IsAdmin,
 	}, nil
 }
 
@@ -308,27 +308,46 @@ func (userService *UserService) VerifyEmail(verifyInfo userdto.VerifyEmailReques
 	return nil
 }
 
-func (userService *UserService) AdminLogin(adminInfo userdto.AdminLoginRequest) (userdto.AdminInfoResponse, error) {
-	user, err := userService.FindActiveUserByPhone(adminInfo.Phone)
+
+
+func (userService *UserService) GetOrdersChart(period string) ([]userdto.OrderByDay, error) {
+	days := 7
+	switch period {
+	case "month":
+		days = 30
+	case "year":
+		days = 365
+	}
+	orders, err := userService.orderRepository.GetOrdersPerDay(userService.db, days)
 	if err != nil {
-		return userdto.AdminInfoResponse{}, err
+		return nil, err
 	}
-	
-	if !user.IsAdmin {
-		return userdto.AdminInfoResponse{},
-		exception.NewAccessDeniedError("user is not admin", nil)
+	result := make([]userdto.OrderByDay, len(orders))
+	for i, o := range orders {
+		result[i] = userdto.OrderByDay{Date: o.Date, Count: o.Count}
 	}
-	
-	accessToken, refreshToken, err := userService.jwtService.GenerateToken(user.ID)
+	return result, nil
+}
+
+func (userService *UserService) GetSalesChart(period string) ([]userdto.RevenueByDay, error) {
+	days := 7
+	switch period {
+	case "month":
+		days = 30
+	case "year":
+		days = 365
+	}
+	rows, err := userService.orderRepository.GetRevenuePerDay(userService.db, days)
 	if err != nil {
-		return userdto.AdminInfoResponse{}, err
+		return nil, err
 	}
-	return userdto.AdminInfoResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		}, nil
-}	
-	
+	result := make([]userdto.RevenueByDay, len(rows))
+	for i, r := range rows {
+		result[i] = userdto.RevenueByDay{Date: r.Date, Revenue: r.Revenue}
+	}
+	return result, nil
+}
+
 func (userService *UserService) GetDashboard() (userdto.DashboardResponse, error) {
 	brandsCount, err := userService.brandRepository.GetBrandsCount(userService.db)
 	if err != nil {
@@ -417,6 +436,9 @@ func (userService *UserService) GetUserWalletBalance(userID uint) (userdto.UserW
 	if err != nil {
 		return userdto.UserWalletBalance{}, err
 	}
+	if wallet == nil {
+		return userdto.UserWalletBalance{Balance: 0}, nil
+	}
 	return userdto.UserWalletBalance{
 		Balance: wallet.Balance,
 	}, nil
@@ -428,6 +450,15 @@ func (userService *UserService) DepositWallet(balanceUpdateInfo userdto.UserBala
 		wallet, err := userService.walletRepository.FindWalletByUserID(tx, balanceUpdateInfo.UserID)
 		if err != nil {
 			return err
+		}
+		if wallet == nil {
+			if err = userService.walletRepository.CreateWallet(tx, entity.Wallet{UserID: balanceUpdateInfo.UserID}); err != nil {
+				return err
+			}
+			wallet, err = userService.walletRepository.FindWalletByUserID(tx, balanceUpdateInfo.UserID)
+			if err != nil {
+				return err
+			}
 		}
 
 		transaction := entity.Transaction{
@@ -501,4 +532,58 @@ func (userService *UserService) UpdateProfile(req userdto.UpdateProfileRequest) 
 		return userdto.UserCredential{}, err
 	}
 	return userService.ParseUser(*user), nil
+}
+
+func (userService *UserService) GetWalletHistory(userID uint) ([]userdto.TransactionDTO, error) {
+	wallet, err := userService.walletRepository.FindWalletByUserID(userService.db, userID)
+	if err != nil {
+		return nil, err
+	}
+	if wallet == nil {
+		return []userdto.TransactionDTO{}, nil
+	}
+
+	transactions, err := userService.transactionRepository.FindTransactionsByWalletID(userService.db, wallet.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := make([]userdto.TransactionDTO, len(transactions))
+	for i, t := range transactions {
+		dtos[i] = userdto.TransactionDTO{
+			ID:        t.ID,
+			Amount:    t.Amount,
+			Type:      uint(t.Type),
+			CreatedAt: t.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		}
+	}
+
+	return dtos, nil
+}
+
+func (userService *UserService) GetAdminUserWallet(userID uint) (userdto.AdminUserWalletResponse, error) {
+	wallet, err := userService.walletRepository.FindWalletByUserID(userService.db, userID)
+	if err != nil {
+		return userdto.AdminUserWalletResponse{}, err
+	}
+
+	transactions, err := userService.transactionRepository.FindTransactionsByWalletID(userService.db, wallet.ID)
+	if err != nil {
+		return userdto.AdminUserWalletResponse{}, err
+	}
+
+	dtos := make([]userdto.TransactionDTO, len(transactions))
+	for i, t := range transactions {
+		dtos[i] = userdto.TransactionDTO{
+			ID:        t.ID,
+			Amount:    t.Amount,
+			Type:      uint(t.Type),
+			CreatedAt: t.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		}
+	}
+
+	return userdto.AdminUserWalletResponse{
+		Balance:      wallet.Balance,
+		Transactions: dtos,
+	}, nil
 }
