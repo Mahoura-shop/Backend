@@ -43,7 +43,7 @@ func (s *RoleService) GetPermissions() ([]roledto.PermissionCredential, error) {
 	}
 	result := make([]roledto.PermissionCredential, len(perms))
 	for i, p := range perms {
-		result[i] = roledto.PermissionCredential{ID: p.ID, Name: p.Name, Description: p.Description}
+		result[i] = roledto.PermissionCredential{ID: p.ID, Name: p.Name, Description: p.Description, Category: p.Category}
 	}
 	return result, nil
 }
@@ -94,7 +94,7 @@ func (s *RoleService) DeleteRole(id uint) error {
 func mapRole(r *entity.Role) roledto.RoleCredential {
 	perms := make([]roledto.PermissionCredential, len(r.Permissions))
 	for i, p := range r.Permissions {
-		perms[i] = roledto.PermissionCredential{ID: p.ID, Name: p.Name, Description: p.Description}
+		perms[i] = roledto.PermissionCredential{ID: p.ID, Name: p.Name, Description: p.Description, Category: p.Category}
 	}
 	return roledto.RoleCredential{
 		ID:          r.ID,

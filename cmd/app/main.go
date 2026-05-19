@@ -50,11 +50,14 @@ func main() {
 		&entity.Role{},
 		&entity.Permission{},
 		&entity.InventoryAdjustmentLog{},
+		&entity.Notification{},
+		&entity.AdminActivityLog{},
 	)
 	
 	app.Seeds.AddressSeeder.SeedProvincesAndCities()
 	app.Seeds.AdminSeeder.SeedAdmins()
 	app.Seeds.CurrencySeeder.SeedCurrencies()
+	app.Seeds.PermissionSeeder.SeedPermissions()
 
 	routes.Run(ginEngine, app)
 

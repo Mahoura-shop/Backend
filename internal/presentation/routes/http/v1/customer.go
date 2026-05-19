@@ -89,4 +89,12 @@ func SetupCustomerRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		returns.POST("", app.Controllers.Customer.ReturnController.RequestReturn)
 		returns.GET("", app.Controllers.Customer.ReturnController.GetMyReturns)
 	}
+
+	notifications := routerGroup.Group("/notifications")
+	{
+		notifications.GET("", app.Controllers.Customer.NotificationController.GetNotifications)
+		notifications.GET("/unread-count", app.Controllers.Customer.NotificationController.CountUnread)
+		notifications.PATCH("/read-all", app.Controllers.Customer.NotificationController.MarkAllAsRead)
+		notifications.PATCH("/:id/read", app.Controllers.Customer.NotificationController.MarkAsRead)
+	}
 }

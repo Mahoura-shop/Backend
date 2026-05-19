@@ -3,12 +3,11 @@ package enum
 type UserType uint
 
 const (
-	UserTypeGuest UserType = iota + 1
-	UserTypeCustomer
-	UserTypeShopkeeperCheque // legacy — treated same as ShopkeeperCash
-	UserTypeShopkeeperCash
-	UserTypeFellow
-	UserTypeAdmin
+	UserTypeCustomer         UserType = 2
+	UserTypeShopkeeperCheque UserType = 3 // legacy — treated same as ShopkeeperCash
+	UserTypeShopkeeperCash   UserType = 4
+	UserTypeFellow           UserType = 5
+	UserTypeAdmin            UserType = 6
 )
 
 // UserTypeShopkeeper is the canonical name going forward.
@@ -16,8 +15,6 @@ const UserTypeShopkeeper = UserTypeShopkeeperCash
 
 func (userType UserType) String() string {
 	switch userType {
-	case UserTypeGuest:
-		return "guest"
 	case UserTypeCustomer:
 		return "regular"
 	case UserTypeShopkeeperCheque, UserTypeShopkeeperCash:
@@ -32,7 +29,6 @@ func (userType UserType) String() string {
 
 func GetAllUserTypes() []UserType {
 	return []UserType{
-		UserTypeGuest,
 		UserTypeCustomer,
 		UserTypeShopkeeperCash,
 		UserTypeFellow,

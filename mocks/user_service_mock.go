@@ -128,3 +128,23 @@ func (s *UserServiceMock) UpdateProfile(req userdto.UpdateProfileRequest) (userd
 	args := s.Called(req)
 	return args.Get(0).(userdto.UserCredential), args.Error(1)
 }
+
+func (s *UserServiceMock) GetSubAdmins() ([]userdto.SubAdminCredential, error) {
+	args := s.Called()
+	return args.Get(0).([]userdto.SubAdminCredential), args.Error(1)
+}
+
+func (s *UserServiceMock) CreateSubAdmin(phone string, roleID uint) error {
+	args := s.Called(phone, roleID)
+	return args.Error(0)
+}
+
+func (s *UserServiceMock) AssignSubAdminRole(userID uint, roleID uint) error {
+	args := s.Called(userID, roleID)
+	return args.Error(0)
+}
+
+func (s *UserServiceMock) RevokeSubAdmin(userID uint) error {
+	args := s.Called(userID)
+	return args.Error(0)
+}

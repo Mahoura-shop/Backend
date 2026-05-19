@@ -17,9 +17,10 @@ package exception
 type ForbiddenType string
 
 const (
-	ForbiddenTypeBannedUser            ForbiddenType = "banned_user"
-	ForbiddenTypeUnapprovedCorporation ForbiddenType = "unapproved_corporation"
-	ForbiddenTypeAdminRequired         ForbiddenType = "admin_required"
+	ForbiddenTypeBannedUser               ForbiddenType = "banned_user"
+	ForbiddenTypeUnapprovedCorporation    ForbiddenType = "unapproved_corporation"
+	ForbiddenTypeAdminRequired            ForbiddenType = "admin_required"
+	ForbiddenTypeInsufficientPermissions  ForbiddenType = "insufficient_permissions"
 )
 
 type ForbiddenError struct {
@@ -53,5 +54,12 @@ func NewAdminRequiredError() ForbiddenError {
 	return ForbiddenError{
 		Type:    ForbiddenTypeAdminRequired,
 		Message: "Admin access is required.",
+	}
+}
+
+func NewInsufficientPermissionsError(permission string) ForbiddenError {
+	return ForbiddenError{
+		Type:    ForbiddenTypeInsufficientPermissions,
+		Message: "You don't have the required permission: " + permission,
 	}
 }

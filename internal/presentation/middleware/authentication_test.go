@@ -38,6 +38,7 @@ func (s *AuthMiddlewareTestSuite) SetupTest() {
 		s.jwtMock,
 		s.userRepo,
 		s.dbMock,
+		&bootstrap.RBAC{UseRBAC: false},
 	)
 }
 

@@ -11,7 +11,8 @@ type CreateOrderRequest struct {
 }
 
 type UpdateOrderStatusRequest struct {
-	Status      enum.OrderStatus `json:"status" validate:"required"`
-	Note        string           `json:"note"`
-	ChangedByID uint
+	Status       enum.OrderStatus `json:"status" validate:"required"`
+	Note         string           `json:"note"`
+	TrackingCode string           `json:"trackingCode"`
+	ChangedByID  uint
 }

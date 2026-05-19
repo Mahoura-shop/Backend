@@ -31,7 +31,7 @@ func (s *ReviewService) isVerifiedBuyer(userID, productID uint) bool {
 	s.db.GetDB().
 		Table("order_items").
 		Joins("JOIN orders ON orders.id = order_items.order_id").
-		Where("orders.user_id = ? AND order_items.product_id = ? AND orders.status = ?", userID, productID, enum.OrderStatusDelivered).
+		Where("orders.user_id = ? AND order_items.product_id = ? AND orders.status = ?", userID, productID, enum.OrderStatusShipped).
 		Count(&count)
 	return count > 0
 }

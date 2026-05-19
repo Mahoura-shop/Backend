@@ -17,4 +17,6 @@ type User struct {
 	Addresses      []Address       `gorm:"polymorphic:Owner;polymorphicValue:users"`
 	IsAdmin        bool            `gorm:"default:false"`
 	Type           enum.UserType   `gorm:"index"`
+	RoleID         *uint           `gorm:"index"`
+	Role           *Role           `gorm:"foreignKey:RoleID"`
 }

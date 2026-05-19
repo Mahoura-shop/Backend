@@ -87,6 +87,7 @@ type ErrorField struct {
 	Wishlist            string
 	Coupon              string
 	ProductImage        string
+	Notification        string
 }
 
 type ErrorTag struct {
@@ -225,6 +226,7 @@ func NewConstants() *Constants {
 			Wishlist:            "wishlist",
 			Coupon:              "coupon",
 			ProductImage:        "productImage",
+			Notification:        "notification",
 		},
 		Tag: ErrorTag{
 			AlreadyRegistered:      "alreadyRegistered",

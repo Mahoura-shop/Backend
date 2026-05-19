@@ -6,6 +6,7 @@ type Permission struct {
 	database.Model
 	Name        string `gorm:"type:varchar(100);uniqueIndex;not null"`
 	Description string `gorm:"type:varchar(255)"`
+	Category    string `gorm:"type:varchar(50);not null;default:''"`
 }
 
 type Role struct {

@@ -95,7 +95,6 @@ func (repo *OrderRepository) GetRevenuePerTier(db database.Database) ([]postgres
 		Model(&entity.OrderItem{}).
 		Select(`
 			CASE tier
-				WHEN 1 THEN 'guest'
 				WHEN 2 THEN 'regular'
 				WHEN 3 THEN 'shopkeeper'
 				WHEN 4 THEN 'shopkeeper'

@@ -57,3 +57,8 @@ func (u *UserRepositoryMock) UpdateUser(db database.Database, user entity.User) 
 	args := u.Called(db, user)
 	return args.Error(0)
 }
+
+func (u *UserRepositoryMock) FindAdmins(db database.Database) ([]*entity.User, error) {
+	args := u.Called(db)
+	return args.Get(0).([]*entity.User), args.Error(1)
+}

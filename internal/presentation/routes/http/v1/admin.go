@@ -6,13 +6,15 @@ import (
 )
 
 func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
+	perm := app.Middlewares.Authentication.RequirePermission
+
 	categories := routerGroup.Group("/category")
 	{
-		categories.POST("", app.Controllers.Admin.CategoryController.CreateCategory)
+		categories.POST("", perm("category:create"), app.Controllers.Admin.CategoryController.CreateCategory)
 		categoriesSubGroup := categories.Group("/:categoryID")
 		{
-			categoriesSubGroup.PUT("", app.Controllers.Admin.CategoryController.UpdateCategory)
-			categoriesSubGroup.DELETE("", app.Controllers.Admin.CategoryController.DeleteCategory)
+			categoriesSubGroup.PUT("", perm("category:edit"), app.Controllers.Admin.CategoryController.UpdateCategory)
+			categoriesSubGroup.DELETE("", perm("category:delete"), app.Controllers.Admin.CategoryController.DeleteCategory)
 		}
 	}
 
@@ -21,71 +23,72 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		currencies.GET("", app.Controllers.Admin.CurrencyController.GetCurrencies)
 		currenciesSubGroup := currencies.Group("/:currencyID")
 		{
-			currenciesSubGroup.PUT("", app.Controllers.Admin.CurrencyController.UpdateCurrency)
+			currenciesSubGroup.PUT("", perm("update:currencies"), app.Controllers.Admin.CurrencyController.UpdateCurrency)
 		}
 	}
 
 	brands := routerGroup.Group("/brand")
 	{
-		brands.POST("", app.Controllers.Admin.BrandController.CreateBrand)
+		brands.POST("", perm("brand:create"), app.Controllers.Admin.BrandController.CreateBrand)
 		brandsSubGroup := brands.Group("/:brandID")
 		{
-			brandsSubGroup.PUT("", app.Controllers.Admin.BrandController.UpdateBrand)
-			brandsSubGroup.DELETE("", app.Controllers.Admin.BrandController.DeleteBrand)
+			brandsSubGroup.PUT("", perm("brand:edit"), app.Controllers.Admin.BrandController.UpdateBrand)
+			brandsSubGroup.DELETE("", perm("brand:delete"), app.Controllers.Admin.BrandController.DeleteBrand)
 		}
 	}
 
 	products := routerGroup.Group("/product")
 	{
-		products.POST("", app.Controllers.Admin.ProductController.CreateProduct)
-		products.GET("", app.Controllers.Admin.ProductController.GetProducts)
+		products.POST("", perm("product:create"), app.Controllers.Admin.ProductController.CreateProduct)
+		products.GET("", perm("product:see"), app.Controllers.Admin.ProductController.GetProducts)
 		productsSubGroup := products.Group("/:productID")
 		{
-			productsSubGroup.GET("", app.Controllers.Admin.ProductController.GetProduct)
-			productsSubGroup.PUT("", app.Controllers.Admin.ProductController.UpdateProduct)
-			productsSubGroup.DELETE("", app.Controllers.Admin.ProductController.DeleteProduct)
-			productsSubGroup.POST("/images", app.Controllers.Admin.ProductController.AddProductImage)
+			productsSubGroup.GET("", perm("product:see"), app.Controllers.Admin.ProductController.GetProduct)
+			productsSubGroup.PUT("", perm("product:edit"), app.Controllers.Admin.ProductController.UpdateProduct)
+			productsSubGroup.DELETE("", perm("product:delete"), app.Controllers.Admin.ProductController.DeleteProduct)
+			productsSubGroup.POST("/images", perm("product:edit"), app.Controllers.Admin.ProductController.AddProductImage)
 			imagesSubGroup := productsSubGroup.Group("/images")
 			{
-				imagesSubGroup.DELETE("/:imageID", app.Controllers.Admin.ProductController.DeleteProductImage)
+				imagesSubGroup.DELETE("/:imageID", perm("product:edit"), app.Controllers.Admin.ProductController.DeleteProductImage)
 			}
 		}
 		categoryProductsSubGroup := products.Group("/category")
 		{
-			categoryProductsSubGroup.GET("/:categoryID", app.Controllers.Admin.ProductController.GetCategoryProducts)
+			categoryProductsSubGroup.GET("/:categoryID", perm("product:see"), app.Controllers.Admin.ProductController.GetCategoryProducts)
 		}
-		products.GET("/prices", app.Controllers.Admin.ProductController.GetProductPrices)
-		products.PATCH("/prices", app.Controllers.Admin.ProductController.UpdateProductPrices)
-		products.POST("/stock", app.Controllers.Admin.ProductController.UpdateProductStock)
+		products.GET("/prices", perm("product:batch_price"), app.Controllers.Admin.ProductController.GetProductPrices)
+		products.PATCH("/prices", perm("product:batch_price"), app.Controllers.Admin.ProductController.UpdateProductPrices)
+		products.POST("/stock", perm("product:batch_inventory"), app.Controllers.Admin.ProductController.UpdateProductStock)
 	}
 
 	orders := routerGroup.Group("/orders")
 	{
-		orders.GET("", app.Controllers.Admin.OrderController.GetOrders)
+		orders.GET("", perm("order:see"), app.Controllers.Admin.OrderController.GetOrders)
 		orderSub := orders.Group("/:orderID")
 		{
-			orderSub.GET("", app.Controllers.Admin.OrderController.GetOrderDetail)
-			orderSub.PATCH("/status", app.Controllers.Admin.OrderController.UpdateOrderStatus)
-			orderSub.POST("/cancel", app.Controllers.Admin.OrderController.CancelOrder)
-			orderSub.POST("/refund", app.Controllers.Admin.OrderController.FlagRefund)
-			orderSub.GET("/instalments", app.Controllers.Admin.OrderController.GetOrderInstalments)
+			orderSub.GET("", perm("order:see"), app.Controllers.Admin.OrderController.GetOrderDetail)
+			orderSub.PATCH("/status", perm("order:update_status"), app.Controllers.Admin.OrderController.UpdateOrderStatus)
+			orderSub.POST("/cancel", perm("order:cancel"), app.Controllers.Admin.OrderController.CancelOrder)
+			orderSub.POST("/refund", perm("order:cancel"), app.Controllers.Admin.OrderController.FlagRefund)
+			orderSub.GET("/instalments", perm("order:see"), app.Controllers.Admin.OrderController.GetOrderInstalments)
 		}
 	}
 
 	roles := routerGroup.Group("/roles")
 	{
-		roles.GET("", app.Controllers.Admin.RoleController.GetRoles)
-		roles.POST("", app.Controllers.Admin.RoleController.CreateRole)
-		roles.GET("/permissions", app.Controllers.Admin.RoleController.GetPermissions)
+		roles.GET("", perm("rbac:see"), app.Controllers.Admin.RoleController.GetRoles)
+		roles.POST("", perm("rbac:create"), app.Controllers.Admin.RoleController.CreateRole)
+		roles.GET("/permissions", perm("rbac:see"), app.Controllers.Admin.RoleController.GetPermissions)
 		rolesSub := roles.Group("/:roleID")
 		{
-			rolesSub.PUT("", app.Controllers.Admin.RoleController.UpdateRole)
-			rolesSub.DELETE("", app.Controllers.Admin.RoleController.DeleteRole)
+			rolesSub.PUT("", perm("rbac:edit"), app.Controllers.Admin.RoleController.UpdateRole)
+			rolesSub.DELETE("", perm("rbac:delete"), app.Controllers.Admin.RoleController.DeleteRole)
 		}
 	}
 
 	admin := routerGroup.Group("/admin")
 	{
+		admin.GET("/logs", perm("adminlogs:see"), app.Controllers.Admin.AdminLogController.GetLogs)
 		admin.GET("/dashboard", app.Controllers.Admin.UserController.GetDashboard)
 		admin.GET("/dashboard/orders", app.Controllers.Admin.UserController.GetOrdersChart)
 		admin.GET("/dashboard/sales", app.Controllers.Admin.UserController.GetSalesChart)
@@ -110,7 +113,7 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 			}
 		}
 
-		admin.GET("/contact-messages", app.Controllers.Admin.ContactController.GetAll)
+		admin.GET("/contact-messages", perm("contact:see"), app.Controllers.Admin.ContactController.GetAll)
 	}
 
 	reviews := routerGroup.Group("/reviews")
@@ -123,14 +126,25 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 
 	users := routerGroup.Group("/users")
 	{
-		users.GET("", app.Controllers.Admin.UserController.GetUsers)
+		users.GET("", perm("users:see"), app.Controllers.Admin.UserController.GetUsers)
 		usersSubGroup := users.Group("/:userID")
 		{
-			usersSubGroup.PATCH("/type", app.Controllers.Admin.UpgradeRequestController.ChangeUserType)
+			usersSubGroup.PATCH("/type", perm("users:edit_role"), app.Controllers.Admin.UpgradeRequestController.ChangeUserType)
 			usersSubGroup.GET("/audit-logs", app.Controllers.Admin.UpgradeRequestController.GetUserAuditLogs)
-			usersSubGroup.PATCH("/ban", app.Controllers.Admin.UserController.BanUser)
-			usersSubGroup.PATCH("/unban", app.Controllers.Admin.UserController.UnbanUser)
-			usersSubGroup.GET("/wallet", app.Controllers.Admin.UserController.GetUserWallet)
+			usersSubGroup.PATCH("/ban", perm("users:ban"), app.Controllers.Admin.UserController.BanUser)
+			usersSubGroup.PATCH("/unban", perm("users:unban"), app.Controllers.Admin.UserController.UnbanUser)
+			usersSubGroup.GET("/wallet", perm("users:wallet"), app.Controllers.Admin.UserController.GetUserWallet)
+		}
+	}
+
+	subAdmins := routerGroup.Group("/subadmins")
+	{
+		subAdmins.GET("", app.Controllers.Admin.UserController.GetSubAdmins)
+		subAdmins.POST("", app.Controllers.Admin.UserController.CreateSubAdmin)
+		subAdminsSub := subAdmins.Group("/:userID")
+		{
+			subAdminsSub.PATCH("/role", app.Controllers.Admin.UserController.AssignSubAdminRole)
+			subAdminsSub.DELETE("", app.Controllers.Admin.UserController.RevokeSubAdmin)
 		}
 	}
 }

@@ -23,6 +23,11 @@ type Env struct {
 	EmailSenderAccount EmailAccount
 	Admins	           AdminCredentials
 	Zarinpal          Zarinpal
+	RBAC              RBAC
+}
+
+type RBAC struct {
+	UseRBAC bool
 }
 
 type Server struct {
@@ -190,6 +195,9 @@ func NewEnvironments() *Env {
 		},
 		Admins: AdminCredentials{
 			Admins: getEnvAdmins("ADMINS"),
+		},
+		RBAC: RBAC{
+			UseRBAC: os.Getenv("RBAC_ENABLED") == "true",
 		},
 	}
 }

@@ -24,9 +24,11 @@ type ProductService struct {
 	constants              *bootstrap.Constants
 	productRepository      domainPostgres.ProductRepository
 	productImageRepository domainPostgres.ProductImageRepository
+	wishlistRepository     domainPostgres.WishlistRepository
 	categoryService        usecase.CategoryService
 	brandService           usecase.BrandService
 	currencyService        usecase.CurrencyService
+	notificationService    usecase.NotificationService
 	s3Storage              s3.S3Storage
 	db                     database.Database
 }
@@ -35,9 +37,11 @@ type ProductServiceDeps struct {
 	Constants              *bootstrap.Constants
 	ProductRepository      domainPostgres.ProductRepository
 	ProductImageRepository domainPostgres.ProductImageRepository
+	WishlistRepository     domainPostgres.WishlistRepository
 	CategoryService        usecase.CategoryService
 	BrandService           usecase.BrandService
 	CurrencyService        usecase.CurrencyService
+	NotificationService    usecase.NotificationService
 	S3Storage              s3.S3Storage
 	DB                     database.Database
 }
@@ -47,9 +51,11 @@ func NewProductService(deps ProductServiceDeps) *ProductService {
 		constants:              deps.Constants,
 		productRepository:      deps.ProductRepository,
 		productImageRepository: deps.ProductImageRepository,
+		wishlistRepository:     deps.WishlistRepository,
 		categoryService:        deps.CategoryService,
 		brandService:           deps.BrandService,
 		currencyService:        deps.CurrencyService,
+		notificationService:    deps.NotificationService,
 		s3Storage:              deps.S3Storage,
 		db:                     deps.DB,
 	}
@@ -799,8 +805,15 @@ func (productService *ProductService) UpdateProductsPrice(products []productdto.
 	return err
 }
 
+type stockRefillEvent struct {
+	productID   uint
+	productName string
+}
+
 func (productService *ProductService) UpdateProductsStock(items []productdto.ProductStockUpdateCredentials, updateType string) error {
-	return productService.db.WithTransaction(func(tx database.Database) error {
+	var refills []stockRefillEvent
+
+	err := productService.db.WithTransaction(func(tx database.Database) error {
 		for _, item := range items {
 			product, err := productService.productRepository.FindProductByID(tx, item.ProductID)
 			if err != nil {
@@ -809,6 +822,7 @@ func (productService *ProductService) UpdateProductsStock(items []productdto.Pro
 			if product == nil {
 				return exception.NotFoundError{Item: productService.constants.Field.Product}
 			}
+			wasZero := product.Quantity == 0
 			if updateType == "buy" {
 				product.Quantity += item.Count
 			} else {
@@ -818,12 +832,42 @@ func (productService *ProductService) UpdateProductsStock(items []productdto.Pro
 					product.Quantity -= item.Count
 				}
 			}
+			if wasZero && product.Quantity > 0 {
+				refills = append(refills, stockRefillEvent{productID: product.ID, productName: product.Name})
+			}
 			if err := productService.productRepository.UpdateProduct(tx, *product); err != nil {
 				return err
 			}
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+
+	if productService.notificationService != nil && len(refills) > 0 {
+		go productService.notifyBackInStock(refills)
+	}
+	return nil
+}
+
+func (productService *ProductService) notifyBackInStock(refills []stockRefillEvent) {
+	for _, r := range refills {
+		wishlistItems, err := productService.wishlistRepository.GetWishlistByProductID(productService.db, r.productID)
+		if err != nil {
+			continue
+		}
+		for _, w := range wishlistItems {
+			ref := r.productID
+			_ = productService.notificationService.CreateNotification(
+				w.UserID,
+				2,
+				"محصول مورد علاقه شما موجود شد",
+				r.productName+" دوباره موجود شد",
+				&ref,
+			)
+		}
+	}
 }
 
 func (productService *ProductService) DeleteProduct(productID uint) error {

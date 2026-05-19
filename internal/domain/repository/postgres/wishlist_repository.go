@@ -10,4 +10,5 @@ type WishlistRepository interface {
 	RemoveFromWishlist(database.Database, uint, uint) error
 	GetWishlistByUserID(database.Database, uint) ([]*entity.Wishlist, error)
 	FindWishlistItem(database.Database, uint, uint) (*entity.Wishlist, error)
+	GetWishlistByProductID(database.Database, uint) ([]*entity.Wishlist, error)
 }

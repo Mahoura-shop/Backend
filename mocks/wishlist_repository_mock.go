@@ -36,3 +36,8 @@ func (m *WishlistRepositoryMock) FindWishlistItem(db database.Database, userID, 
 	}
 	return args.Get(0).(*entity.Wishlist), args.Error(1)
 }
+
+func (m *WishlistRepositoryMock) GetWishlistByProductID(db database.Database, productID uint) ([]*entity.Wishlist, error) {
+	args := m.Called(db, productID)
+	return args.Get(0).([]*entity.Wishlist), args.Error(1)
+}

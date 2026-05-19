@@ -16,7 +16,16 @@ func NewUserRepository() *UserRepository {
 
 func (repo *UserRepository) FindUsers(db database.Database) ([]*entity.User, error) {
 	var users []*entity.User
-	result := db.GetDB().Find(&users)
+	result := db.GetDB().Preload("Role").Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return users, nil
+}
+
+func (repo *UserRepository) FindAdmins(db database.Database) ([]*entity.User, error) {
+	var users []*entity.User
+	result := db.GetDB().Preload("Role").Where("is_admin = ?", true).Find(&users)
 	if result.Error != nil {
 		return nil, result.Error
 	}

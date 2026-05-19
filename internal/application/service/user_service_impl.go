@@ -23,6 +23,7 @@ type UserService struct {
 	smsService            communication.SMSService
 	emailService          communication.EmailService
 	userRepository        postgres.UserRepository
+	roleRepository        postgres.RoleRepository
 	categoryRepository    postgres.CategoryRepository
 	brandRepository       postgres.BrandRepository
 	productRepository     postgres.ProductRepository
@@ -32,6 +33,7 @@ type UserService struct {
 	orderRepository       postgres.OrderRepository
 	userCacheRepository   redis.UserCacheRepository
 	db                    database.Database
+	rbac                  *bootstrap.RBAC
 }
 
 type UserServiceDeps struct {
@@ -41,6 +43,7 @@ type UserServiceDeps struct {
 	SMSService            communication.SMSService
 	EmailService          communication.EmailService
 	UserRepository        postgres.UserRepository
+	RoleRepository        postgres.RoleRepository
 	CategoryRepository    postgres.CategoryRepository
 	BrandRepository       postgres.BrandRepository
 	ProductRepository     postgres.ProductRepository
@@ -50,6 +53,7 @@ type UserServiceDeps struct {
 	OrderRepository       postgres.OrderRepository
 	UserCacheRepository   redis.UserCacheRepository
 	DB                    database.Database
+	RBAC                  *bootstrap.RBAC
 }
 
 func NewUserService(deps UserServiceDeps) *UserService {
@@ -60,6 +64,7 @@ func NewUserService(deps UserServiceDeps) *UserService {
 		smsService:            deps.SMSService,
 		emailService:          deps.EmailService,
 		userRepository:        deps.UserRepository,
+		roleRepository:        deps.RoleRepository,
 		categoryRepository:    deps.CategoryRepository,
 		brandRepository:       deps.BrandRepository,
 		productRepository:     deps.ProductRepository,
@@ -69,11 +74,16 @@ func NewUserService(deps UserServiceDeps) *UserService {
 		orderRepository:       deps.OrderRepository,
 		userCacheRepository:   deps.UserCacheRepository,
 		db:                    deps.DB,
+		rbac:                  deps.RBAC,
 	}
 }
 
 
 func (userService *UserService) ParseUser(user entity.User) userdto.UserCredential {
+	roleName := ""
+	if user.Role != nil {
+		roleName = user.Role.Name
+	}
 	return userdto.UserCredential{
 		ID:         user.ID,
 		FirstName:  user.FirstName,
@@ -84,6 +94,9 @@ func (userService *UserService) ParseUser(user entity.User) userdto.UserCredenti
 		Status:     user.Status.String(),
 		Type:       user.Type.String(),
 		IsAdmin:    user.IsAdmin,
+		RoleID:     user.RoleID,
+		RoleName:   roleName,
+		CreatedAt:  user.CreatedAt.Format(time.RFC3339),
 	}
 }
 
@@ -261,6 +274,25 @@ func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequ
 		return userdto.UserInfoResponse{}, err
 	}
 
+	permissions := []string{}
+	if user.IsAdmin {
+		if !userService.rbac.UseRBAC || user.RoleID == nil {
+			allPerms, permsErr := userService.roleRepository.GetPermissions(userService.db)
+			if permsErr == nil {
+				for _, p := range allPerms {
+					permissions = append(permissions, p.Name)
+				}
+			}
+		} else {
+			role, roleErr := userService.roleRepository.FindRoleByID(userService.db, *user.RoleID)
+			if roleErr == nil && role != nil {
+				for _, p := range role.Permissions {
+					permissions = append(permissions, p.Name)
+				}
+			}
+		}
+	}
+
 	return userdto.UserInfoResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
@@ -268,6 +300,7 @@ func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequ
 		LastName:     user.LastName,
 		Type:         user.Type.String(),
 		IsAdmin:      user.IsAdmin,
+		Permissions:  permissions,
 	}, nil
 }
 
@@ -586,4 +619,60 @@ func (userService *UserService) GetAdminUserWallet(userID uint) (userdto.AdminUs
 		Balance:      wallet.Balance,
 		Transactions: dtos,
 	}, nil
+}
+
+func (userService *UserService) GetSubAdmins() ([]userdto.SubAdminCredential, error) {
+	users, err := userService.userRepository.FindAdmins(userService.db)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]userdto.SubAdminCredential, len(users))
+	for i, u := range users {
+		cred := userdto.SubAdminCredential{
+			ID:        u.ID,
+			FirstName: u.FirstName,
+			LastName:  u.LastName,
+			Phone:     u.Phone,
+			Email:     u.Email,
+			RoleID:    u.RoleID,
+		}
+		if u.Role != nil {
+			cred.RoleName = u.Role.Name
+		}
+		result[i] = cred
+	}
+	return result, nil
+}
+
+func (userService *UserService) CreateSubAdmin(phone string, roleID uint) error {
+	user, err := userService.userRepository.FindUserByPhone(userService.db, phone)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		notFoundError := exception.NotFoundError{Item: userService.constants.Field.User}
+		return notFoundError
+	}
+	user.IsAdmin = true
+	user.RoleID = &roleID
+	return userService.userRepository.UpdateUser(userService.db, *user)
+}
+
+func (userService *UserService) AssignSubAdminRole(userID uint, roleID uint) error {
+	user, err := userService.GetUserByID(userID)
+	if err != nil {
+		return err
+	}
+	user.RoleID = &roleID
+	return userService.userRepository.UpdateUser(userService.db, *user)
+}
+
+func (userService *UserService) RevokeSubAdmin(userID uint) error {
+	user, err := userService.GetUserByID(userID)
+	if err != nil {
+		return err
+	}
+	user.IsAdmin = false
+	user.RoleID = nil
+	return userService.userRepository.UpdateUser(userService.db, *user)
 }

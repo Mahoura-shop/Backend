@@ -16,6 +16,7 @@ type Order struct {
 	TotalAmount   uint                 `gorm:"type:int"`
 	ShippingCost  uint                 `gorm:"type:int"`
 	RefundFlag    bool                 `gorm:"default:false"`
+	TrackingCode  *string
 	Items         []OrderItem          `gorm:"constraint:OnDelete:CASCADE;"`
 	StatusHistory []OrderStatusHistory `gorm:"foreignKey:OrderID"`
 }

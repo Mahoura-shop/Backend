@@ -27,4 +27,8 @@ type UserService interface {
 	DepositWallet(userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error)
 	WithdrawWallet(userdto.UserBalanceUpdate) (userdto.UserWalletBalance, error)
 	UpdateProfile(userdto.UpdateProfileRequest) (userdto.UserCredential, error)
+	GetSubAdmins() ([]userdto.SubAdminCredential, error)
+	CreateSubAdmin(phone string, roleID uint) error
+	AssignSubAdminRole(userID uint, roleID uint) error
+	RevokeSubAdmin(userID uint) error
 }

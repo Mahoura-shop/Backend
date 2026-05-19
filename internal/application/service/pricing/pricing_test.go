@@ -23,9 +23,8 @@ func TestResolvePrice(t *testing.T) {
 	}{
 		{enum.UserTypeFellow, 1_000_000},
 		{enum.UserTypeShopkeeperCash, 2_000_000},
-		{enum.UserTypeShopkeeperCheque, 3_000_000},
+		{enum.UserTypeShopkeeperCheque, 2_000_000},
 		{enum.UserTypeCustomer, 4_000_000},
-		{enum.UserTypeGuest, 5_000_000},
 		{enum.UserTypeAdmin, 1_000_000},
 	}
 
@@ -44,12 +43,28 @@ func TestResolvePrice_ZeroPrices(t *testing.T) {
 		enum.UserTypeShopkeeperCash,
 		enum.UserTypeShopkeeperCheque,
 		enum.UserTypeCustomer,
-		enum.UserTypeGuest,
 	}
 	for _, ut := range userTypes {
 		got := pricing.ResolvePrice(ut, emptyProduct)
 		if got != 0 {
 			t.Errorf("ResolvePrice on empty product with %v = %d, want 0", ut, got)
+		}
+	}
+}
+
+func TestResolvePrice_IRRPriceFallback(t *testing.T) {
+	irrOnlyProduct := entity.Product{IRRPrice: 500_000}
+	userTypes := []enum.UserType{
+		enum.UserTypeFellow,
+		enum.UserTypeShopkeeperCash,
+		enum.UserTypeShopkeeperCheque,
+		enum.UserTypeCustomer,
+		enum.UserTypeAdmin,
+	}
+	for _, ut := range userTypes {
+		got := pricing.ResolvePrice(ut, irrOnlyProduct)
+		if got != 500_000 {
+			t.Errorf("ResolvePrice IRR fallback with %v = %d, want 500000", ut, got)
 		}
 	}
 }
@@ -60,10 +75,9 @@ func TestResolvePrice_Ordering(t *testing.T) {
 	cash := pricing.ResolvePrice(enum.UserTypeShopkeeperCash, p)
 	cheque := pricing.ResolvePrice(enum.UserTypeShopkeeperCheque, p)
 	customer := pricing.ResolvePrice(enum.UserTypeCustomer, p)
-	guest := pricing.ResolvePrice(enum.UserTypeGuest, p)
 
-	if !(fellow <= cash && cash <= cheque && cheque <= customer && customer <= guest) {
-		t.Errorf("price ordering violated: fellow=%d cash=%d cheque=%d customer=%d guest=%d",
-			fellow, cash, cheque, customer, guest)
+	if !(fellow <= cash && cash <= cheque && cheque <= customer) {
+		t.Errorf("price ordering violated: fellow=%d cash=%d cheque=%d customer=%d",
+			fellow, cash, cheque, customer)
 	}
 }

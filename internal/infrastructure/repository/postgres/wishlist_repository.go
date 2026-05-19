@@ -37,6 +37,15 @@ func (r *WishlistRepository) GetWishlistByUserID(db database.Database, userID ui
 	return items, nil
 }
 
+func (r *WishlistRepository) GetWishlistByProductID(db database.Database, productID uint) ([]*entity.Wishlist, error) {
+	var items []*entity.Wishlist
+	result := db.GetDB().Where("product_id = ?", productID).Find(&items)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return items, nil
+}
+
 func (r *WishlistRepository) FindWishlistItem(db database.Database, userID, productID uint) (*entity.Wishlist, error) {
 	var item entity.Wishlist
 	result := db.GetDB().Where("user_id = ? AND product_id = ?", userID, productID).First(&item)

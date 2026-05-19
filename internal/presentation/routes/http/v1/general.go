@@ -54,4 +54,7 @@ func SetupGeneralRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		}
 		products.GET("/slug/:slug", app.Controllers.General.ProductController.GetProductBySlug)
 	}
+
+	// SSE stream — auth handled inside via ?token= query param
+	routerGroup.GET("/notifications/stream", app.Controllers.Customer.NotificationController.Stream)
 }

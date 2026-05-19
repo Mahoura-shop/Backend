@@ -31,6 +31,7 @@ type OrderService struct {
 	userService           usecase.UserService
 	cartService           usecase.CartService
 	paymentService        usecase.PaymentService
+	notificationService   usecase.NotificationService
 	smsService            communication.SMSService
 	emailService          communication.EmailService
 	db                    database.Database
@@ -50,6 +51,7 @@ type OrderServiceDeps struct {
 	UserService           usecase.UserService
 	CartService           usecase.CartService
 	PaymentService        usecase.PaymentService
+	NotificationService   usecase.NotificationService
 	SMSService            communication.SMSService
 	EmailService          communication.EmailService
 	DB                    database.Database
@@ -70,6 +72,7 @@ func NewOrderService(deps OrderServiceDeps) *OrderService {
 		userService:           deps.UserService,
 		cartService:           deps.CartService,
 		paymentService:        deps.PaymentService,
+		notificationService:   deps.NotificationService,
 		smsService:            deps.SMSService,
 		emailService:          deps.EmailService,
 		db:                    deps.DB,
@@ -86,6 +89,7 @@ func (s *OrderService) ParseOrder(order entity.Order) orderdto.OrderCredential {
 		TotalAmount:   order.TotalAmount,
 		ShippingCost:  order.ShippingCost,
 		RefundFlag:    order.RefundFlag,
+		TrackingCode:  order.TrackingCode,
 		CreatedAt:     order.CreatedAt,
 	}
 
@@ -325,6 +329,9 @@ func (s *OrderService) UpdateOrderStatus(orderID uint, req orderdto.UpdateOrderS
 
 	return s.db.WithTransaction(func(tx database.Database) error {
 		order.Status = req.Status
+		if req.Status == enum.OrderStatusShipped && req.TrackingCode != "" {
+			order.TrackingCode = &req.TrackingCode
+		}
 		if err := s.orderRepository.UpdateOrder(tx, *order); err != nil {
 			return err
 		}
@@ -339,8 +346,19 @@ func (s *OrderService) UpdateOrderStatus(orderID uint, req orderdto.UpdateOrderS
 		}
 
 		go s.notifyOrderStatus(order.User.Phone, order.ID, req.Status)
+		go s.createOrderNotification(order.UserID, order.ID, req.Status)
 		return nil
 	})
+}
+
+func (s *OrderService) createOrderNotification(userID, orderID uint, status enum.OrderStatus) {
+	if s.notificationService == nil {
+		return
+	}
+	title := "به‌روزرسانی وضعیت سفارش"
+	body := fmt.Sprintf("وضعیت سفارش شما به «%s» تغییر یافت", status.String())
+	ref := orderID
+	_ = s.notificationService.CreateNotification(userID, 1, title, body, &ref)
 }
 
 func (s *OrderService) notifyOrderStatus(phone string, orderID uint, status enum.OrderStatus) {
@@ -405,6 +423,7 @@ func (s *OrderService) PayOrderByWallet(userID, orderID uint) error {
 		}
 
 		go s.notifyOrderStatus(order.User.Phone, order.ID, enum.OrderStatusPaid)
+		go s.createOrderNotification(order.UserID, order.ID, enum.OrderStatusPaid)
 		return nil
 	})
 }
@@ -510,6 +529,7 @@ func (s *OrderService) VerifyGatewayPayment(authority string, status string) err
 		}
 
 		go s.notifyOrderStatus(order.User.Phone, order.ID, enum.OrderStatusPaid)
+		go s.createOrderNotification(order.UserID, order.ID, enum.OrderStatusPaid)
 		return nil
 	})
 }
@@ -522,8 +542,8 @@ func (s *OrderService) CancelOrder(orderID uint) error {
 	if order == nil {
 		return exception.NotFoundError{Item: s.constants.Field.Order}
 	}
-	if order.Status == enum.OrderStatusShipped || order.Status == enum.OrderStatusDelivered {
-		return exception.ForbiddenError{Message: "cannot cancel a shipped or delivered order"}
+	if order.Status == enum.OrderStatusShipped {
+		return exception.ForbiddenError{Message: "cannot cancel a shipped order"}
 	}
 	if order.Status == enum.OrderStatusCancelled {
 		return exception.ForbiddenError{Message: "order is already cancelled"}

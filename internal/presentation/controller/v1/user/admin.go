@@ -75,3 +75,46 @@ func (userController *AdminUserController) GetUserWallet(ctx *gin.Context) {
 	}
 	controller.Response(ctx, 200, "", wallet)
 }
+
+func (userController *AdminUserController) GetSubAdmins(ctx *gin.Context) {
+	subAdmins, err := userController.userService.GetSubAdmins()
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", subAdmins)
+}
+
+func (userController *AdminUserController) CreateSubAdmin(ctx *gin.Context) {
+	type params struct {
+		Phone  string `json:"phone" validate:"required"`
+		RoleID uint   `json:"roleID" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+	if err := userController.userService.CreateSubAdmin(p.Phone, p.RoleID); err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 201, "", nil)
+}
+
+func (userController *AdminUserController) AssignSubAdminRole(ctx *gin.Context) {
+	type params struct {
+		UserID uint `uri:"userID" validate:"required"`
+		RoleID uint `json:"roleID" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+	if err := userController.userService.AssignSubAdminRole(p.UserID, p.RoleID); err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", nil)
+}
+
+func (userController *AdminUserController) RevokeSubAdmin(ctx *gin.Context) {
+	type params struct {
+		UserID uint `uri:"userID" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+	if err := userController.userService.RevokeSubAdmin(p.UserID); err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", nil)
+}

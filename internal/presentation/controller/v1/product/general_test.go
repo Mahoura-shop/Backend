@@ -131,11 +131,7 @@ func (s *GuestProductTestSuite) TestG02_GetProductBySlug_Returns200WithConsumerP
 	s.productService.AssertExpectations(s.T())
 }
 
-// G-02c: Guest resolvedPrice must equal ConsumerPrice (not a lower step price)
-// NOTE: This test exposes a bug — GetProducts defaults to UserTypeCustomer (Step4Price)
-// for unauthenticated requests instead of UserTypeGuest (ConsumerPrice).
-// Expected: resolvedPrice == 500_000 (ConsumerPrice)
-// If failing: controller uses Step4Price (450_000) for unauthenticated users.
+// G-02c: Unauthenticated resolvedPrice must equal ConsumerPrice (not a lower step price)
 func (s *GuestProductTestSuite) TestG02c_GuestResolvedPriceIsConsumerPrice() {
 	product := sampleProduct()
 	s.productService.On("SearchProductsWithPagination", productdto.ProductFilterRequest{}).
@@ -161,7 +157,7 @@ func (s *GuestProductTestSuite) TestG02c_GuestResolvedPriceIsConsumerPrice() {
 	consumerPrice := firstProduct["consumerPrice"].(float64)
 
 	s.Equal(consumerPrice, resolvedPrice,
-		"guest resolvedPrice must equal consumerPrice (500000), got %v — check GetProducts: default userType should be UserTypeGuest not UserTypeCustomer",
+		"unauthenticated resolvedPrice must equal consumerPrice (500000), got %v",
 		resolvedPrice)
 }
 

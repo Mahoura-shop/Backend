@@ -6,12 +6,13 @@ type OTPData struct {
 }
 
 type UserInfoResponse struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
-	FirstName    string `json:"firstName"`
-	LastName     string `json:"lastName"`
-	Type         string `json:"type"`
-	IsAdmin      bool   `json:"isAdmin"`
+	AccessToken  string   `json:"accessToken"`
+	RefreshToken string   `json:"refreshToken"`
+	FirstName    string   `json:"firstName"`
+	LastName     string   `json:"lastName"`
+	Type         string   `json:"type"`
+	IsAdmin      bool     `json:"isAdmin"`
+	Permissions  []string `json:"permissions"`
 }
 
 type UserCredential struct {
@@ -24,6 +25,9 @@ type UserCredential struct {
 	Status     string `json:"status"`
 	Type       string `json:"type"`
 	IsAdmin    bool   `json:"isAdmin"`
+	RoleID     *uint  `json:"roleID"`
+	RoleName   string `json:"roleName"`
+	CreatedAt  string `json:"createdAt"`
 }
 
 type UserResponse struct {
@@ -90,4 +94,14 @@ type TransactionDTO struct {
 type AdminUserWalletResponse struct {
 	Balance      uint             `json:"balance"`
 	Transactions []TransactionDTO `json:"transactions"`
+}
+
+type SubAdminCredential struct {
+	ID        uint   `json:"id"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Phone     string `json:"phone"`
+	Email     string `json:"email"`
+	RoleID    *uint  `json:"roleID"`
+	RoleName  string `json:"roleName"`
 }

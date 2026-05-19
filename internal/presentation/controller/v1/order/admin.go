@@ -36,8 +36,6 @@ func (c *AdminOrderController) GetOrders(ctx *gin.Context) {
 			status = enum.OrderStatusPaid
 		case "shipped":
 			status = enum.OrderStatusShipped
-		case "delivered":
-			status = enum.OrderStatusDelivered
 		case "cancelled":
 			status = enum.OrderStatusCancelled
 		}

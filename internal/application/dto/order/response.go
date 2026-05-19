@@ -16,6 +16,7 @@ type OrderCredential struct {
 	TotalAmount   uint                      `json:"totalAmount"`
 	ShippingCost  uint                      `json:"shippingCost"`
 	RefundFlag    bool                      `json:"refundFlag"`
+	TrackingCode  *string                   `json:"trackingCode,omitempty"`
 	Items         []OrderItemCredential     `json:"items"`
 	StatusHistory []OrderStatusHistoryEntry `json:"statusHistory,omitempty"`
 	CreatedAt     time.Time                 `json:"createdAt"`

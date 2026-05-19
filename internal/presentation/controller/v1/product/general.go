@@ -45,7 +45,7 @@ func (c *GeneralProductController) GetProducts(ctx *gin.Context) {
 		panic(err)
 	}
 
-	userType := enum.UserTypeGuest
+	var userType enum.UserType
 	userID, exists := ctx.Get(c.constants.Context.ID)
 	if exists && userID != nil {
 		user, err := c.userRepository.FindUserByID(c.database, userID.(uint))
@@ -61,16 +61,25 @@ func (c *GeneralProductController) GetProducts(ctx *gin.Context) {
 	controller.Response(ctx, 200, "", result)
 }
 
+func firstNonZero(vals ...uint) uint {
+	for _, v := range vals {
+		if v != 0 {
+			return v
+		}
+	}
+	return 0
+}
+
 func (c *GeneralProductController) resolvePriceForType(userType enum.UserType, product *productdto.ProductCredential) uint {
 	switch userType {
-	case enum.UserTypeFellow:
-		return product.Step1Price
+	case enum.UserTypeFellow, enum.UserTypeAdmin:
+		return firstNonZero(product.Step1Price, product.Step2Price, product.Step3Price, product.Step4Price, product.ConsumerPrice, product.IRRPrice)
 	case enum.UserTypeShopkeeperCash, enum.UserTypeShopkeeperCheque:
-		return product.Step2Price
+		return firstNonZero(product.Step2Price, product.Step3Price, product.Step4Price, product.ConsumerPrice, product.IRRPrice)
 	case enum.UserTypeCustomer:
-		return product.Step4Price
+		return firstNonZero(product.Step4Price, product.ConsumerPrice, product.IRRPrice)
 	default:
-		return product.ConsumerPrice
+		return firstNonZero(product.ConsumerPrice, product.IRRPrice)
 	}
 }
 

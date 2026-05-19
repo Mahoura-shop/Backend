@@ -38,6 +38,8 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/role"
 	returnctrl "github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/return"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/contact"
+	notificationctrl "github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/notification"
+	adminlog "github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/admin_log"
 	"github.com/Mahoura-shop/Backend/internal/presentation/middleware"
 	"github.com/google/wire"
 )
@@ -72,6 +74,8 @@ var RepositoryProviderSet = wire.NewSet(
 	infraPostgres.NewUserAuditLogRepository,
 	infraPostgres.NewReturnRepository,
 	infraPostgres.NewContactMessageRepository,
+	infraPostgres.NewNotificationRepository,
+	infraPostgres.NewAdminActivityLogRepository,
 	infraRedis.NewUserCacheRepository,
 	wire.Bind(new(domainPostgres.UserRepository), new(*infraPostgres.UserRepository)),
 	wire.Bind(new(domainPostgres.AddressRepository), new(*infraPostgres.AddressRepository)),
@@ -95,6 +99,8 @@ var RepositoryProviderSet = wire.NewSet(
 	wire.Bind(new(domainPostgres.RoleRepository), new(*infraPostgres.RoleRepository)),
 	wire.Bind(new(domainPostgres.ReturnRepository), new(*infraPostgres.ReturnRepository)),
 	wire.Bind(new(domainPostgres.ContactMessageRepository), new(*infraPostgres.ContactMessageRepository)),
+	wire.Bind(new(domainPostgres.NotificationRepository), new(*infraPostgres.NotificationRepository)),
+	wire.Bind(new(domainPostgres.AdminActivityLogRepository), new(*infraPostgres.AdminActivityLogRepository)),
 )
 
 var ServiceProviderSet = wire.NewSet(
@@ -112,6 +118,8 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Struct(new(service.RoleServiceDeps), "*"),
 	wire.Struct(new(service.ReturnServiceDeps), "*"),
 	wire.Struct(new(service.ContactMessageServiceDeps), "*"),
+	wire.Struct(new(service.NotificationServiceDeps), "*"),
+	wire.Struct(new(service.AdminLogServiceDeps), "*"),
 	service.NewUserService,
 	service.NewOTPService,
 	sms.NewSMSService,
@@ -133,6 +141,8 @@ var ServiceProviderSet = wire.NewSet(
 	service.NewRoleService,
 	service.NewReturnService,
 	service.NewContactMessageService,
+	service.NewNotificationService,
+	service.NewAdminLogService,
 	wire.Bind(new(usecase.UserService), new(*service.UserService)),
 	wire.Bind(new(usecase.OTPService), new(*service.OTPService)),
 	wire.Bind(new(communication.SMSService), new(*sms.SMSService)),
@@ -154,6 +164,8 @@ var ServiceProviderSet = wire.NewSet(
 	wire.Bind(new(usecase.RoleService), new(*service.RoleService)),
 	wire.Bind(new(usecase.ReturnService), new(*service.ReturnService)),
 	wire.Bind(new(usecase.ContactMessageService), new(*service.ContactMessageService)),
+	wire.Bind(new(usecase.NotificationService), new(*service.NotificationService)),
+	wire.Bind(new(usecase.AdminLogService), new(*service.AdminLogService)),
 )
 
 var AdapterProviderSet = wire.NewSet(
@@ -185,6 +197,7 @@ var CustomerControllerProviderSet = wire.NewSet(
 	upgraderequest.NewCustomerUpgradeRequestController,
 	wishlist.NewCustomerWishlistController,
 	returnctrl.NewCustomerReturnController,
+	notificationctrl.NewCustomerNotificationController,
 	wire.Struct(new(CustomerControllers), "*"),
 )
 
@@ -200,6 +213,7 @@ var AdminControllerProviderSet = wire.NewSet(
 	returnctrl.NewAdminReturnController,
 	contact.NewAdminContactController,
 	review.NewAdminReviewController,
+	adminlog.NewAdminLogController,
 	wire.Struct(new(AdminControllers), "*"),
 )
 
@@ -214,6 +228,7 @@ var MiddlewareProviderSet = wire.NewSet(
 	middleware.NewLocalization,
 	middleware.NewRateLimit,
 	middleware.NewLoggerMiddleware,
+	middleware.NewAdminActivityLogMiddleware,
 	wire.Struct(new(Middlewares), "*"),
 )
 
@@ -221,6 +236,7 @@ var SeederProviderSet = wire.NewSet(
 	seed.NewAddressSeeder,
 	seed.NewAdminSeeder,
 	seed.NewCurrencySeeder,
+	seed.NewPermissionSeeder,
 	wire.Struct(new(Seeds), "*"),
 )
 
@@ -288,6 +304,10 @@ func ProvideZarinpalConfig(container *bootstrap.Config) *bootstrap.Zarinpal {
 	return &container.Env.Zarinpal
 }
 
+func ProvideRBACConfig(container *bootstrap.Config) *bootstrap.RBAC {
+	return &container.Env.RBAC
+}
+
 var ProviderSet = wire.NewSet(
 	DatabaseProviderSet,
 	RepositoryProviderSet,
@@ -317,6 +337,7 @@ var ProviderSet = wire.NewSet(
 	ProvideEmailSenderAccount,
 	ProvideSuperAdminCredential,
 	ProvideZarinpalConfig,
+	ProvideRBACConfig,
 )
 
 type Database struct {
@@ -343,6 +364,7 @@ type CustomerControllers struct {
 	UpgradeRequestController *upgraderequest.CustomerUpgradeRequestController
 	WishlistController       *wishlist.CustomerWishlistController
 	ReturnController         *returnctrl.CustomerReturnController
+	NotificationController   *notificationctrl.CustomerNotificationController
 }
 
 type AdminControllers struct {
@@ -357,6 +379,7 @@ type AdminControllers struct {
 	ReturnController         *returnctrl.AdminReturnController
 	ContactController        *contact.AdminContactController
 	ReviewController         *review.AdminReviewController
+	AdminLogController       *adminlog.AdminLogController
 }
 
 type Controllers struct {
@@ -366,18 +389,20 @@ type Controllers struct {
 }
 
 type Middlewares struct {
-	Authentication *middleware.AuthMiddleware
-	CORS           *middleware.CORSMiddleware
-	Recovery       *middleware.RecoveryMiddleware
-	Localization   *middleware.LocalizationMiddleware
-	RateLimit      *middleware.RateLimitMiddleware
-	Logger         *middleware.LoggerMiddleware
+	Authentication  *middleware.AuthMiddleware
+	CORS            *middleware.CORSMiddleware
+	Recovery        *middleware.RecoveryMiddleware
+	Localization    *middleware.LocalizationMiddleware
+	RateLimit       *middleware.RateLimitMiddleware
+	Logger          *middleware.LoggerMiddleware
+	AdminActivityLog *middleware.AdminActivityLogMiddleware
 }
 
 type Seeds struct {
-	AddressSeeder  *seed.AddressSeeder
-	AdminSeeder    *seed.AdminSeeder
-	CurrencySeeder *seed.CurrencySeeder
+	AddressSeeder    *seed.AddressSeeder
+	AdminSeeder      *seed.AdminSeeder
+	CurrencySeeder   *seed.CurrencySeeder
+	PermissionSeeder *seed.PermissionSeeder
 }
 
 type Application struct {

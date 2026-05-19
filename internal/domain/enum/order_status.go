@@ -3,11 +3,10 @@ package enum
 type OrderStatus uint
 
 const (
-	OrderStatusPending   OrderStatus = iota + 1
-	OrderStatusPaid
-	OrderStatusShipped
-	OrderStatusDelivered
-	OrderStatusCancelled
+	OrderStatusPending   OrderStatus = 1
+	OrderStatusPaid      OrderStatus = 2
+	OrderStatusShipped   OrderStatus = 3
+	OrderStatusCancelled OrderStatus = 5
 )
 
 func (s OrderStatus) String() string {
@@ -18,8 +17,6 @@ func (s OrderStatus) String() string {
 		return "پرداخت شده"
 	case OrderStatusShipped:
 		return "ارسال شده"
-	case OrderStatusDelivered:
-		return "تحویل داده شده"
 	case OrderStatusCancelled:
 		return "لغو شده"
 	}
@@ -31,7 +28,6 @@ func GetAllOrderStatuses() []OrderStatus {
 		OrderStatusPending,
 		OrderStatusPaid,
 		OrderStatusShipped,
-		OrderStatusDelivered,
 		OrderStatusCancelled,
 	}
 }

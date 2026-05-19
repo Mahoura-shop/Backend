@@ -161,23 +161,6 @@ func (s *AdminOrderTestSuite) TestADM33_UpdateOrderStatus_Shipped_Returns200() {
 	s.orderService.AssertExpectations(s.T())
 }
 
-// ADM-34: PATCH /admin/orders/:orderID/status → delivered → 200
-func (s *AdminOrderTestSuite) TestADM34_UpdateOrderStatus_Delivered_Returns200() {
-	req := orderdto.UpdateOrderStatusRequest{
-		Status:      enum.OrderStatusDelivered,
-		ChangedByID: adminActorID,
-	}
-	s.orderService.On("UpdateOrderStatus", adminOrderID, req).Return(nil)
-
-	payload, _ := json.Marshal(map[string]any{"status": enum.OrderStatusDelivered})
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodPatch, "/admin/orders/10/status", bytes.NewBuffer(payload))
-	r.Header.Set("Content-Type", "application/json")
-	s.newRouter(false).ServeHTTP(w, r)
-
-	s.Equal(http.StatusOK, w.Code)
-	s.orderService.AssertExpectations(s.T())
-}
 
 // ADM-35: POST /admin/orders/:orderID/cancel → 200, status = cancelled
 func (s *AdminOrderTestSuite) TestADM35_CancelOrder_Returns200() {

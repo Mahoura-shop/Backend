@@ -39,15 +39,20 @@ func (r *RoleRepository) CreateRole(db database.Database, role entity.Role) (*en
 }
 
 func (r *RoleRepository) UpdateRole(db database.Database, role entity.Role) error {
-	if err := db.GetDB().Session(&gorm.Session{FullSaveAssociations: true}).Save(&role).Error; err != nil {
+	perms := role.Permissions
+	role.Permissions = nil
+	if err := db.GetDB().Save(&role).Error; err != nil {
 		return err
 	}
-	return db.GetDB().Model(&role).Association("Permissions").Replace(role.Permissions)
+	return db.GetDB().Model(&role).Association("Permissions").Replace(perms)
 }
 
 func (r *RoleRepository) DeleteRoleByID(db database.Database, id uint) error {
 	var role entity.Role
 	if err := db.GetDB().First(&role, id).Error; err != nil {
+		return err
+	}
+	if err := db.GetDB().Model(&entity.User{}).Where("role_id = ?", id).Update("role_id", nil).Error; err != nil {
 		return err
 	}
 	if err := db.GetDB().Model(&role).Association("Permissions").Clear(); err != nil {

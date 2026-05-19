@@ -26,12 +26,14 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/storage"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/address"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/admin_log"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/brand"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/cart"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/category"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/contact"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/coupon"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/currency"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/notification"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/order"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/product"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/return"
@@ -70,6 +72,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	emailTemplates := ProvideEmailTemplates(container)
 	emailService := email.NewEmailService(emailAccount, emailTemplates)
 	userRepository := postgres.NewUserRepository()
+	roleRepository := postgres.NewRoleRepository()
 	categoryRepository := postgres.NewCategoryRepository()
 	brandRepository := postgres.NewBrandRepository()
 	productRepository := postgres.NewProductRepository()
@@ -77,6 +80,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	cartRepository := postgres.NewCartRepository()
 	transactionRepository := postgres.NewTransactionRepository()
 	orderRepository := postgres.NewOrderRepository()
+	rbac := ProvideRBACConfig(container)
 	userServiceDeps := service.UserServiceDeps{
 		Constants:             constants,
 		OTPService:            otpService,
@@ -84,6 +88,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		SMSService:            smsService,
 		EmailService:          emailService,
 		UserRepository:        userRepository,
+		RoleRepository:        roleRepository,
 		CategoryRepository:    categoryRepository,
 		BrandRepository:       brandRepository,
 		ProductRepository:     productRepository,
@@ -93,6 +98,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		OrderRepository:       orderRepository,
 		UserCacheRepository:   userCacheRepository,
 		DB:                    postgresDatabase,
+		RBAC:                  rbac,
 	}
 	userService := service.NewUserService(userServiceDeps)
 	generalUserController := user.NewGeneralUserController(constants, userService, jwtService)
@@ -100,6 +106,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	addressService := service.NewAddressService(constants, addressRepository, postgresDatabase)
 	generalAddressController := address.NewGeneralAddressController(constants, addressService)
 	productImageRepository := postgres.NewProductImageRepository()
+	wishlistRepository := postgres.NewWishlistRepository()
 	s3 := ProvideStorageConfig(container)
 	s3Storage := storage.NewS3Storage(constants, s3)
 	categoryServiceDeps := service.CategoryServiceDeps{
@@ -124,13 +131,21 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		DB:                 postgresDatabase,
 	}
 	currencyService := service.NewCurrencyService(currencyServiceDeps)
+	notificationRepository := postgres.NewNotificationRepository()
+	notificationServiceDeps := service.NotificationServiceDeps{
+		NotificationRepository: notificationRepository,
+		DB:                     postgresDatabase,
+	}
+	notificationService := service.NewNotificationService(notificationServiceDeps)
 	productServiceDeps := service.ProductServiceDeps{
 		Constants:              constants,
 		ProductRepository:      productRepository,
 		ProductImageRepository: productImageRepository,
+		WishlistRepository:     wishlistRepository,
 		CategoryService:        categoryService,
 		BrandService:           brandService,
 		CurrencyService:        currencyService,
+		NotificationService:    notificationService,
 		S3Storage:              s3Storage,
 		DB:                     postgresDatabase,
 	}
@@ -198,6 +213,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		UserService:           userService,
 		CartService:           cartService,
 		PaymentService:        paymentService,
+		NotificationService:   notificationService,
 		SMSService:            smsService,
 		EmailService:          emailService,
 		DB:                    postgresDatabase,
@@ -217,7 +233,6 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	}
 	upgradeRequestService := service.NewUpgradeRequestService(upgradeRequestServiceDeps)
 	customerUpgradeRequestController := upgraderequest.NewCustomerUpgradeRequestController(constants, upgradeRequestService)
-	wishlistRepository := postgres.NewWishlistRepository()
 	wishlistServiceDeps := service.WishlistServiceDeps{
 		WishlistRepository: wishlistRepository,
 		ProductService:     productService,
@@ -235,6 +250,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	}
 	returnService := service.NewReturnService(returnServiceDeps)
 	customerReturnController := returnctrl.NewCustomerReturnController(constants, returnService)
+	customerNotificationController := notification.NewCustomerNotificationController(constants, notificationService, jwtService)
 	customerControllers := &CustomerControllers{
 		UserController:           customerUserController,
 		AddressController:        customerAddressController,
@@ -245,6 +261,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		UpgradeRequestController: customerUpgradeRequestController,
 		WishlistController:       customerWishlistController,
 		ReturnController:         customerReturnController,
+		NotificationController:   customerNotificationController,
 	}
 	pagination := ProvidePaginationConfig(container)
 	adminCategoryController := category.NewAdminCategoryController(constants, pagination, categoryService)
@@ -254,7 +271,6 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	adminUserController := user.NewAdminUserController(constants, pagination, userService)
 	adminOrderController := order.NewAdminOrderController(constants, orderService)
 	adminUpgradeRequestController := upgraderequest.NewAdminUpgradeRequestController(constants, upgradeRequestService)
-	roleRepository := postgres.NewRoleRepository()
 	roleServiceDeps := service.RoleServiceDeps{
 		RoleRepository: roleRepository,
 		DB:             postgresDatabase,
@@ -263,6 +279,14 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	adminRoleController := role.NewAdminRoleController(constants, roleService)
 	adminReturnController := returnctrl.NewAdminReturnController(constants, returnService)
 	adminContactController := contact.NewAdminContactController(contactMessageService)
+	adminReviewController := review.NewAdminReviewController(constants, reviewService)
+	adminActivityLogRepository := postgres.NewAdminActivityLogRepository()
+	adminLogServiceDeps := service.AdminLogServiceDeps{
+		Repo: adminActivityLogRepository,
+		DB:   postgresDatabase,
+	}
+	adminLogService := service.NewAdminLogService(adminLogServiceDeps)
+	adminLogController := adminlog.NewAdminLogController(adminLogService)
 	adminControllers := &AdminControllers{
 		CategoryController:       adminCategoryController,
 		CurrencyController:       adminCurrencyController,
@@ -274,6 +298,8 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		RoleController:           adminRoleController,
 		ReturnController:         adminReturnController,
 		ContactController:        adminContactController,
+		ReviewController:         adminReviewController,
+		AdminLogController:       adminLogController,
 	}
 	controllers := &Controllers{
 		General:  generalControllers,
@@ -293,22 +319,26 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		return nil, err
 	}
 	loggerMiddleware := middleware.NewLoggerMiddleware(loggerLogger)
+	adminActivityLogMiddleware := middleware.NewAdminActivityLogMiddleware(constants, adminLogService)
 	middlewares := &Middlewares{
-		Authentication: authMiddleware,
-		CORS:           corsMiddleware,
-		Recovery:       recoveryMiddleware,
-		Localization:   localizationMiddleware,
-		RateLimit:      rateLimitMiddleware,
-		Logger:         loggerMiddleware,
+		Authentication:   authMiddleware,
+		CORS:             corsMiddleware,
+		Recovery:         recoveryMiddleware,
+		Localization:     localizationMiddleware,
+		RateLimit:        rateLimitMiddleware,
+		Logger:           loggerMiddleware,
+		AdminActivityLog: adminActivityLogMiddleware,
 	}
 	addressSeeder := seed.NewAddressSeeder(addressRepository, postgresDatabase)
 	adminCredentials := ProvideSuperAdminCredential(container)
 	adminSeeder := seed.NewAdminSeeder(adminCredentials, userRepository, postgresDatabase)
 	currencySeeder := seed.NewCurrencySeeder(currencyRepository, postgresDatabase)
+	permissionSeeder := seed.NewPermissionSeeder(postgresDatabase)
 	seeds := &Seeds{
-		AddressSeeder:  addressSeeder,
-		AdminSeeder:    adminSeeder,
-		CurrencySeeder: currencySeeder,
+		AddressSeeder:    addressSeeder,
+		AdminSeeder:      adminSeeder,
+		CurrencySeeder:   currencySeeder,
+		PermissionSeeder: permissionSeeder,
 	}
 	application := NewApplication(wireDatabase, controllers, middlewares, seeds)
 	return application, nil
@@ -318,23 +348,23 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 
 var DatabaseProviderSet = wire.NewSet(database.NewPostgresDatabase, database.NewRedisDatabase, wire.Bind(new(database.Database), new(*database.PostgresDatabase)), wire.Bind(new(database.Cache), new(*database.RedisDatabase)), wire.Struct(new(Database), "*"))
 
-var RepositoryProviderSet = wire.NewSet(postgres.NewRoleRepository, postgres.NewUserRepository, postgres.NewAddressRepository, postgres.NewCategoryRepository, postgres.NewCurrencyRepository, postgres.NewBrandRepository, postgres.NewProductRepository, postgres.NewProductImageRepository, postgres.NewReviewRepository, postgres.NewCouponRepository, postgres.NewWishlistRepository, postgres.NewWalletRepository, postgres.NewCartRepository, postgres.NewOrderRepository, postgres.NewTransactionRepository, postgres.NewPaymentRepository, postgres.NewInstalmentRepository, postgres.NewUpgradeRequestRepository, postgres.NewUserAuditLogRepository, postgres.NewReturnRepository, postgres.NewContactMessageRepository, redis.NewUserCacheRepository, wire.Bind(new(postgres2.UserRepository), new(*postgres.UserRepository)), wire.Bind(new(postgres2.AddressRepository), new(*postgres.AddressRepository)), wire.Bind(new(redis2.UserCacheRepository), new(*redis.UserCacheRepository)), wire.Bind(new(postgres2.CategoryRepository), new(*postgres.CategoryRepository)), wire.Bind(new(postgres2.CurrencyRepository), new(*postgres.CurrencyRepository)), wire.Bind(new(postgres2.BrandRepository), new(*postgres.BrandRepository)), wire.Bind(new(postgres2.ProductRepository), new(*postgres.ProductRepository)), wire.Bind(new(postgres2.ProductImageRepository), new(*postgres.ProductImageRepository)), wire.Bind(new(postgres2.ReviewRepository), new(*postgres.ReviewRepository)), wire.Bind(new(postgres2.CouponRepository), new(*postgres.CouponRepository)), wire.Bind(new(postgres2.WishlistRepository), new(*postgres.WishlistRepository)), wire.Bind(new(postgres2.WalletRepository), new(*postgres.WalletRepository)), wire.Bind(new(postgres2.CartRepository), new(*postgres.CartRepository)), wire.Bind(new(postgres2.OrderRepository), new(*postgres.OrderRepository)), wire.Bind(new(postgres2.TransactionRepository), new(*postgres.TransactionRepository)), wire.Bind(new(postgres2.PaymentRepository), new(*postgres.PaymentRepository)), wire.Bind(new(postgres2.InstalmentRepository), new(*postgres.InstalmentRepository)), wire.Bind(new(postgres2.UpgradeRequestRepository), new(*postgres.UpgradeRequestRepository)), wire.Bind(new(postgres2.UserAuditLogRepository), new(*postgres.UserAuditLogRepository)), wire.Bind(new(postgres2.RoleRepository), new(*postgres.RoleRepository)), wire.Bind(new(postgres2.ReturnRepository), new(*postgres.ReturnRepository)), wire.Bind(new(postgres2.ContactMessageRepository), new(*postgres.ContactMessageRepository)))
+var RepositoryProviderSet = wire.NewSet(postgres.NewRoleRepository, postgres.NewUserRepository, postgres.NewAddressRepository, postgres.NewCategoryRepository, postgres.NewCurrencyRepository, postgres.NewBrandRepository, postgres.NewProductRepository, postgres.NewProductImageRepository, postgres.NewReviewRepository, postgres.NewCouponRepository, postgres.NewWishlistRepository, postgres.NewWalletRepository, postgres.NewCartRepository, postgres.NewOrderRepository, postgres.NewTransactionRepository, postgres.NewPaymentRepository, postgres.NewInstalmentRepository, postgres.NewUpgradeRequestRepository, postgres.NewUserAuditLogRepository, postgres.NewReturnRepository, postgres.NewContactMessageRepository, postgres.NewNotificationRepository, postgres.NewAdminActivityLogRepository, redis.NewUserCacheRepository, wire.Bind(new(postgres2.UserRepository), new(*postgres.UserRepository)), wire.Bind(new(postgres2.AddressRepository), new(*postgres.AddressRepository)), wire.Bind(new(redis2.UserCacheRepository), new(*redis.UserCacheRepository)), wire.Bind(new(postgres2.CategoryRepository), new(*postgres.CategoryRepository)), wire.Bind(new(postgres2.CurrencyRepository), new(*postgres.CurrencyRepository)), wire.Bind(new(postgres2.BrandRepository), new(*postgres.BrandRepository)), wire.Bind(new(postgres2.ProductRepository), new(*postgres.ProductRepository)), wire.Bind(new(postgres2.ProductImageRepository), new(*postgres.ProductImageRepository)), wire.Bind(new(postgres2.ReviewRepository), new(*postgres.ReviewRepository)), wire.Bind(new(postgres2.CouponRepository), new(*postgres.CouponRepository)), wire.Bind(new(postgres2.WishlistRepository), new(*postgres.WishlistRepository)), wire.Bind(new(postgres2.WalletRepository), new(*postgres.WalletRepository)), wire.Bind(new(postgres2.CartRepository), new(*postgres.CartRepository)), wire.Bind(new(postgres2.OrderRepository), new(*postgres.OrderRepository)), wire.Bind(new(postgres2.TransactionRepository), new(*postgres.TransactionRepository)), wire.Bind(new(postgres2.PaymentRepository), new(*postgres.PaymentRepository)), wire.Bind(new(postgres2.InstalmentRepository), new(*postgres.InstalmentRepository)), wire.Bind(new(postgres2.UpgradeRequestRepository), new(*postgres.UpgradeRequestRepository)), wire.Bind(new(postgres2.UserAuditLogRepository), new(*postgres.UserAuditLogRepository)), wire.Bind(new(postgres2.RoleRepository), new(*postgres.RoleRepository)), wire.Bind(new(postgres2.ReturnRepository), new(*postgres.ReturnRepository)), wire.Bind(new(postgres2.ContactMessageRepository), new(*postgres.ContactMessageRepository)), wire.Bind(new(postgres2.NotificationRepository), new(*postgres.NotificationRepository)), wire.Bind(new(postgres2.AdminActivityLogRepository), new(*postgres.AdminActivityLogRepository)))
 
-var ServiceProviderSet = wire.NewSet(wire.Struct(new(service.UserServiceDeps), "*"), wire.Struct(new(service.CategoryServiceDeps), "*"), wire.Struct(new(service.CurrencyServiceDeps), "*"), wire.Struct(new(service.BrandServiceDeps), "*"), wire.Struct(new(service.ProductServiceDeps), "*"), wire.Struct(new(service.ReviewServiceDeps), "*"), wire.Struct(new(service.CouponServiceDeps), "*"), wire.Struct(new(service.WishlistServiceDeps), "*"), wire.Struct(new(service.CartServiceDeps), "*"), wire.Struct(new(service.OrderServiceDeps), "*"), wire.Struct(new(service.UpgradeRequestServiceDeps), "*"), wire.Struct(new(service.RoleServiceDeps), "*"), wire.Struct(new(service.ReturnServiceDeps), "*"), wire.Struct(new(service.ContactMessageServiceDeps), "*"), service.NewUserService, service.NewOTPService, sms.NewSMSService, email.NewEmailService, service.NewJWTService, service.NewAddressService, service.NewTestService, service.NewCategoryService, service.NewCurrencyService, service.NewBrandService, service.NewProductService, service.NewReviewService, service.NewCouponService, service.NewWishlistService, service.NewCartService, service.NewOrderService, service.NewPaymentService, service.NewUpgradeRequestService, service.NewRoleService, service.NewReturnService, service.NewContactMessageService, wire.Bind(new(usecase.UserService), new(*service.UserService)), wire.Bind(new(usecase.OTPService), new(*service.OTPService)), wire.Bind(new(communication.SMSService), new(*sms.SMSService)), wire.Bind(new(communication.EmailService), new(*email.EmailService)), wire.Bind(new(usecase.JWTService), new(*service.JWTService)), wire.Bind(new(usecase.AddressService), new(*service.AddressService)), wire.Bind(new(usecase.TestService), new(*service.TestService)), wire.Bind(new(usecase.CategoryService), new(*service.CategoryService)), wire.Bind(new(usecase.CurrencyService), new(*service.CurrencyService)), wire.Bind(new(usecase.BrandService), new(*service.BrandService)), wire.Bind(new(usecase.ProductService), new(*service.ProductService)), wire.Bind(new(usecase.ReviewService), new(*service.ReviewService)), wire.Bind(new(usecase.CouponService), new(*service.CouponService)), wire.Bind(new(usecase.WishlistService), new(*service.WishlistService)), wire.Bind(new(usecase.CartService), new(*service.CartService)), wire.Bind(new(usecase.OrderService), new(*service.OrderService)), wire.Bind(new(usecase.PaymentService), new(*service.PaymentService)), wire.Bind(new(usecase.UpgradeRequestService), new(*service.UpgradeRequestService)), wire.Bind(new(usecase.RoleService), new(*service.RoleService)), wire.Bind(new(usecase.ReturnService), new(*service.ReturnService)), wire.Bind(new(usecase.ContactMessageService), new(*service.ContactMessageService)))
+var ServiceProviderSet = wire.NewSet(wire.Struct(new(service.UserServiceDeps), "*"), wire.Struct(new(service.CategoryServiceDeps), "*"), wire.Struct(new(service.CurrencyServiceDeps), "*"), wire.Struct(new(service.BrandServiceDeps), "*"), wire.Struct(new(service.ProductServiceDeps), "*"), wire.Struct(new(service.ReviewServiceDeps), "*"), wire.Struct(new(service.CouponServiceDeps), "*"), wire.Struct(new(service.WishlistServiceDeps), "*"), wire.Struct(new(service.CartServiceDeps), "*"), wire.Struct(new(service.OrderServiceDeps), "*"), wire.Struct(new(service.UpgradeRequestServiceDeps), "*"), wire.Struct(new(service.RoleServiceDeps), "*"), wire.Struct(new(service.ReturnServiceDeps), "*"), wire.Struct(new(service.ContactMessageServiceDeps), "*"), wire.Struct(new(service.NotificationServiceDeps), "*"), wire.Struct(new(service.AdminLogServiceDeps), "*"), service.NewUserService, service.NewOTPService, sms.NewSMSService, email.NewEmailService, service.NewJWTService, service.NewAddressService, service.NewTestService, service.NewCategoryService, service.NewCurrencyService, service.NewBrandService, service.NewProductService, service.NewReviewService, service.NewCouponService, service.NewWishlistService, service.NewCartService, service.NewOrderService, service.NewPaymentService, service.NewUpgradeRequestService, service.NewRoleService, service.NewReturnService, service.NewContactMessageService, service.NewNotificationService, service.NewAdminLogService, wire.Bind(new(usecase.UserService), new(*service.UserService)), wire.Bind(new(usecase.OTPService), new(*service.OTPService)), wire.Bind(new(communication.SMSService), new(*sms.SMSService)), wire.Bind(new(communication.EmailService), new(*email.EmailService)), wire.Bind(new(usecase.JWTService), new(*service.JWTService)), wire.Bind(new(usecase.AddressService), new(*service.AddressService)), wire.Bind(new(usecase.TestService), new(*service.TestService)), wire.Bind(new(usecase.CategoryService), new(*service.CategoryService)), wire.Bind(new(usecase.CurrencyService), new(*service.CurrencyService)), wire.Bind(new(usecase.BrandService), new(*service.BrandService)), wire.Bind(new(usecase.ProductService), new(*service.ProductService)), wire.Bind(new(usecase.ReviewService), new(*service.ReviewService)), wire.Bind(new(usecase.CouponService), new(*service.CouponService)), wire.Bind(new(usecase.WishlistService), new(*service.WishlistService)), wire.Bind(new(usecase.CartService), new(*service.CartService)), wire.Bind(new(usecase.OrderService), new(*service.OrderService)), wire.Bind(new(usecase.PaymentService), new(*service.PaymentService)), wire.Bind(new(usecase.UpgradeRequestService), new(*service.UpgradeRequestService)), wire.Bind(new(usecase.RoleService), new(*service.RoleService)), wire.Bind(new(usecase.ReturnService), new(*service.ReturnService)), wire.Bind(new(usecase.ContactMessageService), new(*service.ContactMessageService)), wire.Bind(new(usecase.NotificationService), new(*service.NotificationService)), wire.Bind(new(usecase.AdminLogService), new(*service.AdminLogService)))
 
 var AdapterProviderSet = wire.NewSet(localization.NewTranslationService, logger.NewLogger, storage.NewS3Storage, jwt.NewJWTKeyManager, wire.Bind(new(logger2.Logger), new(*logger.Logger)), wire.Bind(new(s3.S3Storage), new(*storage.S3Storage)))
 
 var GeneralControllerProviderSet = wire.NewSet(user.NewGeneralUserController, address.NewGeneralAddressController, product.NewGeneralProductController, review.NewGeneralReviewController, test.NewGeneralTestController, contact.NewGeneralContactController, wire.Struct(new(GeneralControllers), "*"))
 
-var CustomerControllerProviderSet = wire.NewSet(user.NewCustomerUserController, address.NewCustomerAddressController, cart.NewCustomerCartController, coupon.NewCustomerCouponController, order.NewCustomerOrderController, review.NewCustomerReviewController, upgraderequest.NewCustomerUpgradeRequestController, wishlist.NewCustomerWishlistController, returnctrl.NewCustomerReturnController, wire.Struct(new(CustomerControllers), "*"))
+var CustomerControllerProviderSet = wire.NewSet(user.NewCustomerUserController, address.NewCustomerAddressController, cart.NewCustomerCartController, coupon.NewCustomerCouponController, order.NewCustomerOrderController, review.NewCustomerReviewController, upgraderequest.NewCustomerUpgradeRequestController, wishlist.NewCustomerWishlistController, returnctrl.NewCustomerReturnController, notification.NewCustomerNotificationController, wire.Struct(new(CustomerControllers), "*"))
 
-var AdminControllerProviderSet = wire.NewSet(currency.NewAdminCurrencyController, category.NewAdminCategoryController, brand.NewAdminBrandController, product.NewAdminProductController, user.NewAdminUserController, order.NewAdminOrderController, upgraderequest.NewAdminUpgradeRequestController, role.NewAdminRoleController, returnctrl.NewAdminReturnController, contact.NewAdminContactController, wire.Struct(new(AdminControllers), "*"))
+var AdminControllerProviderSet = wire.NewSet(currency.NewAdminCurrencyController, category.NewAdminCategoryController, brand.NewAdminBrandController, product.NewAdminProductController, user.NewAdminUserController, order.NewAdminOrderController, upgraderequest.NewAdminUpgradeRequestController, role.NewAdminRoleController, returnctrl.NewAdminReturnController, contact.NewAdminContactController, review.NewAdminReviewController, adminlog.NewAdminLogController, wire.Struct(new(AdminControllers), "*"))
 
 var ControllersProviderSet = wire.NewSet(wire.Struct(new(Controllers), "*"))
 
-var MiddlewareProviderSet = wire.NewSet(middleware.NewAuthMiddleware, middleware.NewCorsMiddleware, middleware.NewRecovery, middleware.NewLocalization, middleware.NewRateLimit, middleware.NewLoggerMiddleware, wire.Struct(new(Middlewares), "*"))
+var MiddlewareProviderSet = wire.NewSet(middleware.NewAuthMiddleware, middleware.NewCorsMiddleware, middleware.NewRecovery, middleware.NewLocalization, middleware.NewRateLimit, middleware.NewLoggerMiddleware, middleware.NewAdminActivityLogMiddleware, wire.Struct(new(Middlewares), "*"))
 
-var SeederProviderSet = wire.NewSet(seed.NewAddressSeeder, seed.NewAdminSeeder, seed.NewCurrencySeeder, wire.Struct(new(Seeds), "*"))
+var SeederProviderSet = wire.NewSet(seed.NewAddressSeeder, seed.NewAdminSeeder, seed.NewCurrencySeeder, seed.NewPermissionSeeder, wire.Struct(new(Seeds), "*"))
 
 func ProvideConstants(container *bootstrap.Config) *bootstrap.Constants {
 	return container.Constants
@@ -400,6 +430,10 @@ func ProvideZarinpalConfig(container *bootstrap.Config) *bootstrap.Zarinpal {
 	return &container.Env.Zarinpal
 }
 
+func ProvideRBACConfig(container *bootstrap.Config) *bootstrap.RBAC {
+	return &container.Env.RBAC
+}
+
 var ProviderSet = wire.NewSet(
 	DatabaseProviderSet,
 	RepositoryProviderSet,
@@ -429,6 +463,7 @@ var ProviderSet = wire.NewSet(
 	ProvideEmailSenderAccount,
 	ProvideSuperAdminCredential,
 	ProvideZarinpalConfig,
+	ProvideRBACConfig,
 )
 
 type Database struct {
@@ -455,6 +490,7 @@ type CustomerControllers struct {
 	UpgradeRequestController *upgraderequest.CustomerUpgradeRequestController
 	WishlistController       *wishlist.CustomerWishlistController
 	ReturnController         *returnctrl.CustomerReturnController
+	NotificationController   *notification.CustomerNotificationController
 }
 
 type AdminControllers struct {
@@ -468,6 +504,8 @@ type AdminControllers struct {
 	RoleController           *role.AdminRoleController
 	ReturnController         *returnctrl.AdminReturnController
 	ContactController        *contact.AdminContactController
+	ReviewController         *review.AdminReviewController
+	AdminLogController       *adminlog.AdminLogController
 }
 
 type Controllers struct {
@@ -477,18 +515,20 @@ type Controllers struct {
 }
 
 type Middlewares struct {
-	Authentication *middleware.AuthMiddleware
-	CORS           *middleware.CORSMiddleware
-	Recovery       *middleware.RecoveryMiddleware
-	Localization   *middleware.LocalizationMiddleware
-	RateLimit      *middleware.RateLimitMiddleware
-	Logger         *middleware.LoggerMiddleware
+	Authentication   *middleware.AuthMiddleware
+	CORS             *middleware.CORSMiddleware
+	Recovery         *middleware.RecoveryMiddleware
+	Localization     *middleware.LocalizationMiddleware
+	RateLimit        *middleware.RateLimitMiddleware
+	Logger           *middleware.LoggerMiddleware
+	AdminActivityLog *middleware.AdminActivityLogMiddleware
 }
 
 type Seeds struct {
-	AddressSeeder  *seed.AddressSeeder
-	AdminSeeder    *seed.AdminSeeder
-	CurrencySeeder *seed.CurrencySeeder
+	AddressSeeder    *seed.AddressSeeder
+	AdminSeeder      *seed.AdminSeeder
+	CurrencySeeder   *seed.CurrencySeeder
+	PermissionSeeder *seed.PermissionSeeder
 }
 
 type Application struct {
