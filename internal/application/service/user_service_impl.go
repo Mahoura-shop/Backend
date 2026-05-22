@@ -408,6 +408,37 @@ func (userService *UserService) GetSalesChart(period string) ([]userdto.RevenueB
 	return result, nil
 }
 
+func (userService *UserService) GetVisitsChart(period string) ([]userdto.VisitsByDay, error) {
+	days := 7
+	switch period {
+	case "month":
+		days = 30
+	case "year":
+		days = 365
+	}
+	visits, err := userService.productVisitRepository.GetAllVisitsPerDay(userService.db, days)
+	if err != nil {
+		return nil, err
+	}
+	countByDate := make(map[string]uint, len(visits))
+	for _, v := range visits {
+		key := v.Date
+		if len(key) > 10 {
+			key = key[:10]
+		}
+		countByDate[key] = v.Count
+	}
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	result := make([]userdto.VisitsByDay, days)
+	for i := range result {
+		d := today.AddDate(0, 0, -(days-1-i))
+		dateStr := d.Format("2006-01-02")
+		result[i] = userdto.VisitsByDay{Date: dateStr, Count: countByDate[dateStr]}
+	}
+	return result, nil
+}
+
 func (userService *UserService) GetProductVisitsChart(productID uint, period string) ([]userdto.VisitsByDay, error) {
 	days := 7
 	switch period {

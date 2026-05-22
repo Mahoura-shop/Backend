@@ -93,6 +93,18 @@ func (s *OrderService) ParseOrder(order entity.Order) orderdto.OrderCredential {
 		CreatedAt:     order.CreatedAt,
 	}
 
+	if order.User.FirstName != "" || order.User.LastName != "" {
+		resp.User = &orderdto.UserCredential{
+			FirstName: order.User.FirstName,
+			LastName:  order.User.LastName,
+			Phone:     order.User.Phone,
+		}
+	} else if order.User.Phone != "" {
+		resp.User = &orderdto.UserCredential{
+			Phone: order.User.Phone,
+		}
+	}
+
 	for _, item := range order.Items {
 		resp.Items = append(resp.Items, orderdto.OrderItemCredential{
 			ID:            item.ID,

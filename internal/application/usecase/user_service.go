@@ -21,6 +21,7 @@ type UserService interface {
 	GetDashboard() (userdto.DashboardResponse, error)
 	GetOrdersChart(period string) ([]userdto.OrderByDay, error)
 	GetSalesChart(period string) ([]userdto.RevenueByDay, error)
+	GetVisitsChart(period string) ([]userdto.VisitsByDay, error)
 	GetProductVisitsChart(productID uint, period string) ([]userdto.VisitsByDay, error)
 	GetProductOrdersChart(productID uint, period string) ([]userdto.OrderByDay, error)
 	GetUserWalletBalance(uint) (userdto.UserWalletBalance, error)

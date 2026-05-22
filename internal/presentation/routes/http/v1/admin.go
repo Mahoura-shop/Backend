@@ -96,6 +96,7 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		admin.GET("/dashboard", app.Controllers.Admin.UserController.GetDashboard)
 		admin.GET("/dashboard/orders", app.Controllers.Admin.UserController.GetOrdersChart)
 		admin.GET("/dashboard/sales", app.Controllers.Admin.UserController.GetSalesChart)
+		admin.GET("/dashboard/visits", app.Controllers.Admin.UserController.GetVisitsChart)
 
 		adminProducts := admin.Group("/products")
 		{

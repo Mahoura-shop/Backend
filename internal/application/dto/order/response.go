@@ -19,7 +19,14 @@ type OrderCredential struct {
 	TrackingCode  *string                   `json:"trackingCode,omitempty"`
 	Items         []OrderItemCredential     `json:"items"`
 	StatusHistory []OrderStatusHistoryEntry `json:"statusHistory,omitempty"`
+	User          *UserCredential           `json:"user,omitempty"`
 	CreatedAt     time.Time                 `json:"createdAt"`
+}
+
+type UserCredential struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Phone     string `json:"phone"`
 }
 
 type OrderItemCredential struct {

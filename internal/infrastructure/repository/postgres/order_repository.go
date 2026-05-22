@@ -21,7 +21,7 @@ func (repo *OrderRepository) FindOrderByID(db database.Database, orderID uint) (
 		Preload("User").
 		Preload("Address").
 		Preload("Items").
-		Preload("Items.Product").
+		Preload("Items.Product", func(tx *gorm.DB) *gorm.DB { return tx.Unscoped() }).
 		Preload("StatusHistory").
 		Where("id = ?", orderID).
 		First(&order)
@@ -40,7 +40,7 @@ func (repo *OrderRepository) GetOrders(db database.Database) ([]*entity.Order, e
 		Preload("User").
 		Preload("Address").
 		Preload("Items").
-		Preload("Items.Product").
+		Preload("Items.Product", func(tx *gorm.DB) *gorm.DB { return tx.Unscoped() }).
 		Order("created_at DESC").
 		Find(&orders)
 	if result.Error != nil {
@@ -54,7 +54,7 @@ func (repo *OrderRepository) GetOrdersByUserID(db database.Database, userID uint
 	result := db.GetDB().
 		Preload("Address").
 		Preload("Items").
-		Preload("Items.Product").
+		Preload("Items.Product", func(tx *gorm.DB) *gorm.DB { return tx.Unscoped() }).
 		Preload("StatusHistory").
 		Where("user_id = ?", userID).
 		Order("created_at DESC").
@@ -129,7 +129,7 @@ func (repo *OrderRepository) GetRevenuePerDay(db database.Database, days int) ([
 
 func (repo *OrderRepository) FindOrderItemByID(db database.Database, orderItemID uint) (*entity.OrderItem, error) {
 	var item entity.OrderItem
-	result := db.GetDB().Preload("Order").Preload("Product").Where("id = ?", orderItemID).First(&item)
+	result := db.GetDB().Preload("Order").Preload("Product", func(tx *gorm.DB) *gorm.DB { return tx.Unscoped() }).Where("id = ?", orderItemID).First(&item)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}

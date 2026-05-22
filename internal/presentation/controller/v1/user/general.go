@@ -111,6 +111,15 @@ func (userController *AdminUserController) GetSalesChart(ctx *gin.Context) {
 	controller.Response(ctx, 200, "", data)
 }
 
+func (userController *AdminUserController) GetVisitsChart(ctx *gin.Context) {
+	period := ctx.DefaultQuery("period", "week")
+	data, err := userController.userService.GetVisitsChart(period)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", data)
+}
+
 func (userController *AdminUserController) GetProductVisitsChart(ctx *gin.Context) {
 	type params struct {
 		ProductID uint `uri:"productID" validate:"required"`

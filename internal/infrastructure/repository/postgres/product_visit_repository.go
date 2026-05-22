@@ -58,3 +58,18 @@ func (repo *ProductVisitRepository) GetVisitsPerDay(db database.Database, produc
 	}
 	return results, nil
 }
+
+func (repo *ProductVisitRepository) GetAllVisitsPerDay(db database.Database, days int) ([]postgresrepo.VisitsByDay, error) {
+	var results []postgresrepo.VisitsByDay
+	result := db.GetDB().
+		Model(&entity.ProductVisit{}).
+		Select("DATE(TO_TIMESTAMP(visited_at)) as date, COUNT(*) as count").
+		Where("visited_at >= EXTRACT(EPOCH FROM NOW() - ? * INTERVAL '1 day')", days).
+		Group("DATE(TO_TIMESTAMP(visited_at))").
+		Order("DATE(TO_TIMESTAMP(visited_at))").
+		Scan(&results)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return results, nil
+}
