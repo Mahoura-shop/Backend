@@ -150,3 +150,31 @@ func (repo *OrderRepository) GetOrdersPerDay(db database.Database, days int) ([]
 	}
 	return results, nil
 }
+
+func (repo *OrderRepository) HasOrderItemsForProduct(db database.Database, productID uint) (bool, error) {
+	var count int64
+	result := db.GetDB().
+		Model(&entity.OrderItem{}).
+		Where("product_id = ?", productID).
+		Count(&count)
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return count > 0, nil
+}
+
+func (repo *OrderRepository) GetProductOrdersPerDay(db database.Database, productID uint, days int) ([]postgresrepo.OrderByDay, error) {
+	var results []postgresrepo.OrderByDay
+	result := db.GetDB().
+		Model(&entity.OrderItem{}).
+		Select("DATE(orders.created_at) as date, COUNT(DISTINCT orders.id) as count").
+		Joins("JOIN orders ON orders.id = order_items.order_id").
+		Where("order_items.product_id = ? AND orders.created_at >= NOW() - ? * INTERVAL '1 day'", productID, days).
+		Group("DATE(orders.created_at)").
+		Order("DATE(orders.created_at)").
+		Scan(&results)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return results, nil
+}

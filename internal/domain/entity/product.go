@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"time"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 )
 
@@ -40,4 +41,5 @@ type Product struct {
 	ProductPic    string         `gorm:"type:varchar(255);default:null"`
 	Size          string         `gorm:"type:varchar(255);default:null"`
 	Images        []ProductImage `gorm:"foreignKey:ProductID"`
+	DeletedAt     *time.Time     `gorm:"index"`
 }

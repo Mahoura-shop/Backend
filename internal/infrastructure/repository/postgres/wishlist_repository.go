@@ -57,3 +57,7 @@ func (r *WishlistRepository) FindWishlistItem(db database.Database, userID, prod
 	}
 	return &item, nil
 }
+
+func (r *WishlistRepository) DeleteByProductID(db database.Database, productID uint) error {
+	return db.GetDB().Where("product_id = ?", productID).Unscoped().Delete(&entity.Wishlist{}).Error
+}

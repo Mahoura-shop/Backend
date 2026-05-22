@@ -15,7 +15,7 @@ func NewProductRepository() *ProductRepository {
 
 func (repo *ProductRepository) FindProductByID(db database.Database, productID uint) (*entity.Product, error) {
 	var product entity.Product
-	result := db.GetDB().Preload("Brand").Preload("Category").Preload("Currency").Preload("Images").Where("id = ?", productID).First(&product)
+	result := db.GetDB().Unscoped().Preload("Brand").Preload("Category").Preload("Currency").Preload("Images").Where("id = ?", productID).First(&product)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -69,6 +69,17 @@ func (repo *ProductRepository) GetCategoryProducts(db database.Database, categor
 	return products, nil
 }
 
+func (repo *ProductRepository) GetBrandProducts(db database.Database, brandID uint) ([]*entity.Product, error) {
+	var products []*entity.Product
+	result := db.GetDB().Preload("Brand").Preload("Category").Preload("Currency").Where("brand_id = ?", brandID).Find(&products)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return products, nil
+}
+
 func (repo *ProductRepository) CreateProduct(db database.Database, product entity.Product) (*entity.Product, error) {
     result := db.GetDB().Create(&product)
     if result.Error != nil {
@@ -83,7 +94,7 @@ func (repo *ProductRepository) UpdateProduct(db database.Database, product entit
 }
 
 func (repo *ProductRepository) DeleteProductByID(db database.Database, productID uint) error {
-	return db.GetDB().Where("id = ?", productID).Unscoped().Delete(&entity.Product{}).Error
+	return db.GetDB().Where("id = ?", productID).Delete(&entity.Product{}).Error
 }
 
 func (repo *ProductRepository) GetProductsCount(db database.Database) (uint, error) {
@@ -127,6 +138,15 @@ func (repo *ProductRepository) SearchProducts(db database.Database, filter domai
 		q = q.Order("irr_price DESC")
 	case "newest":
 		q = q.Order("created_at DESC")
+	case "popularity":
+		q = q.Joins("LEFT JOIN order_items ON order_items.product_id = products.id").
+			Joins("LEFT JOIN orders ON orders.id = order_items.order_id AND orders.status = ?", 2).
+			Group("products.id").
+			Order("COALESCE(SUM(order_items.count), 0) DESC, products.priority DESC, products.created_at DESC")
+	case "most_visited":
+		q = q.Joins("LEFT JOIN product_visits ON product_visits.product_id = products.id").
+			Group("products.id").
+			Order("COALESCE(COUNT(product_visits.id), 0) DESC, products.priority DESC, products.created_at DESC")
 	default:
 		q = q.Order("priority DESC, created_at DESC")
 	}
@@ -141,6 +161,8 @@ func (repo *ProductRepository) SearchProductsWithCount(db database.Database, fil
 	var products []*entity.Product
 	var count int64
 	q := db.GetDB().Preload("Brand").Preload("Category").Preload("Currency")
+
+	q = q.Where("is_active = true")
 
 	if filter.Query != "" {
 		q = q.Where(
@@ -175,6 +197,15 @@ func (repo *ProductRepository) SearchProductsWithCount(db database.Database, fil
 		q = q.Order("irr_price DESC")
 	case "newest":
 		q = q.Order("created_at DESC")
+	case "popularity":
+		q = q.Joins("LEFT JOIN order_items ON order_items.product_id = products.id").
+			Joins("LEFT JOIN orders ON orders.id = order_items.order_id AND orders.status = ?", 2).
+			Group("products.id").
+			Order("COALESCE(SUM(order_items.count), 0) DESC, products.priority DESC, products.created_at DESC")
+	case "most_visited":
+		q = q.Joins("LEFT JOIN product_visits ON product_visits.product_id = products.id").
+			Group("products.id").
+			Order("COALESCE(COUNT(product_visits.id), 0) DESC, products.priority DESC, products.created_at DESC")
 	default:
 		q = q.Order("priority DESC, created_at DESC")
 	}

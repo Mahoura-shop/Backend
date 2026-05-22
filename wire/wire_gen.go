@@ -107,6 +107,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	generalAddressController := address.NewGeneralAddressController(constants, addressService)
 	productImageRepository := postgres.NewProductImageRepository()
 	wishlistRepository := postgres.NewWishlistRepository()
+	reviewRepository := postgres.NewReviewRepository()
 	s3 := ProvideStorageConfig(container)
 	s3Storage := storage.NewS3Storage(constants, s3)
 	categoryServiceDeps := service.CategoryServiceDeps{
@@ -117,10 +118,11 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	}
 	categoryService := service.NewCategoryService(categoryServiceDeps)
 	brandServiceDeps := service.BrandServiceDeps{
-		Constants:       constants,
-		BrandRepository: brandRepository,
-		S3Storage:       s3Storage,
-		DB:              postgresDatabase,
+		Constants:         constants,
+		BrandRepository:   brandRepository,
+		ProductRepository: productRepository,
+		S3Storage:         s3Storage,
+		DB:                postgresDatabase,
 	}
 	brandService := service.NewBrandService(brandServiceDeps)
 	currencyRepository := postgres.NewCurrencyRepository()
@@ -142,6 +144,8 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		ProductRepository:      productRepository,
 		ProductImageRepository: productImageRepository,
 		WishlistRepository:     wishlistRepository,
+		CartRepository:         cartRepository,
+		ReviewRepository:       reviewRepository,
 		CategoryService:        categoryService,
 		BrandService:           brandService,
 		CurrencyService:        currencyService,
@@ -150,8 +154,8 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		DB:                     postgresDatabase,
 	}
 	productService := service.NewProductService(productServiceDeps)
-	generalProductController := product.NewGeneralProductController(constants, productService, userRepository, postgresDatabase)
-	reviewRepository := postgres.NewReviewRepository()
+	productVisitRepository := postgres.NewProductVisitRepository()
+	generalProductController := product.NewGeneralProductController(constants, productService, userRepository, productVisitRepository, postgresDatabase)
 	reviewServiceDeps := service.ReviewServiceDeps{
 		ReviewRepository: reviewRepository,
 		DB:               postgresDatabase,
@@ -306,7 +310,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		Customer: customerControllers,
 		Admin:    adminControllers,
 	}
-	authMiddleware := middleware.NewAuthMiddleware(constants, jwtService, userRepository, postgresDatabase)
+	authMiddleware := middleware.NewAuthMiddleware(constants, jwtService, userRepository, postgresDatabase, rbac)
 	corsMiddleware := middleware.NewCorsMiddleware()
 	recoveryMiddleware := middleware.NewRecovery(constants)
 	translator := localization.NewTranslationService()
@@ -348,7 +352,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 
 var DatabaseProviderSet = wire.NewSet(database.NewPostgresDatabase, database.NewRedisDatabase, wire.Bind(new(database.Database), new(*database.PostgresDatabase)), wire.Bind(new(database.Cache), new(*database.RedisDatabase)), wire.Struct(new(Database), "*"))
 
-var RepositoryProviderSet = wire.NewSet(postgres.NewRoleRepository, postgres.NewUserRepository, postgres.NewAddressRepository, postgres.NewCategoryRepository, postgres.NewCurrencyRepository, postgres.NewBrandRepository, postgres.NewProductRepository, postgres.NewProductImageRepository, postgres.NewReviewRepository, postgres.NewCouponRepository, postgres.NewWishlistRepository, postgres.NewWalletRepository, postgres.NewCartRepository, postgres.NewOrderRepository, postgres.NewTransactionRepository, postgres.NewPaymentRepository, postgres.NewInstalmentRepository, postgres.NewUpgradeRequestRepository, postgres.NewUserAuditLogRepository, postgres.NewReturnRepository, postgres.NewContactMessageRepository, postgres.NewNotificationRepository, postgres.NewAdminActivityLogRepository, redis.NewUserCacheRepository, wire.Bind(new(postgres2.UserRepository), new(*postgres.UserRepository)), wire.Bind(new(postgres2.AddressRepository), new(*postgres.AddressRepository)), wire.Bind(new(redis2.UserCacheRepository), new(*redis.UserCacheRepository)), wire.Bind(new(postgres2.CategoryRepository), new(*postgres.CategoryRepository)), wire.Bind(new(postgres2.CurrencyRepository), new(*postgres.CurrencyRepository)), wire.Bind(new(postgres2.BrandRepository), new(*postgres.BrandRepository)), wire.Bind(new(postgres2.ProductRepository), new(*postgres.ProductRepository)), wire.Bind(new(postgres2.ProductImageRepository), new(*postgres.ProductImageRepository)), wire.Bind(new(postgres2.ReviewRepository), new(*postgres.ReviewRepository)), wire.Bind(new(postgres2.CouponRepository), new(*postgres.CouponRepository)), wire.Bind(new(postgres2.WishlistRepository), new(*postgres.WishlistRepository)), wire.Bind(new(postgres2.WalletRepository), new(*postgres.WalletRepository)), wire.Bind(new(postgres2.CartRepository), new(*postgres.CartRepository)), wire.Bind(new(postgres2.OrderRepository), new(*postgres.OrderRepository)), wire.Bind(new(postgres2.TransactionRepository), new(*postgres.TransactionRepository)), wire.Bind(new(postgres2.PaymentRepository), new(*postgres.PaymentRepository)), wire.Bind(new(postgres2.InstalmentRepository), new(*postgres.InstalmentRepository)), wire.Bind(new(postgres2.UpgradeRequestRepository), new(*postgres.UpgradeRequestRepository)), wire.Bind(new(postgres2.UserAuditLogRepository), new(*postgres.UserAuditLogRepository)), wire.Bind(new(postgres2.RoleRepository), new(*postgres.RoleRepository)), wire.Bind(new(postgres2.ReturnRepository), new(*postgres.ReturnRepository)), wire.Bind(new(postgres2.ContactMessageRepository), new(*postgres.ContactMessageRepository)), wire.Bind(new(postgres2.NotificationRepository), new(*postgres.NotificationRepository)), wire.Bind(new(postgres2.AdminActivityLogRepository), new(*postgres.AdminActivityLogRepository)))
+var RepositoryProviderSet = wire.NewSet(postgres.NewRoleRepository, postgres.NewUserRepository, postgres.NewAddressRepository, postgres.NewCategoryRepository, postgres.NewCurrencyRepository, postgres.NewBrandRepository, postgres.NewProductRepository, postgres.NewProductImageRepository, postgres.NewProductVisitRepository, postgres.NewReviewRepository, postgres.NewCouponRepository, postgres.NewWishlistRepository, postgres.NewWalletRepository, postgres.NewCartRepository, postgres.NewOrderRepository, postgres.NewTransactionRepository, postgres.NewPaymentRepository, postgres.NewInstalmentRepository, postgres.NewUpgradeRequestRepository, postgres.NewUserAuditLogRepository, postgres.NewReturnRepository, postgres.NewContactMessageRepository, postgres.NewNotificationRepository, postgres.NewAdminActivityLogRepository, redis.NewUserCacheRepository, wire.Bind(new(postgres2.UserRepository), new(*postgres.UserRepository)), wire.Bind(new(postgres2.AddressRepository), new(*postgres.AddressRepository)), wire.Bind(new(redis2.UserCacheRepository), new(*redis.UserCacheRepository)), wire.Bind(new(postgres2.CategoryRepository), new(*postgres.CategoryRepository)), wire.Bind(new(postgres2.CurrencyRepository), new(*postgres.CurrencyRepository)), wire.Bind(new(postgres2.BrandRepository), new(*postgres.BrandRepository)), wire.Bind(new(postgres2.ProductRepository), new(*postgres.ProductRepository)), wire.Bind(new(postgres2.ProductImageRepository), new(*postgres.ProductImageRepository)), wire.Bind(new(postgres2.ProductVisitRepository), new(*postgres.ProductVisitRepository)), wire.Bind(new(postgres2.ReviewRepository), new(*postgres.ReviewRepository)), wire.Bind(new(postgres2.CouponRepository), new(*postgres.CouponRepository)), wire.Bind(new(postgres2.WishlistRepository), new(*postgres.WishlistRepository)), wire.Bind(new(postgres2.WalletRepository), new(*postgres.WalletRepository)), wire.Bind(new(postgres2.CartRepository), new(*postgres.CartRepository)), wire.Bind(new(postgres2.OrderRepository), new(*postgres.OrderRepository)), wire.Bind(new(postgres2.TransactionRepository), new(*postgres.TransactionRepository)), wire.Bind(new(postgres2.PaymentRepository), new(*postgres.PaymentRepository)), wire.Bind(new(postgres2.InstalmentRepository), new(*postgres.InstalmentRepository)), wire.Bind(new(postgres2.UpgradeRequestRepository), new(*postgres.UpgradeRequestRepository)), wire.Bind(new(postgres2.UserAuditLogRepository), new(*postgres.UserAuditLogRepository)), wire.Bind(new(postgres2.RoleRepository), new(*postgres.RoleRepository)), wire.Bind(new(postgres2.ReturnRepository), new(*postgres.ReturnRepository)), wire.Bind(new(postgres2.ContactMessageRepository), new(*postgres.ContactMessageRepository)), wire.Bind(new(postgres2.NotificationRepository), new(*postgres.NotificationRepository)), wire.Bind(new(postgres2.AdminActivityLogRepository), new(*postgres.AdminActivityLogRepository)))
 
 var ServiceProviderSet = wire.NewSet(wire.Struct(new(service.UserServiceDeps), "*"), wire.Struct(new(service.CategoryServiceDeps), "*"), wire.Struct(new(service.CurrencyServiceDeps), "*"), wire.Struct(new(service.BrandServiceDeps), "*"), wire.Struct(new(service.ProductServiceDeps), "*"), wire.Struct(new(service.ReviewServiceDeps), "*"), wire.Struct(new(service.CouponServiceDeps), "*"), wire.Struct(new(service.WishlistServiceDeps), "*"), wire.Struct(new(service.CartServiceDeps), "*"), wire.Struct(new(service.OrderServiceDeps), "*"), wire.Struct(new(service.UpgradeRequestServiceDeps), "*"), wire.Struct(new(service.RoleServiceDeps), "*"), wire.Struct(new(service.ReturnServiceDeps), "*"), wire.Struct(new(service.ContactMessageServiceDeps), "*"), wire.Struct(new(service.NotificationServiceDeps), "*"), wire.Struct(new(service.AdminLogServiceDeps), "*"), service.NewUserService, service.NewOTPService, sms.NewSMSService, email.NewEmailService, service.NewJWTService, service.NewAddressService, service.NewTestService, service.NewCategoryService, service.NewCurrencyService, service.NewBrandService, service.NewProductService, service.NewReviewService, service.NewCouponService, service.NewWishlistService, service.NewCartService, service.NewOrderService, service.NewPaymentService, service.NewUpgradeRequestService, service.NewRoleService, service.NewReturnService, service.NewContactMessageService, service.NewNotificationService, service.NewAdminLogService, wire.Bind(new(usecase.UserService), new(*service.UserService)), wire.Bind(new(usecase.OTPService), new(*service.OTPService)), wire.Bind(new(communication.SMSService), new(*sms.SMSService)), wire.Bind(new(communication.EmailService), new(*email.EmailService)), wire.Bind(new(usecase.JWTService), new(*service.JWTService)), wire.Bind(new(usecase.AddressService), new(*service.AddressService)), wire.Bind(new(usecase.TestService), new(*service.TestService)), wire.Bind(new(usecase.CategoryService), new(*service.CategoryService)), wire.Bind(new(usecase.CurrencyService), new(*service.CurrencyService)), wire.Bind(new(usecase.BrandService), new(*service.BrandService)), wire.Bind(new(usecase.ProductService), new(*service.ProductService)), wire.Bind(new(usecase.ReviewService), new(*service.ReviewService)), wire.Bind(new(usecase.CouponService), new(*service.CouponService)), wire.Bind(new(usecase.WishlistService), new(*service.WishlistService)), wire.Bind(new(usecase.CartService), new(*service.CartService)), wire.Bind(new(usecase.OrderService), new(*service.OrderService)), wire.Bind(new(usecase.PaymentService), new(*service.PaymentService)), wire.Bind(new(usecase.UpgradeRequestService), new(*service.UpgradeRequestService)), wire.Bind(new(usecase.RoleService), new(*service.RoleService)), wire.Bind(new(usecase.ReturnService), new(*service.ReturnService)), wire.Bind(new(usecase.ContactMessageService), new(*service.ContactMessageService)), wire.Bind(new(usecase.NotificationService), new(*service.NotificationService)), wire.Bind(new(usecase.AdminLogService), new(*service.AdminLogService)))
 

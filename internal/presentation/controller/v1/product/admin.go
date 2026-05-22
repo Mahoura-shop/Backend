@@ -229,6 +229,18 @@ func (productController *AdminProductController) GetCategoryProducts(ctx *gin.Co
 	controller.Response(ctx, 200, "", products)
 }
 
+func (productController *AdminProductController) GetBrandProducts(ctx *gin.Context) {
+	type getBrandProductsParams struct {
+		ID uint `uri:"brandID" validate:"required"`
+	}
+	params := controller.Validated[getBrandProductsParams](ctx)
+	products, err := productController.productService.GetBrandProducts(params.ID)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", products)
+}
+
 func (productController *AdminProductController) UpdateProductPrices(ctx *gin.Context) {
 	type productPrice struct {
 		ID       uint `json:"id" validate:"required"`

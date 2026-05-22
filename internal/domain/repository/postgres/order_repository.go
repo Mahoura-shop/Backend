@@ -33,4 +33,6 @@ type OrderRepository interface {
 	GetOrdersPerDay(db database.Database, days int) ([]OrderByDay, error)
 	GetRevenuePerDay(db database.Database, days int) ([]RevenueByDay, error)
 	FindOrderItemByID(db database.Database, orderItemID uint) (*entity.OrderItem, error)
+	HasOrderItemsForProduct(db database.Database, productID uint) (bool, error)
+	GetProductOrdersPerDay(db database.Database, productID uint, days int) ([]OrderByDay, error)
 }

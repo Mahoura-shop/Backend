@@ -2,10 +2,12 @@ package product
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	productdto "github.com/Mahoura-shop/Backend/internal/application/dto/product"
 	"github.com/Mahoura-shop/Backend/internal/application/usecase"
+	"github.com/Mahoura-shop/Backend/internal/domain/entity"
 	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 	domainPostgres "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
@@ -14,23 +16,26 @@ import (
 )
 
 type GeneralProductController struct {
-	constants       *bootstrap.Constants
-	productService  usecase.ProductService
-	userRepository  domainPostgres.UserRepository
-	database        database.Database
+	constants            *bootstrap.Constants
+	productService       usecase.ProductService
+	userRepository       domainPostgres.UserRepository
+	productVisitRepository domainPostgres.ProductVisitRepository
+	database             database.Database
 }
 
 func NewGeneralProductController(
 	constants *bootstrap.Constants,
 	productService usecase.ProductService,
 	userRepository domainPostgres.UserRepository,
+	productVisitRepository domainPostgres.ProductVisitRepository,
 	database database.Database,
 ) *GeneralProductController {
 	return &GeneralProductController{
-		constants:       constants,
-		productService:  productService,
-		userRepository:  userRepository,
-		database:        database,
+		constants:            constants,
+		productService:       productService,
+		userRepository:       userRepository,
+		productVisitRepository: productVisitRepository,
+		database:             database,
 	}
 }
 
@@ -103,4 +108,32 @@ func (c *GeneralProductController) GetRelatedProducts(ctx *gin.Context) {
 		panic(err)
 	}
 	controller.Response(ctx, 200, "", products)
+}
+
+func (c *GeneralProductController) TrackVisit(ctx *gin.Context) {
+	productIDStr := ctx.Param("productID")
+	productID, err := strconv.ParseUint(productIDStr, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	visitorIP := ctx.ClientIP()
+	hasVisited, err := c.productVisitRepository.HasVisitedInLast24h(c.database, uint(productID), visitorIP)
+	if err != nil {
+		panic(err)
+	}
+
+	if !hasVisited {
+		visit := entity.ProductVisit{
+			ProductID: uint(productID),
+			VisitorIP: visitorIP,
+			VisitedAt: time.Now().Unix(),
+		}
+		_, err := c.productVisitRepository.CreateVisit(c.database, visit)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	controller.Response(ctx, 200, "", gin.H{"tracked": !hasVisited})
 }

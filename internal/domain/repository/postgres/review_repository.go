@@ -12,4 +12,5 @@ type ReviewRepository interface {
 	GetProductReviews(database.Database, uint) ([]*entity.Review, error)
 	GetUserReviews(database.Database, uint) ([]*entity.Review, error)
 	DeleteReviewByID(database.Database, uint) error
+	DeleteByProductID(database.Database, uint) error
 }

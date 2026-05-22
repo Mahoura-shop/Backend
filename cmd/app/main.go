@@ -30,6 +30,7 @@ func main() {
 		&entity.Brand{},
 		&entity.Product{},
 		&entity.ProductImage{},
+		&entity.ProductVisit{},
 		&entity.Currency{},
 		&entity.Wallet{},
 		&entity.Cart{},

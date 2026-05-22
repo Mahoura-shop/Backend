@@ -16,25 +16,28 @@ import (
 )
 
 type BrandService struct {
-	constants       *bootstrap.Constants
-	brandRepository postgres.BrandRepository
-	s3Storage       s3.S3Storage
-	db              database.Database
+	constants         *bootstrap.Constants
+	brandRepository   postgres.BrandRepository
+	productRepository postgres.ProductRepository
+	s3Storage         s3.S3Storage
+	db                database.Database
 }
 
 type BrandServiceDeps struct {
-	Constants       *bootstrap.Constants
-	BrandRepository postgres.BrandRepository
-	S3Storage       s3.S3Storage
-	DB              database.Database
+	Constants         *bootstrap.Constants
+	BrandRepository   postgres.BrandRepository
+	ProductRepository postgres.ProductRepository
+	S3Storage         s3.S3Storage
+	DB                database.Database
 }
 
 func NewBrandService(deps BrandServiceDeps) *BrandService {
 	return &BrandService{
-		constants:       deps.Constants,
-		brandRepository: deps.BrandRepository,
-		s3Storage:       deps.S3Storage,
-		db:              deps.DB,
+		constants:         deps.Constants,
+		brandRepository:   deps.BrandRepository,
+		productRepository: deps.ProductRepository,
+		s3Storage:         deps.S3Storage,
+		db:                deps.DB,
 	}
 }
 
@@ -129,7 +132,7 @@ func (brandService *BrandService) GetBrands() ([]branddto.BrandCredential, error
 		if err != nil {
 			return nil, err
 		}
-		
+
 		if brand.BrandPic != "" {
 			brandPic, err := brandService.s3Storage.GetPresignedURL(enum.BrandPic, brand.BrandPic, 8*time.Hour)
 			if err != nil {
@@ -137,7 +140,24 @@ func (brandService *BrandService) GetBrands() ([]branddto.BrandCredential, error
 			}
 			response.BrandPic = brandPic
 		}
-		
+
+		products, err := brandService.productRepository.GetBrandProducts(brandService.db, brand.ID)
+		if err != nil {
+			return nil, err
+		}
+		brandProducts := make([]branddto.BrandProduct, 0, len(products))
+		for _, p := range products {
+			brandProducts = append(brandProducts, branddto.BrandProduct{
+				ID:       p.ID,
+				Name:     p.Name,
+				Slug:     p.Slug,
+				IsActive: p.IsActive,
+				Quantity: p.Quantity,
+				IRRPrice: p.IRRPrice,
+			})
+		}
+		response.Products = brandProducts
+
 		responses = append(responses, response)
 	}
 	return responses, nil

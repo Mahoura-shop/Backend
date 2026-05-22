@@ -21,6 +21,7 @@ type ProductService interface {
 	UpdateProduct(productdto.UpdateProductRequest) error
 	DeleteProduct(uint) error
 	GetCategoryProducts(uint) ([]productdto.ProductCredential, error)
+	GetBrandProducts(uint) ([]productdto.ProductCredential, error)
 	UpdateProductsPrice([]productdto.ProductPriceUpdateCredentials) error
 	UpdateProductsStock([]productdto.ProductStockUpdateCredentials, string) error
 	GetProductPrices() ([]productdto.ProductPrices, error)

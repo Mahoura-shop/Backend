@@ -67,3 +67,7 @@ func (r *ReviewRepository) GetUserReviews(db database.Database, userID uint) ([]
 func (r *ReviewRepository) DeleteReviewByID(db database.Database, reviewID uint) error {
 	return db.GetDB().Where("id = ?", reviewID).Delete(&entity.Review{}).Error
 }
+
+func (r *ReviewRepository) DeleteByProductID(db database.Database, productID uint) error {
+	return db.GetDB().Where("product_id = ?", productID).Unscoped().Delete(&entity.Review{}).Error
+}

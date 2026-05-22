@@ -161,3 +161,7 @@ func (repo *CartRepository) DecreaseCartItemCount(db database.Database, cartItem
 	err := db.GetDB().Save(&cartItem).Error
 	return err
 }
+
+func (repo *CartRepository) DeleteCartItemsByProductID(db database.Database, productID uint) (error) {
+	return db.GetDB().Where("product_id = ?", productID).Unscoped().Delete(&entity.CartItem{}).Error
+}

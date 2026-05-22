@@ -56,6 +56,11 @@ type RevenueByDay struct {
 	Revenue uint   `json:"revenue"`
 }
 
+type VisitsByDay struct {
+	Date  string `json:"date"`
+	Count uint   `json:"count"`
+}
+
 type LowStockProduct struct {
 	ID        uint   `json:"id"`
 	Name      string `json:"name"`

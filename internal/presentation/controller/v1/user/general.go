@@ -110,3 +110,29 @@ func (userController *AdminUserController) GetSalesChart(ctx *gin.Context) {
 	}
 	controller.Response(ctx, 200, "", data)
 }
+
+func (userController *AdminUserController) GetProductVisitsChart(ctx *gin.Context) {
+	type params struct {
+		ProductID uint `uri:"productID" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+	period := ctx.DefaultQuery("period", "week")
+	data, err := userController.userService.GetProductVisitsChart(p.ProductID, period)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", data)
+}
+
+func (userController *AdminUserController) GetProductOrdersChart(ctx *gin.Context) {
+	type params struct {
+		ProductID uint `uri:"productID" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+	period := ctx.DefaultQuery("period", "week")
+	data, err := userController.userService.GetProductOrdersChart(p.ProductID, period)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", data)
+}

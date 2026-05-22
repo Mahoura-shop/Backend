@@ -51,6 +51,7 @@ func SetupGeneralRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		{
 			productSub.GET("/related", app.Controllers.General.ProductController.GetRelatedProducts)
 			productSub.GET("/reviews", app.Controllers.General.ReviewController.GetProductReviews)
+			productSub.POST("/visit", app.Controllers.General.ProductController.TrackVisit)
 		}
 		products.GET("/slug/:slug", app.Controllers.General.ProductController.GetProductBySlug)
 	}

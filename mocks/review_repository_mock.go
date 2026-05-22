@@ -52,3 +52,8 @@ func (m *ReviewRepositoryMock) DeleteReviewByID(db database.Database, id uint) e
 	args := m.Called(db, id)
 	return args.Error(0)
 }
+
+func (m *ReviewRepositoryMock) DeleteByProductID(db database.Database, productID uint) error {
+	args := m.Called(db, productID)
+	return args.Error(0)
+}

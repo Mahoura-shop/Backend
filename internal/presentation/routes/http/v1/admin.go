@@ -56,6 +56,10 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		{
 			categoryProductsSubGroup.GET("/:categoryID", perm("product:see"), app.Controllers.Admin.ProductController.GetCategoryProducts)
 		}
+		brandProductsSubGroup := products.Group("/brand")
+		{
+			brandProductsSubGroup.GET("/:brandID", perm("product:see"), app.Controllers.Admin.ProductController.GetBrandProducts)
+		}
 		products.GET("/prices", perm("product:batch_price"), app.Controllers.Admin.ProductController.GetProductPrices)
 		products.PATCH("/prices", perm("product:batch_price"), app.Controllers.Admin.ProductController.UpdateProductPrices)
 		products.POST("/stock", perm("product:batch_inventory"), app.Controllers.Admin.ProductController.UpdateProductStock)
@@ -92,6 +96,15 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		admin.GET("/dashboard", app.Controllers.Admin.UserController.GetDashboard)
 		admin.GET("/dashboard/orders", app.Controllers.Admin.UserController.GetOrdersChart)
 		admin.GET("/dashboard/sales", app.Controllers.Admin.UserController.GetSalesChart)
+
+		adminProducts := admin.Group("/products")
+		{
+			adminProductsSub := adminProducts.Group("/:productID")
+			{
+				adminProductsSub.GET("/visits", perm("product:see"), app.Controllers.Admin.UserController.GetProductVisitsChart)
+				adminProductsSub.GET("/orders", perm("product:see"), app.Controllers.Admin.UserController.GetProductOrdersChart)
+			}
+		}
 
 		upgradeRequests := admin.Group("/upgrade-requests")
 		{

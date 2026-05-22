@@ -19,24 +19,27 @@ func init() {
 
 type GuestProductTestSuite struct {
 	suite.Suite
-	constants      *bootstrap.Constants
-	productService *mocks.ProductServiceMock
-	userRepo       *mocks.UserRepositoryMock
-	dbMock         *mocks.DatabaseMock
-	controller     *GeneralProductController
-	router         *gin.Engine
+	constants          *bootstrap.Constants
+	productService     *mocks.ProductServiceMock
+	userRepo           *mocks.UserRepositoryMock
+	productVisitRepo   *mocks.ProductVisitRepositoryMock
+	dbMock             *mocks.DatabaseMock
+	controller         *GeneralProductController
+	router             *gin.Engine
 }
 
 func (s *GuestProductTestSuite) SetupTest() {
 	s.constants = bootstrap.NewConstants()
 	s.productService = mocks.NewProductServiceMock()
 	s.userRepo = mocks.NewUserRepositoryMock()
+	s.productVisitRepo = mocks.NewProductVisitRepositoryMock()
 	s.dbMock = mocks.NewDatabaseMock()
 
 	s.controller = NewGeneralProductController(
 		s.constants,
 		s.productService,
 		s.userRepo,
+		s.productVisitRepo,
 		s.dbMock,
 	)
 

@@ -41,6 +41,7 @@ type ProductRepository interface {
 	SearchProductsWithCount(database.Database, ProductFilter) ([]*entity.Product, int64, error)
 	GetRelatedProducts(database.Database, uint, uint, uint, int) ([]*entity.Product, error)
 	GetCategoryProducts(database.Database, uint) ([]*entity.Product, error)
+	GetBrandProducts(database.Database, uint) ([]*entity.Product, error)
 	GetProductsCount(database.Database) (uint, error)
 	DeleteProductByID(database.Database, uint) error
 	UpdateProduct(database.Database, entity.Product) error

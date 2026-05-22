@@ -25,6 +25,9 @@ type ProductService struct {
 	productRepository      domainPostgres.ProductRepository
 	productImageRepository domainPostgres.ProductImageRepository
 	wishlistRepository     domainPostgres.WishlistRepository
+	cartRepository         domainPostgres.CartRepository
+	reviewRepository       domainPostgres.ReviewRepository
+	orderRepository        domainPostgres.OrderRepository
 	categoryService        usecase.CategoryService
 	brandService           usecase.BrandService
 	currencyService        usecase.CurrencyService
@@ -38,6 +41,9 @@ type ProductServiceDeps struct {
 	ProductRepository      domainPostgres.ProductRepository
 	ProductImageRepository domainPostgres.ProductImageRepository
 	WishlistRepository     domainPostgres.WishlistRepository
+	CartRepository         domainPostgres.CartRepository
+	ReviewRepository       domainPostgres.ReviewRepository
+	OrderRepository        domainPostgres.OrderRepository
 	CategoryService        usecase.CategoryService
 	BrandService           usecase.BrandService
 	CurrencyService        usecase.CurrencyService
@@ -52,6 +58,9 @@ func NewProductService(deps ProductServiceDeps) *ProductService {
 		productRepository:      deps.ProductRepository,
 		productImageRepository: deps.ProductImageRepository,
 		wishlistRepository:     deps.WishlistRepository,
+		cartRepository:         deps.CartRepository,
+		reviewRepository:       deps.ReviewRepository,
+		orderRepository:        deps.OrderRepository,
 		categoryService:        deps.CategoryService,
 		brandService:           deps.BrandService,
 		currencyService:        deps.CurrencyService,
@@ -445,9 +454,6 @@ func validatePriceOrdering(product entity.Product) error {
 	if product.Step3Price > 0 && product.Step4Price > 0 && product.Step3Price > product.Step4Price {
 		ve.Add("step3Price", "must be less than or equal to step4Price")
 	}
-	if product.Step4Price > 0 && product.ConsumerPrice > 0 && product.Step4Price > product.ConsumerPrice {
-		ve.Add("step4Price", "must be less than or equal to consumerPrice")
-	}
 	if len(ve.Errors) > 0 {
 		return ve
 	}
@@ -662,6 +668,7 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 		return exception.NotFoundError{Item: productService.constants.Field.Product}
 	}
 
+	wasActive := product.IsActive
 	err = productService.applyProductUpdates(product, productInfo)
 	if err != nil {
 		return err
@@ -679,7 +686,7 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 		if category == nil {
 			notFoundError := exception.NotFoundError{Item: productService.constants.Field.Category}
 			return notFoundError
-		} 
+		}
 	}
 
 	if productInfo.BrandID != nil {
@@ -690,7 +697,7 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 		if brand == nil {
 			notFoundError := exception.NotFoundError{Item: productService.constants.Field.Brand}
 			return notFoundError
-		} 
+		}
 	}
 
 	if productInfo.CurrencyID != nil {
@@ -701,7 +708,7 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 		if currency == nil {
 			notFoundError := exception.NotFoundError{Item: productService.constants.Field.Currency}
 			return notFoundError
-		} 
+		}
 	}
 
 	if (productInfo.Slug != nil) {
@@ -726,10 +733,17 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 			}
 			product.ProductPic = ""
 		}
-		
+
 		if err := productService.productRepository.UpdateProduct(tx, *product); err != nil {
 			return err
 		}
+
+		if wasActive && !product.IsActive {
+			if err := productService.cartRepository.DeleteCartItemsByProductID(tx, product.ID); err != nil {
+				return err
+			}
+		}
+
 		return nil
 	})
 
@@ -746,6 +760,29 @@ func (productService *ProductService) GetCategoryProducts(categoryID uint) ([]pr
 	}
 	
 	products, err := productService.productRepository.GetCategoryProducts(productService.db, categoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []productdto.ProductCredential
+	for _, product := range products {
+		response := productService.ParseProduct(*product)
+		responses = append(responses, response)
+	}
+
+	return responses, nil
+}
+
+func (productService *ProductService) GetBrandProducts(brandID uint) ([]productdto.ProductCredential, error) {
+	brand, err := productService.brandService.FindBrandByID(brandID)
+	if err != nil {
+		return nil, err
+	}
+	if brand == nil {
+		return nil, exception.NotFoundError{Item: productService.constants.Field.Brand}
+	}
+
+	products, err := productService.productRepository.GetBrandProducts(productService.db, brandID)
 	if err != nil {
 		return nil, err
 	}
@@ -879,10 +916,25 @@ func (productService *ProductService) DeleteProduct(productID uint) error {
 		return exception.NotFoundError{Item: productService.constants.Field.Product}
 	}
 
-	if err := productService.productRepository.DeleteProductByID(productService.db, productID); err != nil {
-		return err
-	}
-	return nil
+	now := time.Now()
+	product.DeletedAt = &now
+
+	err = productService.db.WithTransaction(func(tx database.Database) error {
+		if err := productService.cartRepository.DeleteCartItemsByProductID(tx, productID); err != nil {
+			return err
+		}
+		if err := productService.wishlistRepository.DeleteByProductID(tx, productID); err != nil {
+			return err
+		}
+		if err := productService.reviewRepository.DeleteByProductID(tx, productID); err != nil {
+			return err
+		}
+		if err := productService.productRepository.UpdateProduct(tx, *product); err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
 }
 
 func (productService *ProductService) GetProductPrices() ([]productdto.ProductPrices, error) {

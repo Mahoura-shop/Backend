@@ -97,6 +97,22 @@ func (cartService *CartService) AddProductToCart(addProductToCartInfo cartdto.Up
 		}
 	}
 
+	currentCartItem, err := cartService.cartRepository.FindCartItemByProductID(cartService.db, product.ID, cart.ID)
+	if err != nil {
+		return err
+	}
+
+	currentCount := uint(0)
+	if currentCartItem != nil {
+		currentCount = currentCartItem.Count
+	}
+
+	if currentCount+1 > product.Quantity {
+		var validationErrors exception.ValidationErrors
+		validationErrors.Add(cartService.constants.Field.CartItem, cartService.constants.Tag.Invalid)
+		return validationErrors
+	}
+
 	return cartService.cartRepository.AddProductToCart(cartService.db, product.ID, cart.ID)
 }
 

@@ -93,6 +93,11 @@ func (m *ProductServiceMock) GetCategoryProducts(categoryID uint) ([]productdto.
 	return args.Get(0).([]productdto.ProductCredential), args.Error(1)
 }
 
+func (m *ProductServiceMock) GetBrandProducts(brandID uint) ([]productdto.ProductCredential, error) {
+	args := m.Called(brandID)
+	return args.Get(0).([]productdto.ProductCredential), args.Error(1)
+}
+
 func (m *ProductServiceMock) UpdateProductsPrice(prices []productdto.ProductPriceUpdateCredentials) error {
 	args := m.Called(prices)
 	return args.Error(0)

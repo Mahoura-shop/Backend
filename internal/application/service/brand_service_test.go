@@ -14,20 +14,23 @@ import (
 
 type BrandServiceTestSuite struct {
 	suite.Suite
-	constants       *bootstrap.Constants
-	brandRepository *mocks.BrandRepositoryMock
-	db              *mocks.DatabaseMock
-	service         *BrandService
+	constants         *bootstrap.Constants
+	brandRepository   *mocks.BrandRepositoryMock
+	productRepository *mocks.ProductRepositoryMock
+	db                *mocks.DatabaseMock
+	service           *BrandService
 }
 
 func (s *BrandServiceTestSuite) SetupTest() {
 	s.constants = bootstrap.NewConstants()
 	s.brandRepository = mocks.NewBrandRepositoryMock()
+	s.productRepository = mocks.NewProductRepositoryMock()
 	s.db = mocks.NewDatabaseMock()
 	s.service = NewBrandService(BrandServiceDeps{
-		Constants:       s.constants,
-		BrandRepository: s.brandRepository,
-		DB:              s.db,
+		Constants:         s.constants,
+		BrandRepository:   s.brandRepository,
+		ProductRepository: s.productRepository,
+		DB:                s.db,
 	})
 }
 

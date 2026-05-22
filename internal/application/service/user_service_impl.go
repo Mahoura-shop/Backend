@@ -17,64 +17,67 @@ import (
 )
 
 type UserService struct {
-	constants             *bootstrap.Constants
-	otpService            usecase.OTPService
-	jwtService            usecase.JWTService
-	smsService            communication.SMSService
-	emailService          communication.EmailService
-	userRepository        postgres.UserRepository
-	roleRepository        postgres.RoleRepository
-	categoryRepository    postgres.CategoryRepository
-	brandRepository       postgres.BrandRepository
-	productRepository     postgres.ProductRepository
-	walletRepository      postgres.WalletRepository
-	cartRepository        postgres.CartRepository
-	transactionRepository postgres.TransactionRepository
-	orderRepository       postgres.OrderRepository
-	userCacheRepository   redis.UserCacheRepository
-	db                    database.Database
-	rbac                  *bootstrap.RBAC
+	constants              *bootstrap.Constants
+	otpService             usecase.OTPService
+	jwtService             usecase.JWTService
+	smsService             communication.SMSService
+	emailService           communication.EmailService
+	userRepository         postgres.UserRepository
+	roleRepository         postgres.RoleRepository
+	categoryRepository     postgres.CategoryRepository
+	brandRepository        postgres.BrandRepository
+	productRepository      postgres.ProductRepository
+	productVisitRepository postgres.ProductVisitRepository
+	walletRepository       postgres.WalletRepository
+	cartRepository         postgres.CartRepository
+	transactionRepository  postgres.TransactionRepository
+	orderRepository        postgres.OrderRepository
+	userCacheRepository    redis.UserCacheRepository
+	db                     database.Database
+	rbac                   *bootstrap.RBAC
 }
 
 type UserServiceDeps struct {
-	Constants             *bootstrap.Constants
-	OTPService            usecase.OTPService
-	JWTService            usecase.JWTService
-	SMSService            communication.SMSService
-	EmailService          communication.EmailService
-	UserRepository        postgres.UserRepository
-	RoleRepository        postgres.RoleRepository
-	CategoryRepository    postgres.CategoryRepository
-	BrandRepository       postgres.BrandRepository
-	ProductRepository     postgres.ProductRepository
-	WalletRepository      postgres.WalletRepository
-	CartRepository        postgres.CartRepository
-	TransactionRepository postgres.TransactionRepository
-	OrderRepository       postgres.OrderRepository
-	UserCacheRepository   redis.UserCacheRepository
-	DB                    database.Database
-	RBAC                  *bootstrap.RBAC
+	Constants              *bootstrap.Constants
+	OTPService             usecase.OTPService
+	JWTService             usecase.JWTService
+	SMSService             communication.SMSService
+	EmailService           communication.EmailService
+	UserRepository         postgres.UserRepository
+	RoleRepository         postgres.RoleRepository
+	CategoryRepository     postgres.CategoryRepository
+	BrandRepository        postgres.BrandRepository
+	ProductRepository      postgres.ProductRepository
+	ProductVisitRepository postgres.ProductVisitRepository
+	WalletRepository       postgres.WalletRepository
+	CartRepository         postgres.CartRepository
+	TransactionRepository  postgres.TransactionRepository
+	OrderRepository        postgres.OrderRepository
+	UserCacheRepository    redis.UserCacheRepository
+	DB                     database.Database
+	RBAC                   *bootstrap.RBAC
 }
 
 func NewUserService(deps UserServiceDeps) *UserService {
 	return &UserService{
-		constants:             deps.Constants,
-		otpService:            deps.OTPService,
-		jwtService:            deps.JWTService,
-		smsService:            deps.SMSService,
-		emailService:          deps.EmailService,
-		userRepository:        deps.UserRepository,
-		roleRepository:        deps.RoleRepository,
-		categoryRepository:    deps.CategoryRepository,
-		brandRepository:       deps.BrandRepository,
-		productRepository:     deps.ProductRepository,
-		walletRepository:      deps.WalletRepository,
-		cartRepository:        deps.CartRepository,
-		transactionRepository: deps.TransactionRepository,
-		orderRepository:       deps.OrderRepository,
-		userCacheRepository:   deps.UserCacheRepository,
-		db:                    deps.DB,
-		rbac:                  deps.RBAC,
+		constants:              deps.Constants,
+		otpService:             deps.OTPService,
+		jwtService:             deps.JWTService,
+		smsService:             deps.SMSService,
+		emailService:           deps.EmailService,
+		userRepository:         deps.UserRepository,
+		roleRepository:         deps.RoleRepository,
+		categoryRepository:     deps.CategoryRepository,
+		brandRepository:        deps.BrandRepository,
+		productRepository:      deps.ProductRepository,
+		productVisitRepository: deps.ProductVisitRepository,
+		walletRepository:       deps.WalletRepository,
+		cartRepository:         deps.CartRepository,
+		transactionRepository:  deps.TransactionRepository,
+		orderRepository:        deps.OrderRepository,
+		userCacheRepository:    deps.UserCacheRepository,
+		db:                     deps.DB,
+		rbac:                   deps.RBAC,
 	}
 }
 
@@ -355,9 +358,21 @@ func (userService *UserService) GetOrdersChart(period string) ([]userdto.OrderBy
 	if err != nil {
 		return nil, err
 	}
-	result := make([]userdto.OrderByDay, len(orders))
-	for i, o := range orders {
-		result[i] = userdto.OrderByDay{Date: o.Date, Count: o.Count}
+	countByDate := make(map[string]uint, len(orders))
+	for _, o := range orders {
+		key := o.Date
+		if len(key) > 10 {
+			key = key[:10]
+		}
+		countByDate[key] = o.Count
+	}
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	result := make([]userdto.OrderByDay, days)
+	for i := range result {
+		d := today.AddDate(0, 0, -(days-1-i))
+		dateStr := d.Format("2006-01-02")
+		result[i] = userdto.OrderByDay{Date: dateStr, Count: countByDate[dateStr]}
 	}
 	return result, nil
 }
@@ -374,9 +389,83 @@ func (userService *UserService) GetSalesChart(period string) ([]userdto.RevenueB
 	if err != nil {
 		return nil, err
 	}
-	result := make([]userdto.RevenueByDay, len(rows))
-	for i, r := range rows {
-		result[i] = userdto.RevenueByDay{Date: r.Date, Revenue: r.Revenue}
+	revenueByDate := make(map[string]uint, len(rows))
+	for _, r := range rows {
+		key := r.Date
+		if len(key) > 10 {
+			key = key[:10]
+		}
+		revenueByDate[key] = r.Revenue
+	}
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	result := make([]userdto.RevenueByDay, days)
+	for i := range result {
+		d := today.AddDate(0, 0, -(days-1-i))
+		dateStr := d.Format("2006-01-02")
+		result[i] = userdto.RevenueByDay{Date: dateStr, Revenue: revenueByDate[dateStr]}
+	}
+	return result, nil
+}
+
+func (userService *UserService) GetProductVisitsChart(productID uint, period string) ([]userdto.VisitsByDay, error) {
+	days := 7
+	switch period {
+	case "month":
+		days = 30
+	case "year":
+		days = 365
+	}
+	visits, err := userService.productVisitRepository.GetVisitsPerDay(userService.db, productID, days)
+	if err != nil {
+		return nil, err
+	}
+	countByDate := make(map[string]uint, len(visits))
+	for _, v := range visits {
+		key := v.Date
+		if len(key) > 10 {
+			key = key[:10]
+		}
+		countByDate[key] = v.Count
+	}
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	result := make([]userdto.VisitsByDay, days)
+	for i := range result {
+		d := today.AddDate(0, 0, -(days-1-i))
+		dateStr := d.Format("2006-01-02")
+		result[i] = userdto.VisitsByDay{Date: dateStr, Count: countByDate[dateStr]}
+	}
+	return result, nil
+}
+
+func (userService *UserService) GetProductOrdersChart(productID uint, period string) ([]userdto.OrderByDay, error) {
+	days := 7
+	switch period {
+	case "month":
+		days = 30
+	case "year":
+		days = 365
+	}
+	orders, err := userService.orderRepository.GetProductOrdersPerDay(userService.db, productID, days)
+	if err != nil {
+		return nil, err
+	}
+	countByDate := make(map[string]uint, len(orders))
+	for _, o := range orders {
+		key := o.Date
+		if len(key) > 10 {
+			key = key[:10]
+		}
+		countByDate[key] = o.Count
+	}
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	result := make([]userdto.OrderByDay, days)
+	for i := range result {
+		d := today.AddDate(0, 0, -(days-1-i))
+		dateStr := d.Format("2006-01-02")
+		result[i] = userdto.OrderByDay{Date: dateStr, Count: countByDate[dateStr]}
 	}
 	return result, nil
 }
