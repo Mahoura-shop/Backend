@@ -16,7 +16,7 @@ type OrderService interface {
 	PayOrderByWallet(userID, orderID uint) error
 	InitiateGatewayPayment(userID, orderID uint) (*orderdto.PaymentGatewayResponse, error)
 	VerifyGatewayPayment(authority string, status string) error
-	CancelOrder(orderID uint) error
+	CancelOrder(orderID uint, reason string) error
 	FlagOrderRefund(orderID uint) error
 	GetOrderInstalments(orderID uint) ([]orderdto.InstalmentCredential, error)
 	GetOrdersByStatus(status enum.OrderStatus) ([]orderdto.OrderCredential, error)

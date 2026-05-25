@@ -76,29 +76,31 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 	categoryRepository := postgres.NewCategoryRepository()
 	brandRepository := postgres.NewBrandRepository()
 	productRepository := postgres.NewProductRepository()
+	productVisitRepository := postgres.NewProductVisitRepository()
 	walletRepository := postgres.NewWalletRepository()
 	cartRepository := postgres.NewCartRepository()
 	transactionRepository := postgres.NewTransactionRepository()
 	orderRepository := postgres.NewOrderRepository()
 	rbac := ProvideRBACConfig(container)
 	userServiceDeps := service.UserServiceDeps{
-		Constants:             constants,
-		OTPService:            otpService,
-		JWTService:            jwtService,
-		SMSService:            smsService,
-		EmailService:          emailService,
-		UserRepository:        userRepository,
-		RoleRepository:        roleRepository,
-		CategoryRepository:    categoryRepository,
-		BrandRepository:       brandRepository,
-		ProductRepository:     productRepository,
-		WalletRepository:      walletRepository,
-		CartRepository:        cartRepository,
-		TransactionRepository: transactionRepository,
-		OrderRepository:       orderRepository,
-		UserCacheRepository:   userCacheRepository,
-		DB:                    postgresDatabase,
-		RBAC:                  rbac,
+		Constants:              constants,
+		OTPService:             otpService,
+		JWTService:             jwtService,
+		SMSService:             smsService,
+		EmailService:           emailService,
+		UserRepository:         userRepository,
+		RoleRepository:         roleRepository,
+		CategoryRepository:     categoryRepository,
+		BrandRepository:        brandRepository,
+		ProductRepository:      productRepository,
+		ProductVisitRepository: productVisitRepository,
+		WalletRepository:       walletRepository,
+		CartRepository:         cartRepository,
+		TransactionRepository:  transactionRepository,
+		OrderRepository:        orderRepository,
+		UserCacheRepository:    userCacheRepository,
+		DB:                     postgresDatabase,
+		RBAC:                   rbac,
 	}
 	userService := service.NewUserService(userServiceDeps)
 	generalUserController := user.NewGeneralUserController(constants, userService, jwtService)
@@ -146,6 +148,7 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		WishlistRepository:     wishlistRepository,
 		CartRepository:         cartRepository,
 		ReviewRepository:       reviewRepository,
+		OrderRepository:        orderRepository,
 		CategoryService:        categoryService,
 		BrandService:           brandService,
 		CurrencyService:        currencyService,
@@ -154,7 +157,6 @@ func InitializeApplication(container *bootstrap.Config) (*Application, error) {
 		DB:                     postgresDatabase,
 	}
 	productService := service.NewProductService(productServiceDeps)
-	productVisitRepository := postgres.NewProductVisitRepository()
 	generalProductController := product.NewGeneralProductController(constants, productService, userRepository, productVisitRepository, postgresDatabase)
 	reviewServiceDeps := service.ReviewServiceDeps{
 		ReviewRepository: reviewRepository,

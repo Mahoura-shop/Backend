@@ -501,6 +501,130 @@ func (userService *UserService) GetProductOrdersChart(productID uint, period str
 	return result, nil
 }
 
+func (userService *UserService) GetCategoryVisitsChart(categoryID uint, period string) ([]userdto.VisitsByDay, error) {
+	days := 7
+	switch period {
+	case "month":
+		days = 30
+	case "year":
+		days = 365
+	}
+	visits, err := userService.productVisitRepository.GetCategoryVisitsPerDay(userService.db, categoryID, days)
+	if err != nil {
+		return nil, err
+	}
+	countByDate := make(map[string]uint, len(visits))
+	for _, v := range visits {
+		key := v.Date
+		if len(key) > 10 {
+			key = key[:10]
+		}
+		countByDate[key] = v.Count
+	}
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	result := make([]userdto.VisitsByDay, days)
+	for i := range result {
+		d := today.AddDate(0, 0, -(days-1-i))
+		dateStr := d.Format("2006-01-02")
+		result[i] = userdto.VisitsByDay{Date: dateStr, Count: countByDate[dateStr]}
+	}
+	return result, nil
+}
+
+func (userService *UserService) GetCategoryOrdersChart(categoryID uint, period string) ([]userdto.OrderByDay, error) {
+	days := 7
+	switch period {
+	case "month":
+		days = 30
+	case "year":
+		days = 365
+	}
+	orders, err := userService.orderRepository.GetCategoryOrdersPerDay(userService.db, categoryID, days)
+	if err != nil {
+		return nil, err
+	}
+	countByDate := make(map[string]uint, len(orders))
+	for _, o := range orders {
+		key := o.Date
+		if len(key) > 10 {
+			key = key[:10]
+		}
+		countByDate[key] = o.Count
+	}
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	result := make([]userdto.OrderByDay, days)
+	for i := range result {
+		d := today.AddDate(0, 0, -(days-1-i))
+		dateStr := d.Format("2006-01-02")
+		result[i] = userdto.OrderByDay{Date: dateStr, Count: countByDate[dateStr]}
+	}
+	return result, nil
+}
+
+func (userService *UserService) GetBrandVisitsChart(brandID uint, period string) ([]userdto.VisitsByDay, error) {
+	days := 7
+	switch period {
+	case "month":
+		days = 30
+	case "year":
+		days = 365
+	}
+	visits, err := userService.productVisitRepository.GetBrandVisitsPerDay(userService.db, brandID, days)
+	if err != nil {
+		return nil, err
+	}
+	countByDate := make(map[string]uint, len(visits))
+	for _, v := range visits {
+		key := v.Date
+		if len(key) > 10 {
+			key = key[:10]
+		}
+		countByDate[key] = v.Count
+	}
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	result := make([]userdto.VisitsByDay, days)
+	for i := range result {
+		d := today.AddDate(0, 0, -(days-1-i))
+		dateStr := d.Format("2006-01-02")
+		result[i] = userdto.VisitsByDay{Date: dateStr, Count: countByDate[dateStr]}
+	}
+	return result, nil
+}
+
+func (userService *UserService) GetBrandOrdersChart(brandID uint, period string) ([]userdto.OrderByDay, error) {
+	days := 7
+	switch period {
+	case "month":
+		days = 30
+	case "year":
+		days = 365
+	}
+	orders, err := userService.orderRepository.GetBrandOrdersPerDay(userService.db, brandID, days)
+	if err != nil {
+		return nil, err
+	}
+	countByDate := make(map[string]uint, len(orders))
+	for _, o := range orders {
+		key := o.Date
+		if len(key) > 10 {
+			key = key[:10]
+		}
+		countByDate[key] = o.Count
+	}
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	result := make([]userdto.OrderByDay, days)
+	for i := range result {
+		d := today.AddDate(0, 0, -(days-1-i))
+		dateStr := d.Format("2006-01-02")
+		result[i] = userdto.OrderByDay{Date: dateStr, Count: countByDate[dateStr]}
+	}
+	return result, nil
+}
+
 func (userService *UserService) GetDashboard() (userdto.DashboardResponse, error) {
 	brandsCount, err := userService.brandRepository.GetBrandsCount(userService.db)
 	if err != nil {

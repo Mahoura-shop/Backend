@@ -30,8 +30,8 @@ func (addressController *CustomerAddressController) CreateUserAddress(ctx *gin.C
 		CityID        uint   `json:"cityID" validate:"required"`
 		StreetAddress string `json:"streetAddress" validate:"required"`
 		PostalCode    string `json:"postalCode" validate:"required"`
-		HouseNumber   string `json:"houseNumber" validate:"required"`
-		Unit          uint   `json:"unit" validate:"required"`
+		HouseNumber   string `json:"houseNumber"`
+		Unit          uint   `json:"unit"`
 	}
 	params := controller.Validated[createAddressParams](ctx)
 	ownerID, _ := ctx.Get(addressController.constants.Context.ID)

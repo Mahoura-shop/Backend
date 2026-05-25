@@ -178,3 +178,37 @@ func (repo *OrderRepository) GetProductOrdersPerDay(db database.Database, produc
 	}
 	return results, nil
 }
+
+func (repo *OrderRepository) GetCategoryOrdersPerDay(db database.Database, categoryID uint, days int) ([]postgresrepo.OrderByDay, error) {
+	var results []postgresrepo.OrderByDay
+	result := db.GetDB().
+		Model(&entity.OrderItem{}).
+		Select("DATE(orders.created_at) as date, COUNT(DISTINCT orders.id) as count").
+		Joins("JOIN orders ON orders.id = order_items.order_id").
+		Joins("JOIN products ON products.id = order_items.product_id").
+		Where("products.category_id = ? AND orders.created_at >= NOW() - ? * INTERVAL '1 day'", categoryID, days).
+		Group("DATE(orders.created_at)").
+		Order("DATE(orders.created_at)").
+		Scan(&results)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return results, nil
+}
+
+func (repo *OrderRepository) GetBrandOrdersPerDay(db database.Database, brandID uint, days int) ([]postgresrepo.OrderByDay, error) {
+	var results []postgresrepo.OrderByDay
+	result := db.GetDB().
+		Model(&entity.OrderItem{}).
+		Select("DATE(orders.created_at) as date, COUNT(DISTINCT orders.id) as count").
+		Joins("JOIN orders ON orders.id = order_items.order_id").
+		Joins("JOIN products ON products.id = order_items.product_id").
+		Where("products.brand_id = ? AND orders.created_at >= NOW() - ? * INTERVAL '1 day'", brandID, days).
+		Group("DATE(orders.created_at)").
+		Order("DATE(orders.created_at)").
+		Scan(&results)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return results, nil
+}

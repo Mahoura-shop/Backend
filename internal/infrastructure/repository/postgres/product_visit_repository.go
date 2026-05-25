@@ -73,3 +73,35 @@ func (repo *ProductVisitRepository) GetAllVisitsPerDay(db database.Database, day
 	}
 	return results, nil
 }
+
+func (repo *ProductVisitRepository) GetCategoryVisitsPerDay(db database.Database, categoryID uint, days int) ([]postgresrepo.VisitsByDay, error) {
+	var results []postgresrepo.VisitsByDay
+	result := db.GetDB().
+		Model(&entity.ProductVisit{}).
+		Select("DATE(TO_TIMESTAMP(product_visits.visited_at)) as date, COUNT(*) as count").
+		Joins("JOIN products ON products.id = product_visits.product_id").
+		Where("products.category_id = ? AND product_visits.visited_at >= EXTRACT(EPOCH FROM NOW() - ? * INTERVAL '1 day')", categoryID, days).
+		Group("DATE(TO_TIMESTAMP(product_visits.visited_at))").
+		Order("DATE(TO_TIMESTAMP(product_visits.visited_at))").
+		Scan(&results)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return results, nil
+}
+
+func (repo *ProductVisitRepository) GetBrandVisitsPerDay(db database.Database, brandID uint, days int) ([]postgresrepo.VisitsByDay, error) {
+	var results []postgresrepo.VisitsByDay
+	result := db.GetDB().
+		Model(&entity.ProductVisit{}).
+		Select("DATE(TO_TIMESTAMP(product_visits.visited_at)) as date, COUNT(*) as count").
+		Joins("JOIN products ON products.id = product_visits.product_id").
+		Where("products.brand_id = ? AND product_visits.visited_at >= EXTRACT(EPOCH FROM NOW() - ? * INTERVAL '1 day')", brandID, days).
+		Group("DATE(TO_TIMESTAMP(product_visits.visited_at))").
+		Order("DATE(TO_TIMESTAMP(product_visits.visited_at))").
+		Scan(&results)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return results, nil
+}

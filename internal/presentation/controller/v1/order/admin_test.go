@@ -164,11 +164,12 @@ func (s *AdminOrderTestSuite) TestADM33_UpdateOrderStatus_Shipped_Returns200() {
 
 // ADM-35: POST /admin/orders/:orderID/cancel → 200, status = cancelled
 func (s *AdminOrderTestSuite) TestADM35_CancelOrder_Returns200() {
-	s.orderService.On("CancelOrder", adminOrderID).Return(nil)
+	s.orderService.On("CancelOrder", adminOrderID, "تست لغو").Return(nil)
 
+	body, _ := json.Marshal(map[string]string{"reason": "تست لغو"})
 	w := httptest.NewRecorder()
 	s.newRouter(false).ServeHTTP(w,
-		httptest.NewRequest(http.MethodPost, "/admin/orders/10/cancel", nil))
+		httptest.NewRequest(http.MethodPost, "/admin/orders/10/cancel", bytes.NewReader(body)))
 
 	s.Equal(http.StatusOK, w.Code)
 	s.orderService.AssertExpectations(s.T())
@@ -176,11 +177,12 @@ func (s *AdminOrderTestSuite) TestADM35_CancelOrder_Returns200() {
 
 // ADM-35b: Cancel non-existent order → 404
 func (s *AdminOrderTestSuite) TestADM35b_CancelOrder_NotFound_Returns404() {
-	s.orderService.On("CancelOrder", adminOrderID).Return(exception.NotFoundError{Item: "order"})
+	s.orderService.On("CancelOrder", adminOrderID, "تست لغو").Return(exception.NotFoundError{Item: "order"})
 
+	body, _ := json.Marshal(map[string]string{"reason": "تست لغو"})
 	w := httptest.NewRecorder()
 	s.newRouter(true).ServeHTTP(w,
-		httptest.NewRequest(http.MethodPost, "/admin/orders/10/cancel", nil))
+		httptest.NewRequest(http.MethodPost, "/admin/orders/10/cancel", bytes.NewReader(body)))
 
 	s.Equal(http.StatusNotFound, w.Code)
 	s.orderService.AssertExpectations(s.T())

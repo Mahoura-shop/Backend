@@ -16,4 +16,6 @@ type ProductVisitRepository interface {
 	HasVisitedInLast24h(database.Database, uint, string) (bool, error)
 	GetVisitsPerDay(database.Database, uint, int) ([]VisitsByDay, error)
 	GetAllVisitsPerDay(database.Database, int) ([]VisitsByDay, error)
+	GetCategoryVisitsPerDay(database.Database, uint, int) ([]VisitsByDay, error)
+	GetBrandVisitsPerDay(database.Database, uint, int) ([]VisitsByDay, error)
 }

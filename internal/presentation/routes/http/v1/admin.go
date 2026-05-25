@@ -15,6 +15,8 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		{
 			categoriesSubGroup.PUT("", perm("category:edit"), app.Controllers.Admin.CategoryController.UpdateCategory)
 			categoriesSubGroup.DELETE("", perm("category:delete"), app.Controllers.Admin.CategoryController.DeleteCategory)
+			categoriesSubGroup.GET("/visits", perm("product:see"), app.Controllers.Admin.UserController.GetCategoryVisitsChart)
+			categoriesSubGroup.GET("/orders", perm("product:see"), app.Controllers.Admin.UserController.GetCategoryOrdersChart)
 		}
 	}
 
@@ -34,6 +36,8 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		{
 			brandsSubGroup.PUT("", perm("brand:edit"), app.Controllers.Admin.BrandController.UpdateBrand)
 			brandsSubGroup.DELETE("", perm("brand:delete"), app.Controllers.Admin.BrandController.DeleteBrand)
+			brandsSubGroup.GET("/visits", perm("product:see"), app.Controllers.Admin.UserController.GetBrandVisitsChart)
+			brandsSubGroup.GET("/orders", perm("product:see"), app.Controllers.Admin.UserController.GetBrandOrdersChart)
 		}
 	}
 

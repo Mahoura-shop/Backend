@@ -6,6 +6,7 @@ import (
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	branddto "github.com/Mahoura-shop/Backend/internal/application/dto/brand"
+	currencydto "github.com/Mahoura-shop/Backend/internal/application/dto/currency"
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
 	"github.com/Mahoura-shop/Backend/internal/domain/enum"
 	"github.com/Mahoura-shop/Backend/internal/domain/exception"
@@ -147,14 +148,25 @@ func (brandService *BrandService) GetBrands() ([]branddto.BrandCredential, error
 		}
 		brandProducts := make([]branddto.BrandProduct, 0, len(products))
 		for _, p := range products {
-			brandProducts = append(brandProducts, branddto.BrandProduct{
-				ID:       p.ID,
-				Name:     p.Name,
-				Slug:     p.Slug,
-				IsActive: p.IsActive,
-				Quantity: p.Quantity,
-				IRRPrice: p.IRRPrice,
-			})
+			bp := branddto.BrandProduct{
+				ID:         p.ID,
+				Name:       p.Name,
+				Slug:       p.Slug,
+				IsActive:   p.IsActive,
+				Quantity:   p.Quantity,
+				Price:      p.Price,
+				CurrencyID: p.CurrencyID,
+				IRRPrice:   p.IRRPrice,
+			}
+			if p.CurrencyID != 0 {
+				bp.Currency = &currencydto.CurrencyCredential{
+					ID:          p.Currency.ID,
+					Name:        p.Currency.Name,
+					Code:        p.Currency.Code,
+					ConvertRate: p.Currency.ConvertRate,
+				}
+			}
+			brandProducts = append(brandProducts, bp)
 		}
 		response.Products = brandProducts
 

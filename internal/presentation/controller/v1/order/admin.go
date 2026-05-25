@@ -96,9 +96,13 @@ func (c *AdminOrderController) CancelOrder(ctx *gin.Context) {
 	type params struct {
 		OrderID uint `uri:"orderID"`
 	}
+	type body struct {
+		Reason string `json:"reason" binding:"required"`
+	}
 	p := controller.Validated[params](ctx)
+	b := controller.Validated[body](ctx)
 
-	if err := c.orderService.CancelOrder(p.OrderID); err != nil {
+	if err := c.orderService.CancelOrder(p.OrderID, b.Reason); err != nil {
 		panic(err)
 	}
 

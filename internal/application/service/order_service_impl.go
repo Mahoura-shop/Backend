@@ -7,7 +7,6 @@ import (
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	orderdto "github.com/Mahoura-shop/Backend/internal/application/dto/order"
 	"github.com/Mahoura-shop/Backend/internal/application/service/pricing"
-	"github.com/Mahoura-shop/Backend/internal/application/service/shipping"
 	"github.com/Mahoura-shop/Backend/internal/application/usecase"
 	"github.com/Mahoura-shop/Backend/internal/domain/communication"
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
@@ -210,17 +209,6 @@ func (s *OrderService) RegisterOrder(userID uint, req orderdto.CreateOrderReques
 		return 0, exception.NotFoundError{Item: s.constants.Field.CartItem}
 	}
 
-	var shippingCost uint
-	if req.AddressID != nil {
-		addr, err := s.addressRepository.GetAddressByID(s.db, *req.AddressID)
-		if err != nil {
-			return 0, err
-		}
-		if addr != nil {
-			shippingCost = shipping.CalculateShipping(&addr.Province)
-		}
-	}
-
 	var createdOrderID uint
 	err = s.db.WithTransaction(func(tx database.Database) error {
 		var totalAmount uint
@@ -230,7 +218,7 @@ func (s *OrderService) RegisterOrder(userID uint, req orderdto.CreateOrderReques
 			AddressID:     req.AddressID,
 			PaymentMethod: req.PaymentMethod,
 			Status:        enum.OrderStatusPending,
-			ShippingCost:  shippingCost,
+			ShippingCost:  0,
 		}
 		createdOrder, err := s.orderRepository.CreateOrder(tx, order)
 		if err != nil {
@@ -274,7 +262,7 @@ func (s *OrderService) RegisterOrder(userID uint, req orderdto.CreateOrderReques
 			}
 		}
 
-		createdOrder.TotalAmount = totalAmount + shippingCost
+		createdOrder.TotalAmount = totalAmount
 		if err := s.orderRepository.UpdateOrder(tx, *createdOrder); err != nil {
 			return err
 		}
@@ -441,7 +429,6 @@ func (s *OrderService) PayOrderByWallet(userID, orderID uint) error {
 }
 
 func (s *OrderService) InitiateGatewayPayment(userID, orderID uint) (*orderdto.PaymentGatewayResponse, error) {
-	// MOCKED: skip gateway, mark order as paid immediately
 	order, err := s.orderRepository.FindOrderByID(s.db, orderID)
 	if err != nil {
 		return nil, err
@@ -449,43 +436,67 @@ func (s *OrderService) InitiateGatewayPayment(userID, orderID uint) (*orderdto.P
 	if order == nil {
 		return nil, exception.NotFoundError{Item: s.constants.Field.Order}
 	}
-	order.Status = enum.OrderStatusPaid
-	if err := s.orderRepository.UpdateOrder(s.db, *order); err != nil {
+	if order.UserID != userID {
+		return nil, exception.ForbiddenError{Message: "this order does not belong to you"}
+	}
+	if order.Status != enum.OrderStatusPending {
+		return nil, exception.ForbiddenError{Message: "order is not in pending status"}
+	}
+
+	err = s.db.WithTransaction(func(tx database.Database) error {
+		wallet, err := s.walletRepository.FindWalletByUserID(tx, userID)
+		if err != nil {
+			return err
+		}
+		if wallet == nil {
+			return exception.NotFoundError{Item: "wallet"}
+		}
+
+		if _, err := s.walletRepository.DepositWallet(tx, userID, order.TotalAmount); err != nil {
+			return err
+		}
+		if err := s.transactionRepository.CreateTransaction(tx, entity.Transaction{
+			Amount:   order.TotalAmount,
+			WalletID: wallet.ID,
+			Type:     enum.TransactionTypeDeposit,
+		}); err != nil {
+			return err
+		}
+
+		if _, err := s.walletRepository.WithdrawWallet(tx, userID, order.TotalAmount); err != nil {
+			return err
+		}
+		if err := s.transactionRepository.CreateTransaction(tx, entity.Transaction{
+			Amount:   order.TotalAmount,
+			WalletID: wallet.ID,
+			Type:     enum.TransactionTypeWithDraw,
+		}); err != nil {
+			return err
+		}
+
+		order.Status = enum.OrderStatusPaid
+		if err := s.orderRepository.UpdateOrder(tx, *order); err != nil {
+			return err
+		}
+
+		if err := s.orderRepository.CreateOrderStatusHistory(tx, entity.OrderStatusHistory{
+			OrderID:     order.ID,
+			Status:      enum.OrderStatusPaid,
+			Note:        "پرداخت آنلاین",
+			ChangedByID: userID,
+		}); err != nil {
+			return err
+		}
+
+		go s.notifyOrderStatus(order.User.Phone, order.ID, enum.OrderStatusPaid)
+		go s.createOrderNotification(order.UserID, order.ID, enum.OrderStatusPaid)
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
-	return &orderdto.PaymentGatewayResponse{GatewayURL: ""}, nil
 
-	// order, err := s.orderRepository.FindOrderByID(s.db, orderID)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if order == nil {
-	// 	return nil, exception.NotFoundError{Item: s.constants.Field.Order}
-	// }
-	// if order.UserID != userID {
-	// 	return nil, exception.ForbiddenError{Message: "this order does not belong to you"}
-	// }
-	// if order.Status != enum.OrderStatusPending {
-	// 	return nil, exception.ForbiddenError{Message: "order is not in pending status"}
-	// }
-	//
-	// authority, gatewayURL, err := s.paymentService.InitiateGatewayPayment(orderID, order.TotalAmount)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// payment := entity.Payment{
-	// 	OrderID:    orderID,
-	// 	Amount:     order.TotalAmount,
-	// 	Status:     enum.PaymentStatusPaying,
-	// 	Authority:  authority,
-	// 	GatewayURL: gatewayURL,
-	// }
-	// if _, err := s.paymentRepository.CreatePayment(s.db, payment); err != nil {
-	// 	return nil, err
-	// }
-	//
-	// return &orderdto.PaymentGatewayResponse{GatewayURL: gatewayURL}, nil
+	return &orderdto.PaymentGatewayResponse{GatewayURL: ""}, nil
 }
 
 func (s *OrderService) VerifyGatewayPayment(authority string, status string) error {
@@ -546,7 +557,7 @@ func (s *OrderService) VerifyGatewayPayment(authority string, status string) err
 	})
 }
 
-func (s *OrderService) CancelOrder(orderID uint) error {
+func (s *OrderService) CancelOrder(orderID uint, reason string) error {
 	order, err := s.orderRepository.FindOrderByID(s.db, orderID)
 	if err != nil {
 		return err
@@ -561,8 +572,9 @@ func (s *OrderService) CancelOrder(orderID uint) error {
 		return exception.ForbiddenError{Message: "order is already cancelled"}
 	}
 
+	wasPaid := order.Status == enum.OrderStatusPaid
+
 	return s.db.WithTransaction(func(tx database.Database) error {
-		// Restore inventory
 		for _, item := range order.Items {
 			product, err := s.productRepository.FindProductByID(tx, item.ProductID)
 			if err != nil {
@@ -576,6 +588,12 @@ func (s *OrderService) CancelOrder(orderID uint) error {
 			}
 		}
 
+		if wasPaid {
+			if _, err := s.walletRepository.DepositWallet(tx, order.UserID, order.TotalAmount); err != nil {
+				return err
+			}
+		}
+
 		order.Status = enum.OrderStatusCancelled
 		if err := s.orderRepository.UpdateOrder(tx, *order); err != nil {
 			return err
@@ -584,7 +602,7 @@ func (s *OrderService) CancelOrder(orderID uint) error {
 		return s.orderRepository.CreateOrderStatusHistory(tx, entity.OrderStatusHistory{
 			OrderID: order.ID,
 			Status:  enum.OrderStatusCancelled,
-			Note:    "لغو شده توسط مدیر",
+			Note:    reason,
 		})
 	})
 }

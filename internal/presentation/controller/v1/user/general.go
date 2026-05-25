@@ -145,3 +145,55 @@ func (userController *AdminUserController) GetProductOrdersChart(ctx *gin.Contex
 	}
 	controller.Response(ctx, 200, "", data)
 }
+
+func (userController *AdminUserController) GetCategoryVisitsChart(ctx *gin.Context) {
+	type params struct {
+		CategoryID uint `uri:"categoryID" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+	period := ctx.DefaultQuery("period", "week")
+	data, err := userController.userService.GetCategoryVisitsChart(p.CategoryID, period)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", data)
+}
+
+func (userController *AdminUserController) GetCategoryOrdersChart(ctx *gin.Context) {
+	type params struct {
+		CategoryID uint `uri:"categoryID" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+	period := ctx.DefaultQuery("period", "week")
+	data, err := userController.userService.GetCategoryOrdersChart(p.CategoryID, period)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", data)
+}
+
+func (userController *AdminUserController) GetBrandVisitsChart(ctx *gin.Context) {
+	type params struct {
+		BrandID uint `uri:"brandID" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+	period := ctx.DefaultQuery("period", "week")
+	data, err := userController.userService.GetBrandVisitsChart(p.BrandID, period)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", data)
+}
+
+func (userController *AdminUserController) GetBrandOrdersChart(ctx *gin.Context) {
+	type params struct {
+		BrandID uint `uri:"brandID" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+	period := ctx.DefaultQuery("period", "week")
+	data, err := userController.userService.GetBrandOrdersChart(p.BrandID, period)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", data)
+}

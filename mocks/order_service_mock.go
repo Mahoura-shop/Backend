@@ -66,8 +66,8 @@ func (m *OrderServiceMock) VerifyGatewayPayment(authority string, status string)
 	return args.Error(0)
 }
 
-func (m *OrderServiceMock) CancelOrder(orderID uint) error {
-	args := m.Called(orderID)
+func (m *OrderServiceMock) CancelOrder(orderID uint, reason string) error {
+	args := m.Called(orderID, reason)
 	return args.Error(0)
 }
 
