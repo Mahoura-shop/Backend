@@ -67,6 +67,7 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		products.GET("/prices", perm("product:batch_price"), app.Controllers.Admin.ProductController.GetProductPrices)
 		products.PATCH("/prices", perm("product:batch_price"), app.Controllers.Admin.ProductController.UpdateProductPrices)
 		products.POST("/stock", perm("product:batch_inventory"), app.Controllers.Admin.ProductController.UpdateProductStock)
+		products.POST("/inventory/excel", perm("product:batch_inventory"), app.Controllers.Admin.ProductController.UpdateInventoryFromExcel)
 	}
 
 	orders := routerGroup.Group("/orders")
@@ -101,6 +102,7 @@ func SetupAdminRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		admin.GET("/dashboard/orders", app.Controllers.Admin.UserController.GetOrdersChart)
 		admin.GET("/dashboard/sales", app.Controllers.Admin.UserController.GetSalesChart)
 		admin.GET("/dashboard/visits", app.Controllers.Admin.UserController.GetVisitsChart)
+		admin.GET("/dashboard/province-stats", app.Controllers.Admin.UserController.GetProvinceStats)
 
 		adminProducts := admin.Group("/products")
 		{

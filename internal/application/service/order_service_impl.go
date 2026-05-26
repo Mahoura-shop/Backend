@@ -443,60 +443,79 @@ func (s *OrderService) InitiateGatewayPayment(userID, orderID uint) (*orderdto.P
 		return nil, exception.ForbiddenError{Message: "order is not in pending status"}
 	}
 
-	err = s.db.WithTransaction(func(tx database.Database) error {
-		wallet, err := s.walletRepository.FindWalletByUserID(tx, userID)
+	if !s.paymentService.IsEnabled() {
+		err = s.db.WithTransaction(func(tx database.Database) error {
+			wallet, err := s.walletRepository.FindWalletByUserID(tx, userID)
+			if err != nil {
+				return err
+			}
+			if wallet == nil {
+				return exception.NotFoundError{Item: "wallet"}
+			}
+
+			if _, err := s.walletRepository.DepositWallet(tx, userID, order.TotalAmount); err != nil {
+				return err
+			}
+			if err := s.transactionRepository.CreateTransaction(tx, entity.Transaction{
+				Amount:   order.TotalAmount,
+				WalletID: wallet.ID,
+				Type:     enum.TransactionTypeDeposit,
+			}); err != nil {
+				return err
+			}
+
+			if _, err := s.walletRepository.WithdrawWallet(tx, userID, order.TotalAmount); err != nil {
+				return err
+			}
+			if err := s.transactionRepository.CreateTransaction(tx, entity.Transaction{
+				Amount:   order.TotalAmount,
+				WalletID: wallet.ID,
+				Type:     enum.TransactionTypeWithDraw,
+			}); err != nil {
+				return err
+			}
+
+			order.Status = enum.OrderStatusPaid
+			if err := s.orderRepository.UpdateOrder(tx, *order); err != nil {
+				return err
+			}
+
+			if err := s.orderRepository.CreateOrderStatusHistory(tx, entity.OrderStatusHistory{
+				OrderID:     order.ID,
+				Status:      enum.OrderStatusPaid,
+				Note:        "پرداخت آنلاین",
+				ChangedByID: userID,
+			}); err != nil {
+				return err
+			}
+
+			go s.notifyOrderStatus(order.User.Phone, order.ID, enum.OrderStatusPaid)
+			go s.createOrderNotification(order.UserID, order.ID, enum.OrderStatusPaid)
+			return nil
+		})
 		if err != nil {
-			return err
+			return nil, err
 		}
-		if wallet == nil {
-			return exception.NotFoundError{Item: "wallet"}
-		}
+		return &orderdto.PaymentGatewayResponse{GatewayURL: ""}, nil
+	}
 
-		if _, err := s.walletRepository.DepositWallet(tx, userID, order.TotalAmount); err != nil {
-			return err
-		}
-		if err := s.transactionRepository.CreateTransaction(tx, entity.Transaction{
-			Amount:   order.TotalAmount,
-			WalletID: wallet.ID,
-			Type:     enum.TransactionTypeDeposit,
-		}); err != nil {
-			return err
-		}
+	authority, gatewayURL, err := s.paymentService.InitiateGatewayPayment(orderID, order.TotalAmount)
+	if err != nil {
+		return nil, err
+	}
 
-		if _, err := s.walletRepository.WithdrawWallet(tx, userID, order.TotalAmount); err != nil {
-			return err
-		}
-		if err := s.transactionRepository.CreateTransaction(tx, entity.Transaction{
-			Amount:   order.TotalAmount,
-			WalletID: wallet.ID,
-			Type:     enum.TransactionTypeWithDraw,
-		}); err != nil {
-			return err
-		}
-
-		order.Status = enum.OrderStatusPaid
-		if err := s.orderRepository.UpdateOrder(tx, *order); err != nil {
-			return err
-		}
-
-		if err := s.orderRepository.CreateOrderStatusHistory(tx, entity.OrderStatusHistory{
-			OrderID:     order.ID,
-			Status:      enum.OrderStatusPaid,
-			Note:        "پرداخت آنلاین",
-			ChangedByID: userID,
-		}); err != nil {
-			return err
-		}
-
-		go s.notifyOrderStatus(order.User.Phone, order.ID, enum.OrderStatusPaid)
-		go s.createOrderNotification(order.UserID, order.ID, enum.OrderStatusPaid)
-		return nil
+	_, err = s.paymentRepository.CreatePayment(s.db, entity.Payment{
+		OrderID:    orderID,
+		Amount:     order.TotalAmount,
+		Status:     enum.PaymentStatusWaiting,
+		Authority:  authority,
+		GatewayURL: gatewayURL,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &orderdto.PaymentGatewayResponse{GatewayURL: ""}, nil
+	return &orderdto.PaymentGatewayResponse{GatewayURL: gatewayURL}, nil
 }
 
 func (s *OrderService) VerifyGatewayPayment(authority string, status string) error {
@@ -589,7 +608,21 @@ func (s *OrderService) CancelOrder(orderID uint, reason string) error {
 		}
 
 		if wasPaid {
+			wallet, err := s.walletRepository.FindWalletByUserID(tx, order.UserID)
+			if err != nil {
+				return err
+			}
+			if wallet == nil {
+				return exception.NotFoundError{Item: "wallet"}
+			}
 			if _, err := s.walletRepository.DepositWallet(tx, order.UserID, order.TotalAmount); err != nil {
+				return err
+			}
+			if err := s.transactionRepository.CreateTransaction(tx, entity.Transaction{
+				Amount:   order.TotalAmount,
+				WalletID: wallet.ID,
+				Type:     enum.TransactionTypeDeposit,
+			}); err != nil {
 				return err
 			}
 		}
@@ -605,6 +638,14 @@ func (s *OrderService) CancelOrder(orderID uint, reason string) error {
 			Note:    reason,
 		})
 	})
+	if err != nil {
+		return err
+	}
+
+	go s.notifyOrderStatus(order.User.Phone, order.ID, enum.OrderStatusCancelled)
+	go s.createOrderNotification(order.UserID, order.ID, enum.OrderStatusCancelled)
+
+	return nil
 }
 
 func (s *OrderService) FlagOrderRefund(orderID uint) error {

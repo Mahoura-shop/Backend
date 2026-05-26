@@ -217,6 +217,9 @@ func (userService *UserService) Auth(authInfo userdto.AuthRequest) error {
 	if err != nil {
 		return err
 	}
+	if err := userService.smsService.SendOTP(authInfo.Phone, otp); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -262,7 +265,6 @@ func (userService *UserService) VerifyAuth(verifyAuthInfo userdto.VerifyAuthRequ
 				return err
 			}
 
-			// userService.smsService.SendOTP(registerInfo.Phone, otp)
 			return nil
 		})
 	}
@@ -625,6 +627,29 @@ func (userService *UserService) GetBrandOrdersChart(brandID uint, period string)
 	return result, nil
 }
 
+func (userService *UserService) GetPublicStats() (userdto.PublicStatsResponse, error) {
+	productsCount, err := userService.productRepository.GetProductsCount(userService.db)
+	if err != nil {
+		return userdto.PublicStatsResponse{}, err
+	}
+
+	brandsCount, err := userService.brandRepository.GetBrandsCount(userService.db)
+	if err != nil {
+		return userdto.PublicStatsResponse{}, err
+	}
+
+	usersCount, err := userService.userRepository.GetUsersCount(userService.db)
+	if err != nil {
+		return userdto.PublicStatsResponse{}, err
+	}
+
+	return userdto.PublicStatsResponse{
+		ProductsCount: productsCount,
+		BrandsCount:   brandsCount,
+		UsersCount:    usersCount,
+	}, nil
+}
+
 func (userService *UserService) GetDashboard() (userdto.DashboardResponse, error) {
 	brandsCount, err := userService.brandRepository.GetBrandsCount(userService.db)
 	if err != nil {
@@ -706,6 +731,22 @@ func (userService *UserService) GetDashboard() (userdto.DashboardResponse, error
 		LowStockProducts: lowStockDTO,
 		TopProducts:      topProductsDTO,
 	}, nil
+}
+
+func (userService *UserService) GetProvinceStats() ([]userdto.ProvinceStatDTO, error) {
+	rows, err := userService.orderRepository.GetProvinceStats(userService.db)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]userdto.ProvinceStatDTO, len(rows))
+	for i, r := range rows {
+		result[i] = userdto.ProvinceStatDTO{
+			Province:   r.Province,
+			OrderCount: r.OrderCount,
+			Revenue:    r.Revenue,
+		}
+	}
+	return result, nil
 }
 
 func (userService *UserService) GetUserWalletBalance(userID uint) (userdto.UserWalletBalance, error) {

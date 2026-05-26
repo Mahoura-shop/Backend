@@ -13,6 +13,7 @@ type ProductImageDTO struct {
 
 type ProductCredential struct {
 	ID               uint                            `json:"id"`
+	ExternalID       *string                         `json:"externalID"`
 	Name             string                          `json:"name"`
 	Slug             string                          `json:"slug"`
 	Price            float64                         `json:"price"`

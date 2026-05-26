@@ -6,6 +6,7 @@ type CreateProductRequest struct {
 	Name          string
 	Slug          string
 	Price         float64   
+	ExternalID    *string
 	CurrencyID    uint
 	IRRPrice      *uint 
 	ConsumerPrice *uint
@@ -37,6 +38,7 @@ type CreateProductRequest struct {
 
 type UpdateProductRequest struct {
 	ID 	          uint
+	ExternalID    *string
 	Name          *string
 	Slug          *string
 	Price         *float64    
@@ -77,6 +79,11 @@ type ProductPriceUpdateCredentials struct {
 type ProductStockUpdateCredentials struct {
 	ProductID uint
 	Count     uint
+}
+
+type ExcelInventoryRow struct {
+	ExternalID string
+	Quantity   uint
 }
 
 type ProductFilterRequest struct {

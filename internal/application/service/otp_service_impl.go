@@ -13,17 +13,20 @@ import (
 type OTPService struct {
 	constants           *bootstrap.Constants
 	otpConfig           *bootstrap.OTP
+	smsGateway          *bootstrap.SMSGateway
 	userCacheRepository redis.UserCacheRepository
 }
 
 func NewOTPService(
 	constants *bootstrap.Constants,
 	otpConfig *bootstrap.OTP,
+	smsGateway *bootstrap.SMSGateway,
 	userCacheRepository redis.UserCacheRepository,
 ) *OTPService {
 	return &OTPService{
 		constants:           constants,
 		otpConfig:           otpConfig,
+		smsGateway:          smsGateway,
 		userCacheRepository: userCacheRepository,
 	}
 }
@@ -53,14 +56,9 @@ func (otpService *OTPService) VerifyOTP(redisKey, otp string) error {
 		validationErrors.Add(otpService.constants.Field.OTP, otpService.constants.Tag.Expired)
 		return validationErrors
 	}
-	if otp == "111111" || otp == redisValue.OTP {
+	if (!otpService.smsGateway.Enabled && otp == "111111") || otp == redisValue.OTP {
 		return nil
 	}
 	validationErrors.Add(otpService.constants.Field.OTP, otpService.constants.Tag.Invalid)
 	return validationErrors
-
-	// if otp != redisValue.OTP {
-	// 	return exception.ErrInvalidOTP
-	// }
-	// return nil
 }

@@ -27,4 +27,5 @@ type ProductService interface {
 	GetProductPrices() ([]productdto.ProductPrices, error)
 	AddProductImage(uint, *multipart.FileHeader) error
 	DeleteProductImage(uint, uint) error
+	UpdateInventoryFromExcel([]productdto.ExcelInventoryRow) (int, error)
 }

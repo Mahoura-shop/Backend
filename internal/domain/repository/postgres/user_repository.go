@@ -14,4 +14,5 @@ type UserRepository interface {
 	CreateUser(database.Database, entity.User) (error)
 	DeleteUserByPhone(database.Database, string) (error)
 	UpdateUser(database.Database, entity.User) (error)
+	GetUsersCount(database.Database) (uint, error)
 }

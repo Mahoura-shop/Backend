@@ -20,6 +20,12 @@ type RevenueByDay struct {
 	Revenue uint
 }
 
+type ProvinceStatRow struct {
+	Province   string
+	OrderCount uint
+	Revenue    uint
+}
+
 type OrderRepository interface {
 	FindOrderByID(db database.Database, orderID uint) (*entity.Order, error)
 	GetOrders(db database.Database) ([]*entity.Order, error)
@@ -37,4 +43,5 @@ type OrderRepository interface {
 	GetProductOrdersPerDay(db database.Database, productID uint, days int) ([]OrderByDay, error)
 	GetCategoryOrdersPerDay(db database.Database, categoryID uint, days int) ([]OrderByDay, error)
 	GetBrandOrdersPerDay(db database.Database, brandID uint, days int) ([]OrderByDay, error)
+	GetProvinceStats(db database.Database) ([]ProvinceStatRow, error)
 }

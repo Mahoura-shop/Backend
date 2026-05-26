@@ -47,6 +47,14 @@ func (m *ProductRepositoryMock) FindProductByName(db database.Database, name str
 	return args.Get(0).(*entity.Product), args.Error(1)
 }
 
+func (m *ProductRepositoryMock) FindProductByExternalID(db database.Database, externalID string) (*entity.Product, error) {
+	args := m.Called(db, externalID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*entity.Product), args.Error(1)
+}
+
 func (m *ProductRepositoryMock) GetProducts(db database.Database) ([]*entity.Product, error) {
 	args := m.Called(db)
 	return args.Get(0).([]*entity.Product), args.Error(1)

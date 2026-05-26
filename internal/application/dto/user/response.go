@@ -75,6 +75,12 @@ type TopProduct struct {
 	Revenue  uint   `json:"revenue"`
 }
 
+type PublicStatsResponse struct {
+	ProductsCount uint `json:"productsCount"`
+	BrandsCount   uint `json:"brandsCount"`
+	UsersCount    uint `json:"usersCount"`
+}
+
 type DashboardResponse struct {
 	ProductsCount     uint              `json:"productsCount"`
 	CategoriesCount   uint              `json:"categoriesCount"`
@@ -99,6 +105,12 @@ type TransactionDTO struct {
 type AdminUserWalletResponse struct {
 	Balance      uint             `json:"balance"`
 	Transactions []TransactionDTO `json:"transactions"`
+}
+
+type ProvinceStatDTO struct {
+	Province   string `json:"province"`
+	OrderCount uint   `json:"orderCount"`
+	Revenue    uint   `json:"revenue"`
 }
 
 type SubAdminCredential struct {

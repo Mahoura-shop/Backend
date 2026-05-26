@@ -1,11 +1,11 @@
 package service
 
 import (
-	// "bytes"
-	// "encoding/json"
+	"bytes"
+	"encoding/json"
 	"fmt"
-	// "io"
-	// "net/http"
+	"io"
+	"net/http"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
 )
@@ -16,6 +16,10 @@ type PaymentService struct {
 
 func NewPaymentService(config *bootstrap.Zarinpal) *PaymentService {
 	return &PaymentService{config: config}
+}
+
+func (s *PaymentService) IsEnabled() bool {
+	return s.config.Enabled
 }
 
 func (s *PaymentService) baseURL() string {
@@ -33,19 +37,24 @@ func (s *PaymentService) gatewayHost() string {
 }
 
 func (s *PaymentService) InitiateGatewayPayment(orderID uint, amount uint) (string, string, error) {
-	// MOCKED: Zarinpal gateway call commented out
-	// payload := map[string]interface{}{
-	// 	"merchant_id":  s.config.MerchantID,
-	// 	"amount":       amount,
-	// 	"callback_url": fmt.Sprintf("%s?orderID=%d", s.config.CallbackURL, orderID),
-	// 	"description":  fmt.Sprintf("پرداخت سفارش شماره %d", orderID),
-	// }
-	// body, _ := json.Marshal(payload)
-	// resp, err := http.Post(s.baseURL()+"/request.json", "application/json", bytes.NewBuffer(body))
-	// if err != nil {
-	// 	return "", "", err
-	// }
-	// defer resp.Body.Close()
+	if !s.config.Enabled {
+		authority := fmt.Sprintf("mock_auth_%d_%d", orderID, amount)
+		gatewayURL := fmt.Sprintf("%s/%s", s.gatewayHost(), authority)
+		return authority, gatewayURL, nil
+	}
+
+	payload := map[string]interface{}{
+		"merchant_id":  s.config.MerchantID,
+		"amount":       amount,
+		"callback_url": fmt.Sprintf("%s?orderID=%d", s.config.CallbackURL, orderID),
+		"description":  fmt.Sprintf("پرداخت سفارش شماره %d", orderID),
+	}
+	body, _ := json.Marshal(payload)
+	resp, err := http.Post(s.baseURL()+"/request.json", "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return "", "", err
+	}
+	defer resp.Body.Close()
 
 	var result struct {
 		Data struct {
@@ -55,14 +64,10 @@ func (s *PaymentService) InitiateGatewayPayment(orderID uint, amount uint) (stri
 		Errors interface{} `json:"errors"`
 	}
 
-	// MOCKED: Returning success without actual API call
-	result.Data.Code = 100
-	result.Data.Authority = fmt.Sprintf("mock_auth_%d_%d", orderID, amount)
-
-	// respBody, _ := io.ReadAll(resp.Body)
-	// if err := json.Unmarshal(respBody, &result); err != nil {
-	// 	return "", "", err
-	// }
+	respBody, _ := io.ReadAll(resp.Body)
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return "", "", err
+	}
 
 	if result.Data.Code != 100 {
 		return "", "", fmt.Errorf("zarinpal error code: %d", result.Data.Code)
@@ -74,18 +79,21 @@ func (s *PaymentService) InitiateGatewayPayment(orderID uint, amount uint) (stri
 }
 
 func (s *PaymentService) VerifyGatewayPayment(authority string, amount uint) (string, error) {
-	// MOCKED: Zarinpal gateway call commented out
-	// payload := map[string]interface{}{
-	// 	"merchant_id": s.config.MerchantID,
-	// 	"amount":      amount,
-	// 	"authority":   authority,
-	// }
-	// body, _ := json.Marshal(payload)
-	// resp, err := http.Post(s.baseURL()+"/verify.json", "application/json", bytes.NewBuffer(body))
-	// if err != nil {
-	// 	return "", err
-	// }
-	// defer resp.Body.Close()
+	if !s.config.Enabled {
+		return "12345", nil
+	}
+
+	payload := map[string]interface{}{
+		"merchant_id": s.config.MerchantID,
+		"amount":      amount,
+		"authority":   authority,
+	}
+	body, _ := json.Marshal(payload)
+	resp, err := http.Post(s.baseURL()+"/verify.json", "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
 
 	var result struct {
 		Data struct {
@@ -95,14 +103,10 @@ func (s *PaymentService) VerifyGatewayPayment(authority string, amount uint) (st
 		} `json:"data"`
 	}
 
-	// MOCKED: Returning success without actual API call
-	result.Data.Code = 100
-	result.Data.RefID = int64(12345) // Mock reference ID
-
-	// respBody, _ := io.ReadAll(resp.Body)
-	// if err := json.Unmarshal(respBody, &result); err != nil {
-	// 	return "", err
-	// }
+	respBody, _ := io.ReadAll(resp.Body)
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return "", err
+	}
 
 	if result.Data.Code != 100 && result.Data.Code != 101 {
 		return "", fmt.Errorf("zarinpal verification failed: %s", result.Data.Message)

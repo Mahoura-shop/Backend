@@ -2,11 +2,11 @@ package service
 
 import (
 	"errors"
+	"math"
 	"mime/multipart"
 	"strings"
 	"time"
 	"unicode"
-	"math"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	productdto "github.com/Mahoura-shop/Backend/internal/application/dto/product"
@@ -114,6 +114,7 @@ func (productService *ProductService) ParseSlug(slug string) (string, error) {
 func (productService *ProductService) ParseProduct(product entity.Product) (productdto.ProductCredential) {
 	response := productdto.ProductCredential{
 		ID:            product.ID,
+		ExternalID:    product.ExternalID,
 		Name:          product.Name,
 		Slug:          product.Slug,
 		Price:         product.Price,
@@ -141,6 +142,7 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 		IsNew:         product.IsNew,
 		ProductPic:    product.ProductPic,
 		Size:          product.Size,
+		CurrencyID:    product.CurrencyID,
 	}
 	if product.Category != nil {
 		category, _ := productService.categoryService.ParseCategory(*product.Category)
@@ -155,7 +157,7 @@ func (productService *ProductService) ParseProduct(product entity.Product) (prod
 
 	currency, _ := productService.currencyService.ParseCurrency(product.Currency)
 	response.Currency = &currency
-	response.CurrencyID = product.CurrencyID
+	// response.CurrencyID = product.CurrencyID
 
 	if product.ProductPic != "" {
 		productPic, err := productService.s3Storage.GetPresignedURL(enum.ProductPic, product.ProductPic, 8*time.Hour)
@@ -478,6 +480,7 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 		CategoryID: productInfo.CategoryID,
 		BrandID:    productInfo.BrandID,
 		CurrencyID: productInfo.CurrencyID,
+		ExternalID: productInfo.ExternalID,
 	}
 
 	productService.applyProductInitial(&product, productInfo)
@@ -541,6 +544,9 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 }
 
 func (productService *ProductService) applyProductUpdates(product *entity.Product, productInfo productdto.UpdateProductRequest) error {
+	if productInfo.ExternalID != nil {
+		product.ExternalID = productInfo.ExternalID
+	}
 	if productInfo.Name != nil {
 		product.Name = *productInfo.Name
 	}
@@ -594,9 +600,6 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 	if productInfo.IRRPrice != nil {
 		product.IRRPrice = productService.roundPrice(*productInfo.IRRPrice)
 	}
-	if productInfo.ConsumerPrice != nil {
-		product.ConsumerPrice = *productInfo.ConsumerPrice
-	}
 	if productInfo.Step1Percent != nil {
 		product.Step1Percent = *productInfo.Step1Percent
 	}
@@ -611,15 +614,23 @@ func (productService *ProductService) applyProductUpdates(product *entity.Produc
 	}
 	if productInfo.Step1Price != nil {
 		product.Step1Price = productService.roundPrice(*productInfo.Step1Price)
+	} else {
+		product.Step1Price = 0
 	}
 	if productInfo.Step2Price != nil {
 		product.Step2Price = productService.roundPrice(*productInfo.Step2Price)
+	} else {
+		product.Step2Price = 0
 	}
 	if productInfo.Step3Price != nil {
 		product.Step3Price = productService.roundPrice(*productInfo.Step3Price)
+	} else {
+		product.Step3Price = 0
 	}
 	if productInfo.Step4Price != nil {
 		product.Step4Price = productService.roundPrice(*productInfo.Step4Price)
+	} else {
+		product.Step4Price = 0
 	}
 	if productInfo.Step1Origin != nil {
 		product.Step1Origin = *productInfo.Step1Origin
@@ -935,6 +946,28 @@ func (productService *ProductService) DeleteProduct(productID uint) error {
 		return nil
 	})
 	return err
+}
+
+func (productService *ProductService) UpdateInventoryFromExcel(rows []productdto.ExcelInventoryRow) (int, error) {
+	updated := 0
+	err := productService.db.WithTransaction(func(tx database.Database) error {
+		for _, row := range rows {
+			product, err := productService.productRepository.FindProductByExternalID(tx, row.ExternalID)
+			if err != nil {
+				return err
+			}
+			if product == nil {
+				continue
+			}
+			product.Quantity = row.Quantity
+			if err := productService.productRepository.UpdateProduct(tx, *product); err != nil {
+				return err
+			}
+			updated++
+		}
+		return nil
+	})
+	return updated, err
 }
 
 func (productService *ProductService) GetProductPrices() ([]productdto.ProductPrices, error) {

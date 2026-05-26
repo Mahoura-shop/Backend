@@ -62,3 +62,8 @@ func (u *UserRepositoryMock) FindAdmins(db database.Database) ([]*entity.User, e
 	args := u.Called(db)
 	return args.Get(0).([]*entity.User), args.Error(1)
 }
+
+func (u *UserRepositoryMock) GetUsersCount(db database.Database) (uint, error) {
+	args := u.Called(db)
+	return args.Get(0).(uint), args.Error(1)
+}

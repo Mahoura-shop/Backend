@@ -36,6 +36,7 @@ type ProductRepository interface {
 	FindProductByID(database.Database, uint) (*entity.Product, error)
 	FindProductBySlug(database.Database, string) (*entity.Product, error)
 	FindProductByName(database.Database, string) (*entity.Product, error)
+	FindProductByExternalID(database.Database, string) (*entity.Product, error)
 	GetProducts(database.Database) ([]*entity.Product, error)
 	SearchProducts(database.Database, ProductFilter) ([]*entity.Product, error)
 	SearchProductsWithCount(database.Database, ProductFilter) ([]*entity.Product, int64, error)

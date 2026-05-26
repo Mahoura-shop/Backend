@@ -56,6 +56,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 		Name          string                `form:"name" validate:"required"`
 		Slug          string                `form:"slug" validate:"required"`
 		Price         float64               `form:"price" validate:"required"`
+		ExternalID    *string               `form:"externalID"`
 		CurrencyID    uint                  `form:"currencyID"`
 		IRRPrice      *uint                 `form:"irrPrice"`
 		ConsumerPrice *uint                 `form:"consumerPrice"`
@@ -87,6 +88,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 
 	productInfo := productdto.CreateProductRequest{
 		Name:          params.Name,
+		ExternalID:    params.ExternalID,
 		Slug:          params.Slug,
 		Price:         params.Price,
 		CurrencyID:    params.CurrencyID,
@@ -128,6 +130,7 @@ func (productController *AdminProductController) CreateProduct(ctx *gin.Context)
 func (productController *AdminProductController) UpdateProduct(ctx *gin.Context) {
 	type updateProductParams struct {
 		ID            uint                  `uri:"productID" validate:"required"`
+		ExternalID    *string               `form:"externalID"`
 		Name          *string               `form:"name"`
 		Slug          *string               `form:"slug"`
 		Price         *float64              `form:"price"`
@@ -162,6 +165,7 @@ func (productController *AdminProductController) UpdateProduct(ctx *gin.Context)
 	
 	productInfo := productdto.UpdateProductRequest{
 		ID:            params.ID,
+		ExternalID:    params.ExternalID,
 		Name:          params.Name,
 		Slug:          params.Slug,
 		Price:         params.Price,
@@ -320,6 +324,32 @@ func (productController *AdminProductController) AddProductImage(ctx *gin.Contex
 	trans := controller.GetTranslator(ctx, productController.constants.Context.Translator)
 	message, _ := trans.Translate("successMessage.uploadImage")
 	controller.Response(ctx, 201, message, nil)
+}
+
+func (productController *AdminProductController) UpdateInventoryFromExcel(ctx *gin.Context) {
+	type row struct {
+		ExternalID string `json:"externalID" validate:"required"`
+		Quantity   uint   `json:"quantity"`
+	}
+	type params struct {
+		Rows []row `json:"rows" validate:"required"`
+	}
+	p := controller.Validated[params](ctx)
+
+	items := make([]productdto.ExcelInventoryRow, len(p.Rows))
+	for i, r := range p.Rows {
+		items[i] = productdto.ExcelInventoryRow{
+			ExternalID: r.ExternalID,
+			Quantity:   r.Quantity,
+		}
+	}
+
+	updated, err := productController.productService.UpdateInventoryFromExcel(items)
+	if err != nil {
+		panic(err)
+	}
+
+	controller.Response(ctx, 200, "", map[string]int{"updated": updated})
 }
 
 func (productController *AdminProductController) DeleteProductImage(ctx *gin.Context) {

@@ -35,6 +35,8 @@ func SetupGeneralRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
 		brand.GET("", app.Controllers.Admin.BrandController.GetBrands)
 	}
 
+	routerGroup.GET("/stats", app.Controllers.General.UserController.GetPublicStats)
+
 	routerGroup.GET("/shipping", func(ctx *gin.Context) {
 		controller.Response(ctx, 200, "", gin.H{"shippingCost": shipping.DefaultShippingCost})
 	})

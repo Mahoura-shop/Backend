@@ -95,3 +95,12 @@ func (repo *UserRepository) DeleteUserByPhone(db database.Database, phone string
 func (repo *UserRepository) UpdateUser(db database.Database, user entity.User) (error) {
 	return db.GetDB().Save(&user).Error
 }
+
+func (repo *UserRepository) GetUsersCount(db database.Database) (uint, error) {
+	var count int64
+	err := db.GetDB().Model(&entity.User{}).Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return uint(count), nil
+}

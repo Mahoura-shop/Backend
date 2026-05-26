@@ -212,3 +212,22 @@ func (repo *OrderRepository) GetBrandOrdersPerDay(db database.Database, brandID 
 	}
 	return results, nil
 }
+
+func (repo *OrderRepository) GetProvinceStats(db database.Database) ([]postgresrepo.ProvinceStatRow, error) {
+	var results []postgresrepo.ProvinceStatRow
+	result := db.GetDB().
+		Model(&entity.Order{}).
+		Select(`provinces.name as province,
+			COUNT(DISTINCT orders.id) as order_count,
+			COALESCE(SUM(order_items.price_snapshot * order_items.count), 0) as revenue`).
+		Joins("JOIN addresses ON addresses.id = orders.address_id AND addresses.deleted_at IS NULL").
+		Joins("JOIN provinces ON provinces.id = addresses.province_id AND provinces.deleted_at IS NULL").
+		Joins("LEFT JOIN order_items ON order_items.order_id = orders.id AND order_items.deleted_at IS NULL").
+		Where("orders.address_id IS NOT NULL").
+		Group("provinces.name").
+		Scan(&results)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return results, nil
+}

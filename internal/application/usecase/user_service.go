@@ -18,6 +18,7 @@ type UserService interface {
 	VerifyAuth(userdto.VerifyAuthRequest) (userdto.UserInfoResponse, error)
 	FindUserByPhone(phone string) (*entity.User, error)
 	VerifyEmail(userdto.VerifyEmailRequest) error
+	GetPublicStats() (userdto.PublicStatsResponse, error)
 	GetDashboard() (userdto.DashboardResponse, error)
 	GetOrdersChart(period string) ([]userdto.OrderByDay, error)
 	GetSalesChart(period string) ([]userdto.RevenueByDay, error)
@@ -28,6 +29,7 @@ type UserService interface {
 	GetCategoryOrdersChart(categoryID uint, period string) ([]userdto.OrderByDay, error)
 	GetBrandVisitsChart(brandID uint, period string) ([]userdto.VisitsByDay, error)
 	GetBrandOrdersChart(brandID uint, period string) ([]userdto.OrderByDay, error)
+	GetProvinceStats() ([]userdto.ProvinceStatDTO, error)
 	GetUserWalletBalance(uint) (userdto.UserWalletBalance, error)
 	GetWalletHistory(uint) ([]userdto.TransactionDTO, error)
 	GetAdminUserWallet(uint) (userdto.AdminUserWalletResponse, error)

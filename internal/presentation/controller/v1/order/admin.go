@@ -100,7 +100,11 @@ func (c *AdminOrderController) CancelOrder(ctx *gin.Context) {
 		Reason string `json:"reason" binding:"required"`
 	}
 	p := controller.Validated[params](ctx)
-	b := controller.Validated[body](ctx)
+
+	var b body
+	if err := ctx.ShouldBindJSON(&b); err != nil {
+		panic(err)
+	}
 
 	if err := c.orderService.CancelOrder(p.OrderID, b.Reason); err != nil {
 		panic(err)

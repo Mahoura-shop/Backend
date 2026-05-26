@@ -28,7 +28,7 @@ func (s *OtpServiceTestSuite) SetupTest() {
 		MaxAttempts:  3,
 	}
 	s.userCacheRepository = mocks.NewUserCacheRepositoryMock()
-	s.otpService = NewOTPService(s.constants, s.otpConfig, s.userCacheRepository)
+	s.otpService = NewOTPService(s.constants, s.otpConfig, &bootstrap.SMSGateway{Enabled: false}, s.userCacheRepository)
 }
 
 func (s *OtpServiceTestSuite) TestGenerateOTP() {

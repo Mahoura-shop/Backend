@@ -81,6 +81,11 @@ func (s *UserServiceMock) FindUserByPhone(phone string) (*entity.User, error) {
 }
 
 
+func (s *UserServiceMock) GetPublicStats() (userdto.PublicStatsResponse, error) {
+	args := s.Called()
+	return args.Get(0).(userdto.PublicStatsResponse), args.Error(1)
+}
+
 func (s *UserServiceMock) GetDashboard() (userdto.DashboardResponse, error) {
 	args := s.Called()
 	return args.Get(0).(userdto.DashboardResponse), args.Error(1)
@@ -94,6 +99,11 @@ func (s *UserServiceMock) GetOrdersChart(period string) ([]userdto.OrderByDay, e
 func (s *UserServiceMock) GetSalesChart(period string) ([]userdto.RevenueByDay, error) {
 	args := s.Called(period)
 	return args.Get(0).([]userdto.RevenueByDay), args.Error(1)
+}
+
+func (s *UserServiceMock) GetProvinceStats() ([]userdto.ProvinceStatDTO, error) {
+	args := s.Called()
+	return args.Get(0).([]userdto.ProvinceStatDTO), args.Error(1)
 }
 
 func (s *UserServiceMock) GetUserWalletBalance(userID uint) (userdto.UserWalletBalance, error) {

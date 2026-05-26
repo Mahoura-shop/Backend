@@ -63,6 +63,14 @@ func (userController *GeneralUserController) VerifyAuth(ctx *gin.Context) {
 	controller.Response(ctx, 200, message, user)
 }
 
+func (userController *GeneralUserController) GetPublicStats(ctx *gin.Context) {
+	stats, err := userController.userService.GetPublicStats()
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", stats)
+}
+
 func (userController *GeneralUserController) RefreshToken(ctx *gin.Context) {
 	type refreshTokenParams struct {
 		RefreshToken string `json:"refreshToken" validate:"required"`
@@ -192,6 +200,14 @@ func (userController *AdminUserController) GetBrandOrdersChart(ctx *gin.Context)
 	p := controller.Validated[params](ctx)
 	period := ctx.DefaultQuery("period", "week")
 	data, err := userController.userService.GetBrandOrdersChart(p.BrandID, period)
+	if err != nil {
+		panic(err)
+	}
+	controller.Response(ctx, 200, "", data)
+}
+
+func (userController *AdminUserController) GetProvinceStats(ctx *gin.Context) {
+	data, err := userController.userService.GetProvinceStats()
 	if err != nil {
 		panic(err)
 	}

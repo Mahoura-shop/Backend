@@ -34,6 +34,18 @@ func (repo *ProductRepository) FindProductBySlug(db database.Database, slug stri
 	return &product, nil
 }
 
+func (repo *ProductRepository) FindProductByExternalID(db database.Database, externalID string) (*entity.Product, error) {
+	var product entity.Product
+	result := db.GetDB().Where("external_id = ?", externalID).First(&product)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+	return &product, nil
+}
+
 func (repo *ProductRepository) FindProductByName(db database.Database, name string) (*entity.Product, error) {
 	var product entity.Product
 	result := db.GetDB().Preload("Brand").Preload("Category").Preload("Currency").Where("name = ?", name).First(&product)
@@ -90,7 +102,7 @@ func (repo *ProductRepository) CreateProduct(db database.Database, product entit
 }
 
 func (repo *ProductRepository) UpdateProduct(db database.Database, product entity.Product) error {
-	return db.GetDB().Save(&product).Error
+	return db.GetDB().Omit("Brand", "Category", "Currency", "Images").Save(&product).Error
 }
 
 func (repo *ProductRepository) DeleteProductByID(db database.Database, productID uint) error {

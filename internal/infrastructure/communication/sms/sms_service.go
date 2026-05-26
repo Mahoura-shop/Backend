@@ -21,6 +21,9 @@ func NewSMSService(
 }
 
 func (smsService *SMSService) SendOTP(receptor, token string) error {
+	if !smsService.providerConfig.Enabled {
+		return nil
+	}
 	api := kavenegar.New(smsService.providerConfig.APIKey)
 	template := smsService.smsTemplates.OTP
 	params := &kavenegar.VerifyLookupParam{}
@@ -31,6 +34,9 @@ func (smsService *SMSService) SendOTP(receptor, token string) error {
 }
 
 func (smsService *SMSService) SendMessage(receptor, message string) error {
+	if !smsService.providerConfig.Enabled {
+		return nil
+	}
 	api := kavenegar.New(smsService.providerConfig.APIKey)
 	_, err := api.Message.Send(smsService.providerConfig.Sender, []string{receptor}, message, nil)
 	return err

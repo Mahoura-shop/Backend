@@ -82,11 +82,13 @@ type OTP struct {
 }
 
 type SMSGateway struct {
-	APIKey string
-	Sender string
+	Enabled bool
+	APIKey  string
+	Sender  string
 }
 
 type Zarinpal struct {
+	Enabled     bool
 	MerchantID  string
 	CallbackURL string
 	Sandbox     bool
@@ -168,10 +170,12 @@ func NewEnvironments() *Env {
 			MaxAttempts:  getEnvInt("OTP_MAX_ATTEMPTS", 3),
 		},
 		SMSGateway: SMSGateway{
-			APIKey: os.Getenv("SMS_GATEWAY_API_KEY"),
-			Sender: os.Getenv("SMS_GATEWAY_SENDER"),
+			Enabled: os.Getenv("SMS_ENABLED") == "true",
+			APIKey:  os.Getenv("SMS_GATEWAY_API_KEY"),
+			Sender:  os.Getenv("SMS_GATEWAY_SENDER"),
 		},
 		Zarinpal: Zarinpal{
+			Enabled:     os.Getenv("ZARINPAL_ENABLED") == "true",
 			MerchantID:  os.Getenv("ZARINPAL_MERCHANT_ID"),
 			CallbackURL: os.Getenv("ZARINPAL_CALLBACK_URL"),
 			Sandbox:     os.Getenv("ZARINPAL_SANDBOX") == "true",

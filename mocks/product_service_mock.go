@@ -122,3 +122,8 @@ func (m *ProductServiceMock) DeleteProductImage(productID uint, imageID uint) er
 	args := m.Called(productID, imageID)
 	return args.Error(0)
 }
+
+func (m *ProductServiceMock) UpdateInventoryFromExcel(rows []productdto.ExcelInventoryRow) (int, error) {
+	args := m.Called(rows)
+	return args.Int(0), args.Error(1)
+}
