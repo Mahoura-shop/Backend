@@ -809,9 +809,12 @@ func (userService *UserService) WithdrawWallet(balanceUpdateInfo userdto.UserBal
 	var newBalance uint
 	var err error
 	userService.db.WithTransaction(func(tx database.Database) error {
-		wallet, err := userService.walletRepository.FindWalletByUserID(userService.db, balanceUpdateInfo.UserID)
+		wallet, err := userService.walletRepository.FindWalletByUserID(tx, balanceUpdateInfo.UserID)
 		if err != nil {
 			return err
+		}
+		if wallet == nil {
+			return nil
 		}
 
 		transaction := entity.Transaction{
@@ -883,6 +886,9 @@ func (userService *UserService) GetAdminUserWallet(userID uint) (userdto.AdminUs
 	wallet, err := userService.walletRepository.FindWalletByUserID(userService.db, userID)
 	if err != nil {
 		return userdto.AdminUserWalletResponse{}, err
+	}
+	if wallet == nil {
+		return userdto.AdminUserWalletResponse{Balance: 0, Transactions: []userdto.TransactionDTO{}}, nil
 	}
 
 	transactions, err := userService.transactionRepository.FindTransactionsByWalletID(userService.db, wallet.ID)
