@@ -154,3 +154,37 @@ func (s3StorageS3Storage *S3Storage) GetPresignedURL(bucketType enum.BucketType,
 
 	return url, nil
 }
+
+// Add this method to your S3Storage struct
+func (s3Storage *S3Storage) CopyObject(bucketType enum.BucketType, sourceKey, destinationKey string) error {
+    err := s3Storage.setS3Client(bucketType)
+    if err != nil {
+        return err
+    }
+    
+    bucket := s3Storage.buckets[bucketType]
+    
+    // Copy object within same bucket
+    source := fmt.Sprintf("%s/%s", bucket, sourceKey)
+    
+    _, err = s3Storage.clients.CopyObject(&s3.CopyObjectInput{
+        Bucket:     aws.String(bucket),
+        CopySource: aws.String(source),
+        Key:        aws.String(destinationKey),
+    })
+    
+    if err != nil {
+        return fmt.Errorf("unable to copy object from %s to %s: %w", sourceKey, destinationKey, err)
+    }
+    
+    // Wait for object to exist
+    err = s3Storage.clients.WaitUntilObjectExists(&s3.HeadObjectInput{
+        Bucket: aws.String(bucket),
+        Key:    aws.String(destinationKey),
+    })
+    if err != nil {
+        return fmt.Errorf("unable to confirm copied object exists: %w", err)
+    }
+    
+    return nil
+}

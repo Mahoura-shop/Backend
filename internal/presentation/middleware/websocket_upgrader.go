@@ -24,7 +24,6 @@ func (wsMiddleware *WebsocketMiddleware) UpgradeToWebSocket(c *gin.Context) {
 		WriteBufferSize: 1024,
 		CheckOrigin: func(r *http.Request) bool {
 			return true
-			// return r.Header.Get("Origin") == "https://frontend-domain.com"
 		},
 	}
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)

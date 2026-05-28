@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"github.com/Mahoura-shop/Backend/internal/domain/entity"
+	postgresrepo "github.com/Mahoura-shop/Backend/internal/domain/repository/postgres"
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/database"
 	"github.com/stretchr/testify/mock"
 )
@@ -30,4 +31,36 @@ func (m *ProductVisitRepositoryMock) GetVisitCountByProductID(db database.Databa
 func (m *ProductVisitRepositoryMock) HasVisitedInLast24h(db database.Database, productID uint, visitorIP string) (bool, error) {
 	args := m.Called(db, productID, visitorIP)
 	return args.Bool(0), args.Error(1)
+}
+
+func (m *ProductVisitRepositoryMock) GetVisitsPerDay(db database.Database, productID uint, days int) ([]postgresrepo.VisitsByDay, error) {
+	args := m.Called(db, productID, days)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]postgresrepo.VisitsByDay), args.Error(1)
+}
+
+func (m *ProductVisitRepositoryMock) GetAllVisitsPerDay(db database.Database, days int) ([]postgresrepo.VisitsByDay, error) {
+	args := m.Called(db, days)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]postgresrepo.VisitsByDay), args.Error(1)
+}
+
+func (m *ProductVisitRepositoryMock) GetCategoryVisitsPerDay(db database.Database, categoryID uint, days int) ([]postgresrepo.VisitsByDay, error) {
+	args := m.Called(db, categoryID, days)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]postgresrepo.VisitsByDay), args.Error(1)
+}
+
+func (m *ProductVisitRepositoryMock) GetBrandVisitsPerDay(db database.Database, brandID uint, days int) ([]postgresrepo.VisitsByDay, error) {
+	args := m.Called(db, brandID, days)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]postgresrepo.VisitsByDay), args.Error(1)
 }

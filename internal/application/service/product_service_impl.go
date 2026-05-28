@@ -525,6 +525,7 @@ func (productService *ProductService) CreateProduct(productInfo productdto.Creat
 		if err != nil {
 			return err
 		}
+		product.ID = createdProduct.ID
 		if productInfo.ProductPic != nil {
 			product.ProductPic = productService.constants.S3BucketPath.GetProductPicPath(createdProduct.ID, productInfo.ProductPic.Filename)
 			if err := productService.s3Storage.UploadObject(enum.ProductPic, product.ProductPic, productInfo.ProductPic); err != nil {
@@ -732,17 +733,14 @@ func (productService *ProductService) UpdateProduct(productInfo productdto.Updat
 		if productInfo.ProductPic != nil {
 			productPicPath := productService.constants.S3BucketPath.GetProductPicPath(productInfo.ID, productInfo.ProductPic.Filename)
 			if err := productService.s3Storage.UploadObject(enum.ProductPic, productPicPath, productInfo.ProductPic); err != nil {
-				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
-				_ = productService.productRepository.DeleteProductByID(tx, productInfo.ID);
-				return networkErr
+				return exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+			}
+			if product.ProductPic != "" {
+				if err := productService.s3Storage.DeleteObject(enum.ProductPic, product.ProductPic); err != nil {
+					return exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
+				}
 			}
 			product.ProductPic = productPicPath
-		} else if product.ProductPic != "" {
-			if err := productService.s3Storage.DeleteObject(enum.ProductPic, product.ProductPic); err != nil {
-				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
-				return networkErr
-			}
-			product.ProductPic = ""
 		}
 
 		if err := productService.productRepository.UpdateProduct(tx, *product); err != nil {

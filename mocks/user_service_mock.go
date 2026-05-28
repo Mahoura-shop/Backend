@@ -158,3 +158,59 @@ func (s *UserServiceMock) RevokeSubAdmin(userID uint) error {
 	args := s.Called(userID)
 	return args.Error(0)
 }
+
+func (s *UserServiceMock) GetVisitsChart(period string) ([]userdto.VisitsByDay, error) {
+	args := s.Called(period)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]userdto.VisitsByDay), args.Error(1)
+}
+
+func (s *UserServiceMock) GetProductVisitsChart(productID uint, period string) ([]userdto.VisitsByDay, error) {
+	args := s.Called(productID, period)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]userdto.VisitsByDay), args.Error(1)
+}
+
+func (s *UserServiceMock) GetProductOrdersChart(productID uint, period string) ([]userdto.OrderByDay, error) {
+	args := s.Called(productID, period)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]userdto.OrderByDay), args.Error(1)
+}
+
+func (s *UserServiceMock) GetCategoryVisitsChart(categoryID uint, period string) ([]userdto.VisitsByDay, error) {
+	args := s.Called(categoryID, period)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]userdto.VisitsByDay), args.Error(1)
+}
+
+func (s *UserServiceMock) GetCategoryOrdersChart(categoryID uint, period string) ([]userdto.OrderByDay, error) {
+	args := s.Called(categoryID, period)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]userdto.OrderByDay), args.Error(1)
+}
+
+func (s *UserServiceMock) GetBrandVisitsChart(brandID uint, period string) ([]userdto.VisitsByDay, error) {
+	args := s.Called(brandID, period)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]userdto.VisitsByDay), args.Error(1)
+}
+
+func (s *UserServiceMock) GetBrandOrdersChart(brandID uint, period string) ([]userdto.OrderByDay, error) {
+	args := s.Called(brandID, period)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]userdto.OrderByDay), args.Error(1)
+}

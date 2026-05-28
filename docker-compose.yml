@@ -13,6 +13,7 @@ services:
       - /internal/infrastructure/jwt
     depends_on:
       - db
+      - db_test
       - redis
 
   db:
@@ -24,7 +25,20 @@ services:
     ports:
       - ${DB_PORT}:5432
     volumes:
-      - ./db_data:/var/lib/postgresql/data
+      - ./db_prod_data:/var/lib/postgresql/data
+
+  db_test:
+    image: postgres:16
+    container_name: db_test
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: mahouradb_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./db_test_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7

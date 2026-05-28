@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Mahoura-shop/Backend/bootstrap"
@@ -176,42 +177,56 @@ func (brandService *BrandService) GetBrands() ([]branddto.BrandCredential, error
 }
 
 func (brandService *BrandService) CreateBrand(brandInfo branddto.CreateBrandRequest) error {
-	err := brandService.validateDuplicateBrand(brandInfo.Slug)
-	if err != nil {
-		return err
-	}
-	brand := &entity.Brand{
-		Name:     brandInfo.Name,
-		Slug:     brandInfo.Slug,
-		IsActive: brandInfo.IsActive,
-	}
+    if err := brandService.validateDuplicateBrand(brandInfo.Slug); err != nil {
+        return err
+    }
 
-	err = brandService.db.WithTransaction(func(tx database.Database) error {
-		if brandInfo.Description != nil {
-			brand.Description = *brandInfo.Description
-		} else {
-			brand.Description = ""
-		}
-		createdBrand, err := brandService.brandRepository.CreateBrand(tx, *brand)
-		if err != nil {
-			return err
-		}
-		if brandInfo.BrandPic != nil {
-			brand.BrandPic = brandService.constants.S3BucketPath.GetBrandPicPath(createdBrand.ID, brandInfo.BrandPic.Filename)
-			if err := brandService.s3Storage.UploadObject(enum.BrandPic, brand.BrandPic, brandInfo.BrandPic); err != nil {
-				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
-				_ = brandService.brandRepository.DeleteBrandByID(tx, createdBrand.ID);
-				return networkErr
-			}
-		
-			if err := brandService.brandRepository.UpdateBrand(tx, *brand); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+    description := ""
+    if brandInfo.Description != nil {
+        description = *brandInfo.Description
+    }
+    brand := &entity.Brand{
+        Name:        brandInfo.Name,
+        Slug:        brandInfo.Slug,
+        Description: description,
+        IsActive:    brandInfo.IsActive,
+    }
 
-	return err
+    if brandInfo.BrandPic == nil {
+        return brandService.db.WithTransaction(func(tx database.Database) error {
+            _, err := brandService.brandRepository.CreateBrand(tx, *brand)
+            return err
+        })
+    }
+
+    tempKey := fmt.Sprintf("temp/brand-%d-%s", time.Now().UnixNano(), brandInfo.BrandPic.Filename)
+
+    err := brandService.s3Storage.UploadObject(enum.BrandPic, tempKey, brandInfo.BrandPic)
+    if err != nil {
+        return exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+    }
+
+    err = brandService.db.WithTransaction(func(tx database.Database) error {
+        createdBrand, err := brandService.brandRepository.CreateBrand(tx, *brand)
+        if err != nil {
+            return err
+        }
+        brand.ID = createdBrand.ID
+
+        finalKey := brandService.constants.S3BucketPath.GetBrandPicPath(createdBrand.ID, brandInfo.BrandPic.Filename)
+
+        err = brandService.s3Storage.CopyObject(enum.BrandPic, tempKey, finalKey)
+        if err != nil {
+            return err
+        }
+
+        brand.BrandPic = finalKey
+        return brandService.brandRepository.UpdateBrand(tx, *brand)
+    })
+
+    brandService.s3Storage.DeleteObject(enum.BrandPic, tempKey)
+
+    return err
 }
 
 func (brandService *BrandService) DeleteBrand(brandID uint) error {
@@ -267,16 +282,13 @@ func (brandService *BrandService) UpdateBrand(brandInfo branddto.UpdateBrandRequ
 	err = brandService.db.WithTransaction(func(tx database.Database) error {
 		if brandInfo.BrandPic != nil {
 			brandPicPath := brandService.constants.S3BucketPath.GetBrandPicPath(brandInfo.ID, brandInfo.BrandPic.Filename)
-			if err := brandService.s3Storage.UploadObject(enum.BrandPic, brand.BrandPic, brandInfo.BrandPic); err != nil {
-				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
-				_ = brandService.brandRepository.DeleteBrandByID(tx, brandInfo.ID);
-				return networkErr
-			} else if brand.BrandPic != "" {
+			if err := brandService.s3Storage.UploadObject(enum.BrandPic, brandPicPath, brandInfo.BrandPic); err != nil {
+				return exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
+			}
+			if brand.BrandPic != "" {
 				if err := brandService.s3Storage.DeleteObject(enum.BrandPic, brand.BrandPic); err != nil {
-					networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
-					return networkErr
+					return exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
 				}
-				brand.BrandPic = ""
 			}
 			brand.BrandPic = brandPicPath
 		}

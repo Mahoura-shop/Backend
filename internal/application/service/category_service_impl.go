@@ -161,6 +161,7 @@ func (categoryService *CategoryService) CreateCategory(categoryInfo categorydto.
 		if err != nil {
 			return err
 		}
+		category.ID = createdCategory.ID
 		if categoryInfo.CategoryPic != nil {
 			category.CategoryPic = categoryService.constants.S3BucketPath.GetCategoryPicPath(createdCategory.ID, categoryInfo.CategoryPic.Filename)
 			if err := categoryService.s3Storage.UploadObject(enum.CategoryPic, category.CategoryPic, categoryInfo.CategoryPic); err != nil {
@@ -232,18 +233,14 @@ func (categoryService *CategoryService) UpdateCategory(categoryInfo categorydto.
 	err = categoryService.db.WithTransaction(func(tx database.Database) error {
 		if categoryInfo.CategoryPic != nil {
 			categoryPicPath := categoryService.constants.S3BucketPath.GetCategoryPicPath(categoryInfo.ID, categoryInfo.CategoryPic.Filename)
-			if err := categoryService.s3Storage.UploadObject(enum.CategoryPic, category.CategoryPic, categoryInfo.CategoryPic); err != nil {
-				networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
-				_ = categoryService.categoryRepository.DeleteCategoryByID(tx, categoryInfo.ID);
-				return networkErr
-			} else if category.CategoryPic != "" {
-				if err := categoryService.s3Storage.DeleteObject(enum.CategoryPic, category.CategoryPic); err != nil {
-					networkErr := exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
-					return networkErr
-				}
-				category.CategoryPic = ""
+			if err := categoryService.s3Storage.UploadObject(enum.CategoryPic, categoryPicPath, categoryInfo.CategoryPic); err != nil {
+				return exception.ClassifyNetworkError(err, "ArvanStorage", "UploadObject")
 			}
-		
+			if category.CategoryPic != "" {
+				if err := categoryService.s3Storage.DeleteObject(enum.CategoryPic, category.CategoryPic); err != nil {
+					return exception.ClassifyNetworkError(err, "ArvanStorage", "DeleteObject")
+				}
+			}
 			category.CategoryPic = categoryPicPath
 		}
 		if err := categoryService.categoryRepository.UpdateCategory(tx, *category); err != nil {

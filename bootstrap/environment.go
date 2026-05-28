@@ -140,13 +140,7 @@ func NewEnvironments() *Env {
 			Limit: os.Getenv("RATE_LIMIT"),
 			Burst: os.Getenv("RATE_lIMIT_BURST"),
 		},
-		PrimaryDB: Database{
-			Host:     os.Getenv("DB_HOST"),
-			Port:     os.Getenv("DB_PORT"),
-			User:     os.Getenv("DB_USER"),
-			Password: os.Getenv("DB_PASSWORD"),
-			Name:     os.Getenv("DB_NAME"),
-		},
+		PrimaryDB: resolveDB(),
 		PrimaryRedis: Redis{
 			Port:      os.Getenv("RDB_PORT"),
 			Address:   os.Getenv("RDB_ADDRESS"),
@@ -222,6 +216,25 @@ func getEnvInt(key string, defaultVal int) int {
 		}
 	}
 	return defaultVal
+}
+
+func resolveDB() Database {
+	if os.Getenv("APP_MODE") == "test" {
+		return Database{
+			Host:     os.Getenv("DB_HOST_TEST"),
+			Port:     os.Getenv("DB_PORT"),
+			User:     os.Getenv("DB_USER"),
+			Password: os.Getenv("DB_PASSWORD"),
+			Name:     os.Getenv("DB_NAME_TEST"),
+		}
+	}
+	return Database{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Name:     os.Getenv("DB_NAME"),
+	}
 }
 
 func getEnvAdmins(key string) []AdminAccount {
