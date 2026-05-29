@@ -390,7 +390,13 @@ func (s *OrderService) PayOrderByWallet(userID, orderID uint) error {
 			return err
 		}
 		if wallet == nil {
-			return exception.NotFoundError{Item: "wallet"}
+			if err = s.walletRepository.CreateWallet(tx, entity.Wallet{UserID: userID}); err != nil {
+				return err
+			}
+			wallet, err = s.walletRepository.FindWalletByUserID(tx, userID)
+			if err != nil {
+				return err
+			}
 		}
 		if wallet.Balance < order.TotalAmount {
 			return exception.ForbiddenError{Message: "insufficient wallet balance"}
@@ -450,7 +456,13 @@ func (s *OrderService) InitiateGatewayPayment(userID, orderID uint) (*orderdto.P
 				return err
 			}
 			if wallet == nil {
-				return exception.NotFoundError{Item: "wallet"}
+				if err = s.walletRepository.CreateWallet(tx, entity.Wallet{UserID: userID}); err != nil {
+					return err
+				}
+				wallet, err = s.walletRepository.FindWalletByUserID(tx, userID)
+				if err != nil {
+					return err
+				}
 			}
 
 			if _, err := s.walletRepository.DepositWallet(tx, userID, order.TotalAmount); err != nil {
@@ -613,7 +625,13 @@ func (s *OrderService) CancelOrder(orderID uint, reason string) error {
 				return err
 			}
 			if wallet == nil {
-				return exception.NotFoundError{Item: "wallet"}
+				if err = s.walletRepository.CreateWallet(tx, entity.Wallet{UserID: order.UserID}); err != nil {
+					return err
+				}
+				wallet, err = s.walletRepository.FindWalletByUserID(tx, order.UserID)
+				if err != nil {
+					return err
+				}
 			}
 			if _, err := s.walletRepository.DepositWallet(tx, order.UserID, order.TotalAmount); err != nil {
 				return err
