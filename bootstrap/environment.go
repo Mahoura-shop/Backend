@@ -119,8 +119,10 @@ type AdminCredentials struct {
 }
 
 type AdminAccount struct {
-	Phone    string
-	Password string
+	Phone     string
+	Password  string
+	FirstName string
+	LastName  string
 }
 
 func NewEnvironments() *Env {
@@ -252,8 +254,8 @@ func getEnvAdmins(key string) []AdminAccount {
 			continue
 		}
 		admins = append(admins, AdminAccount{
-			Phone:    strings.TrimSpace(parts[0]),
-			Password: strings.TrimSpace(parts[1]),
+			Phone:     strings.TrimSpace(parts[0]),
+			Password:  strings.TrimSpace(parts[1]),
 		})
 	}
 

@@ -8,10 +8,11 @@ import (
 )
 
 func SetupGeneralRoutes(routerGroup *gin.RouterGroup, app *wire.Application) {
-	test := routerGroup.Group("/test")
-	{
-		test.POST("", app.Controllers.General.TestController.Test)
-	}
+	// test := routerGroup.Group("/test")
+	// {
+	// 	test.POST("", app.Controllers.General.TestController.Test)
+	// 	test.POST("/reset", app.Controllers.General.TestController.Reset)
+	// }
 
 	auth := routerGroup.Group("/auth")
 	{

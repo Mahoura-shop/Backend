@@ -1,6 +1,9 @@
 package test
 
 import (
+	"net/http"
+	"os"
+
 	"github.com/Mahoura-shop/Backend/bootstrap"
 	testdto "github.com/Mahoura-shop/Backend/internal/application/dto/test"
 	"github.com/Mahoura-shop/Backend/internal/application/usecase"
@@ -9,8 +12,8 @@ import (
 )
 
 type GeneralTestController struct {
-	constants      *bootstrap.Constants
-	testService     usecase.TestService
+	constants   *bootstrap.Constants
+	testService usecase.TestService
 }
 
 func NewGeneralTestController(
@@ -31,12 +34,25 @@ func (testController *GeneralTestController) Test(ctx *gin.Context) {
 	testInfo := testdto.BasicTestRequest{
 		Test: params.Test,
 	}
-	res, err := testController.testService.Test(testInfo.Test); 
-	if (err != nil) {
+	res, err := testController.testService.Test(testInfo.Test)
+	if err != nil {
 		panic(err)
 	}
 
 	trans := controller.GetTranslator(ctx, testController.constants.Context.Translator)
 	message, _ := trans.Translate("successMessage.test")
 	controller.Response(ctx, 200, message, res)
+}
+
+func (testController *GeneralTestController) Reset(ctx *gin.Context) {
+	if os.Getenv("APP_MODE") != "test" {
+		ctx.JSON(http.StatusForbidden, gin.H{"message": "only available in test mode"})
+		return
+	}
+
+	if err := testController.testService.ResetDB(); err != nil {
+		panic(err)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "db reset"})
 }

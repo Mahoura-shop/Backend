@@ -40,6 +40,37 @@ services:
     volumes:
       - ./db_test_data:/var/lib/postgresql/data
 
+  db_e2e:
+    image: postgres:16
+    container_name: db_e2e
+    restart: unless-stopped
+    profiles: ["e2e"]
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: e2e_test_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./db_e2e_data:/var/lib/postgresql/data
+
+  app_e2e:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend_e2e
+    restart: unless-stopped
+    profiles: ["e2e"]
+    env_file:
+      - ./.env.e2e
+    ports:
+      - "8081:8081"
+    volumes:
+      - /internal/infrastructure/jwt
+    depends_on:
+      - db_e2e
+      - redis
+
   redis:
     image: redis:7
     container_name: redis-db

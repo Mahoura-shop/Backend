@@ -40,9 +40,11 @@ func (adminSeeder *AdminSeeder) getOrCreateAdmin(admin bootstrap.AdminAccount) *
 
 	if user == nil {
 		user = &entity.User{
-			Phone:         admin.Phone,
-			Status:        enum.UserStatusActive,
-			IsAdmin:       true,
+			Phone:     admin.Phone,
+			Status:    enum.UserStatusActive,
+			FirstName: admin.FirstName,
+			LastName:  admin.LastName,
+			IsAdmin:   true,
 		}
 
 		if err := adminSeeder.userRepository.CreateUser(adminSeeder.db, *user); err != nil {

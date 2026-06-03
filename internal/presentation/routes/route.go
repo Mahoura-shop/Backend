@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"os"
+
 	httpv1 "github.com/Mahoura-shop/Backend/internal/presentation/routes/http/v1"
 	"github.com/Mahoura-shop/Backend/wire"
 	"github.com/gin-gonic/gin"
@@ -9,8 +11,15 @@ import (
 func Run(ginEngine *gin.Engine, app *wire.Application) {
 	ginEngine.Use(app.Middlewares.CORS.CORS())
 	ginEngine.Use(app.Middlewares.Logger.GinLoggerMiddleware)
-	ginEngine.Use(app.Middlewares.Localization.Localization)
 	ginEngine.Use(app.Middlewares.Recovery.Recovery)
+	if os.Getenv("APP_MODE") == "test" {
+        testGroup := ginEngine.Group("/v1/test")
+        {
+			testGroup.POST("", app.Controllers.General.TestController.Test)
+            testGroup.POST("/reset", app.Controllers.General.TestController.Reset)
+        }
+    }
+	ginEngine.Use(app.Middlewares.Localization.Localization)
 	ginEngine.Use(app.Middlewares.RateLimit.RateLimit)
 
 	ginEngine.OPTIONS("/*any", func(c *gin.Context) {})
