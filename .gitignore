@@ -1,12 +1,13 @@
-.env
+*.env*
 app.exe
 .vscode/
 db-data
+db_data
+db_e2e_data
 db_prod_data
 db_test_data
 *.pem
 .DS_Store
-db_data
 .air.toml
 tmp
 coverage.out
