@@ -27,7 +27,7 @@ jobs:
           SHA="${{ github.sha }}"
           BRANCH="${{ github.head_ref || github.ref_name }}"
           COMMIT_INFO="Branch: ${BRANCH} | Author: ${{ github.actor }} | SHA: ${SHA:0:7}"
-          TEXT="1️⃣ Backend CI Started 1️⃣\n${COMMIT_INFO}"
+          TEXT=$(printf '1️⃣ Backend CI Started 1️⃣\n%s' "${COMMIT_INFO}")
           curl -s -X POST "https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${BALE_CHAT_ID}" \
             --data-urlencode "text=${TEXT}" \
@@ -105,7 +105,7 @@ jobs:
           BRANCH="${{ github.head_ref || github.ref_name }}"
           COMMIT_INFO="Branch: ${BRANCH} | Author: ${{ github.actor }} | SHA: ${SHA:0:7}"
           MESSAGE=$(tail -n 30 .test-output/test_output.log 2>/dev/null || echo "No output captured")
-          TEXT="🔴❌ Backend Tests Failed ❌🔴\n${COMMIT_INFO}\n\nError details:\n${MESSAGE}"
+          TEXT=$(printf '🔴❌ Backend Tests Failed ❌🔴\n%s\n\nError details:\n%s' "${COMMIT_INFO}" "${MESSAGE}")
           curl -s -X POST "https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${BALE_CHAT_ID}" \
             --data-urlencode "text=${TEXT}" \
@@ -133,7 +133,7 @@ jobs:
           SHA="${{ github.sha }}"
           BRANCH="${{ github.head_ref || github.ref_name }}"
           COMMIT_INFO="Branch: ${BRANCH} | Author: ${{ github.actor }} | SHA: ${SHA:0:7}"
-          TEXT="🔴✅ Backend Tests Passed ✅🔴\n${COMMIT_INFO}"
+          TEXT=$(printf '🔴✅ Backend Tests Passed ✅🔴\n%s' "${COMMIT_INFO}")
           curl -s -X POST "https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${BALE_CHAT_ID}" \
             --data-urlencode "text=${TEXT}" \

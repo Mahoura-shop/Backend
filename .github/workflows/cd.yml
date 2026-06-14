@@ -23,7 +23,7 @@ jobs:
         run: |
           SHA="${{ github.sha }}"
           COMMIT_INFO="Branch: ${{ github.ref_name }} | Author: ${{ github.actor }} | SHA: ${SHA:0:7}"
-          TEXT="🔴2️⃣ Backend CD Started 2️⃣🔴\n${COMMIT_INFO}"
+          TEXT=$(printf '🔴2️⃣ Backend CD Started 2️⃣🔴\n%s' "${COMMIT_INFO}")
           curl -s -X POST "https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${BALE_CHAT_ID}" \
             --data-urlencode "text=${TEXT}" \
@@ -110,7 +110,7 @@ jobs:
           SHA="${{ github.sha }}"
           COMMIT_INFO="Branch: ${{ github.ref_name }} | Author: ${{ github.actor }} | SHA: ${SHA:0:7}"
           MESSAGE=$(cat .build-output/build_output.log 2>/dev/null || echo "No output captured")
-          TEXT="🔴❌ Backend Build Failed ❌🔴\n${COMMIT_INFO}\n\nError details:\n${MESSAGE}"
+          TEXT=$(printf '🔴❌ Backend Build Failed ❌🔴\n%s\n\nError details:\n%s' "${COMMIT_INFO}" "${MESSAGE}")
           curl -s -X POST "https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${BALE_CHAT_ID}" \
             --data-urlencode "text=${TEXT}" \
@@ -137,7 +137,7 @@ jobs:
         run: |
           SHA="${{ github.sha }}"
           COMMIT_INFO="Branch: ${{ github.ref_name }} | Author: ${{ github.actor }} | SHA: ${SHA:0:7}"
-          TEXT="🔴✅ Backend Build Successful ✅🔴\n${COMMIT_INFO}"
+          TEXT=$(printf '🔴✅ Backend Build Successful ✅🔴\n%s' "${COMMIT_INFO}")
           curl -s -X POST "https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${BALE_CHAT_ID}" \
             --data-urlencode "text=${TEXT}" \
@@ -204,7 +204,7 @@ jobs:
         run: |
           SHA="${{ github.sha }}"
           COMMIT_INFO="Branch: ${{ github.ref_name }} | Author: ${{ github.actor }} | SHA: ${SHA:0:7}"
-          TEXT="🔴❌ Backend Deploy Failed ❌🔴\n${COMMIT_INFO}"
+          TEXT=$(printf '🔴❌ Backend Deploy Failed ❌🔴\n%s' "${COMMIT_INFO}")
           curl -s -X POST "https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${BALE_CHAT_ID}" \
             --data-urlencode "text=${TEXT}" \
@@ -231,7 +231,7 @@ jobs:
         run: |
           SHA="${{ github.sha }}"
           COMMIT_INFO="Branch: ${{ github.ref_name }} | Author: ${{ github.actor }} | SHA: ${SHA:0:7}"
-          TEXT="🔴✅ Backend Deploy Successful ✅🔴\n${COMMIT_INFO}"
+          TEXT=$(printf '🔴✅ Backend Deploy Successful ✅🔴\n%s' "${COMMIT_INFO}")
           curl -s -X POST "https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage" \
             -d "chat_id=${BALE_CHAT_ID}" \
             --data-urlencode "text=${TEXT}" \
