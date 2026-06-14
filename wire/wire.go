@@ -24,6 +24,7 @@ import (
 	"github.com/Mahoura-shop/Backend/internal/infrastructure/seed"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/address"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/category"
+	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/health"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/coupon"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/currency"
 	"github.com/Mahoura-shop/Backend/internal/presentation/controller/v1/brand"
@@ -186,6 +187,7 @@ var GeneralControllerProviderSet = wire.NewSet(
 	review.NewGeneralReviewController,
 	test.NewGeneralTestController,
 	contact.NewGeneralContactController,
+	health.NewHealthController,
 	wire.Struct(new(GeneralControllers), "*"),
 )
 
@@ -354,6 +356,7 @@ type GeneralControllers struct {
 	ReviewController    *review.GeneralReviewController
 	TestController      *test.GeneralTestController
 	ContactController   *contact.GeneralContactController
+	HealthController    *health.HealthController
 }
 
 type CustomerControllers struct {

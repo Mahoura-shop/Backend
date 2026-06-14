@@ -3,12 +3,12 @@
 FROM golang:1.23.4-alpine AS builder
 
 # 1. Install necessary build tools
-RUN apk add --no-cache gcc musl-dev
+RUN apk add --no-cache gcc musl-dev git
 
 WORKDIR /app
 
 # 2. Set Go proxy (optional but good practice)
-RUN go env -w GOPROXY=https://goproxy.io,direct
+RUN go env -w GOPROXY=https://goproxy.cn,https://goproxy.io,off && go env -w GONOSUMDB="*" && go env -w GOFLAGS=-mod=mod
 
 # 3. Copy only dependency files first to leverage Docker cache
 COPY go.mod go.sum ./

@@ -209,6 +209,17 @@ func (s *OrderService) RegisterOrder(userID uint, req orderdto.CreateOrderReques
 		return 0, exception.NotFoundError{Item: s.constants.Field.CartItem}
 	}
 
+	if req.AddressID == nil {
+		return 0, exception.ForbiddenError{Message: "address is required"}
+	}
+	address, err := s.addressRepository.GetAddressByID(s.db, *req.AddressID)
+	if err != nil {
+		return 0, err
+	}
+	if address == nil || address.OwnerID != userID {
+		return 0, exception.NotFoundError{Item: s.constants.Field.Address}
+	}
+
 	var createdOrderID uint
 	err = s.db.WithTransaction(func(tx database.Database) error {
 		var totalAmount uint

@@ -52,4 +52,14 @@ func (log *LoggerMiddleware) GinLoggerMiddleware(c *gin.Context) {
 			logger.String("user-agent", c.Request.UserAgent()),
 		)
 	}
+
+	if latency > 500*time.Millisecond {
+		log.logger.Warn(
+			"Slow Request",
+			logger.String("method", c.Request.Method),
+			logger.String("path", path),
+			logger.Duration("latency", latency),
+			logger.Int("status", c.Writer.Status()),
+		)
+	}
 }
